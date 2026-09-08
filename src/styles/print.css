@@ -1,0 +1,178 @@
+/**
+ * Layout di Stampa A4 (@media print).
+ * Garantisce una stampa nitida in scala di grigi/bianco e nero senza spreco di inchiostro.
+ */
+
+/* Elemento visibile solo in stampa */
+.print-only-header {
+  display: none;
+}
+
+@media print {
+  /* Impostazione pagina A4 orizzontale */
+  @page {
+    size: A4 landscape;
+    margin: 8mm 10mm;
+  }
+
+  /* Reset globale sfondo e colori */
+  html, body, #app, .main-content {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    font-size: 11pt !important;
+    line-height: 1.2 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Nascondi tassativamente elementi interattivi e di navigazione */
+  .app-header,
+  .bottom-nav,
+  .search-container,
+  .quick-picks-bar,
+  .day-selector-container,
+  .banner-actions,
+  .schedule-list, /* Nascondi la lista mobile */
+  .toast-container,
+  .update-snackbar,
+  .modal-overlay,
+  .view-toggle-bar,
+  button,
+  .icon-btn,
+  .star-fav-btn,
+  #settingsModalOverlay {
+    display: none !important;
+  }
+
+  /* Mostra sempre l'intestazione di stampa formattata */
+  .print-only-header {
+    display: block !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .print-only-header .print-school-title {
+    font-size: 16pt !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .print-only-header .print-meta {
+    font-size: 9pt !important;
+    color: #333333 !important;
+    margin-top: 2px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  /* Stile banner attivo in stampa */
+  .active-view-banner {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 0 10px 0 !important;
+  }
+
+  .banner-entity-name {
+    color: #000000 !important;
+    font-size: 18pt !important;
+    font-weight: 800 !important;
+  }
+
+  .banner-type-badge {
+    color: #444444 !important;
+    font-size: 9pt !important;
+  }
+
+  /* Forza visualizzazione della griglia settimanale */
+  .weekly-grid-container {
+    display: block !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .weekly-grid {
+    display: grid !important;
+    grid-template-columns: 90px repeat(6, 1fr) !important;
+    gap: 0 !important;
+    min-width: 100% !important;
+    border: 1px solid #000000 !important;
+  }
+
+  /* Bordi netti e rimozione ombre/sfondi */
+  .grid-header-cell {
+    background: #f0f0f0 !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    font-weight: 700 !important;
+    font-size: 10pt !important;
+    padding: 6px 4px !important;
+    text-align: center !important;
+  }
+
+  .grid-time-cell {
+    background: #f8f8f8 !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    font-size: 9pt !important;
+    padding: 4px 2px !important;
+    text-align: center !important;
+  }
+
+  .grid-content-cell {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 6px !important;
+    min-height: 60px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .grid-subject {
+    color: #000000 !important;
+    font-weight: 800 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .grid-subtext {
+    color: #222222 !important;
+    font-size: 8.5pt !important;
+    margin-top: 2px !important;
+  }
+
+  /* Badge in scala di grigi pulita per la stampa */
+  .badge {
+    background: transparent !important;
+    color: #000000 !important;
+    border: 1px solid #666666 !important;
+    font-size: 7.5pt !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    box-shadow: none !important;
+  }
+
+  .badge svg {
+    display: none !important;
+  }
+
+  .grid-content-cell.is-disposizione {
+    background: #fafafa !important;
+    border: 1px dashed #000000 !important;
+  }
+}

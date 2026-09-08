@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="pelicanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+    <linearGradient id="beakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#F97316" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#0F172A" />
+  <circle cx="32" cy="32" r="26" stroke="url(#pelicanGrad)" stroke-width="2" stroke-dasharray="4 2" opacity="0.4"/>
+  <!-- Stylized Pelican & Schedule Motif -->
+  <path d="M22 44C22 44 24 38 28 36C32 34 38 34 42 30C46 26 46 20 42 16C39 13 33 13 30 16C28 18 27 21 27 25L23 25C23 19 25 14 30 11C35 8 43 8 48 13C52 17 52 25 46 32C42 36 36 37 32 39C29 40 27 44 27 44L22 44Z" fill="url(#pelicanGrad)"/>
+  <path d="M27 25C22 25 15 28 12 33C14 35 19 36 25 34C28 33 30 30 30 28L27 25Z" fill="url(#beakGrad)"/>
+  <circle cx="38" cy="18" r="2.5" fill="#FFFFFF"/>
+  <!-- Clock ticks -->
+  <circle cx="32" cy="50" r="3" fill="#6366F1"/>
+  <circle cx="44" cy="46" r="2" fill="#8B5CF6"/>
+</svg>

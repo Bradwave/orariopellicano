@@ -1,0 +1,28 @@
+{
+  "name": "Orario Pellicano • Consultazione Orario",
+  "short_name": "Orario Pellicano",
+  "description": "Consultazione orario scolastico mobile-first per classi, docenti e sostituzioni",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./public/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./public/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

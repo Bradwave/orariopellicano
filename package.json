@@ -1,0 +1,16 @@
+{
+  "name": "orario-pellicano",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SPA mobile-first per la consultazione dell'orario scolastico EDT Index Education",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "python3 -m http.server 3000"
+  },
+  "devDependencies": {
+    "vite": "^5.1.0"
+  }
+}
