@@ -1,21 +1,29 @@
 /**
- * Layout di Stampa A4 (@media print).
- * Garantisce una stampa nitida in scala di grigi/bianco e nero senza spreco di inchiostro.
+ * Layout di Stampa A4 Compatto (@media print).
+ * Garantisce che l'orario settimanale stia perfettamente su un SINGOLO FOGLIO A4 Orizzontale,
+ * con bordi netti, rimozione completa degli sfondi e tipografia calibrata.
  */
 
-/* Elemento visibile solo in stampa */
+/* Elemento visibile esclusivamente durante la stampa */
 .print-only-header {
   display: none;
 }
 
 @media print {
-  /* Impostazione pagina A4 orizzontale */
+  /* 1. Direttiva pagina A4 landscape con margini precisi a 10mm */
   @page {
     size: A4 landscape;
-    margin: 8mm 10mm;
+    margin: 10mm;
   }
 
-  /* Reset globale sfondo e colori */
+  /* 2. Reset globale: azzeramento sfondi, ombre e forzatura colore nero */
+  *, *::before, *::after {
+    background: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
   html, body, #app, .main-content {
     background: #ffffff !important;
     color: #000000 !important;
@@ -23,25 +31,26 @@
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: auto !important;
-    font-size: 11pt !important;
-    line-height: 1.2 !important;
+    height: auto !important;
+    font-size: 8pt !important;
+    line-height: 1.1 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Nascondi tassativamente elementi interattivi e di navigazione */
+  /* 3. Nascondi tassativamente tutti gli elementi interattivi, barre e navigazione */
   .app-header,
   .bottom-nav,
   .search-container,
   .quick-picks-bar,
   .day-selector-container,
   .banner-actions,
-  .schedule-list, /* Nascondi la lista mobile */
+  .schedule-list,
   .toast-container,
   .update-snackbar,
   .modal-overlay,
   .view-toggle-bar,
+  .material-symbols-outlined,
   button,
   .icon-btn,
   .star-fav-btn,
@@ -49,96 +58,121 @@
     display: none !important;
   }
 
-  /* Mostra sempre l'intestazione di stampa formattata */
+  /* 4. Intestazione compatta da stampa */
   .print-only-header {
     display: block !important;
-    padding-bottom: 8px !important;
-    margin-bottom: 12px !important;
-    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    border-bottom: 1.5px solid #000000 !important;
   }
 
   .print-only-header .print-school-title {
-    font-size: 16pt !important;
+    font-size: 11pt !important;
     font-weight: 800 !important;
     color: #000000 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.1 !important;
   }
 
   .print-only-header .print-meta {
-    font-size: 9pt !important;
-    color: #333333 !important;
+    font-size: 8pt !important;
+    color: #000000 !important;
     margin-top: 2px !important;
     display: flex !important;
     justify-content: space-between !important;
+    align-items: center !important;
+    line-height: 1.1 !important;
   }
 
-  /* Stile banner attivo in stampa */
+  /* Nascondi il banner UI standard su schermo in favore del print header */
   .active-view-banner {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 0 10px 0 !important;
+    display: none !important;
   }
 
-  .banner-entity-name {
-    color: #000000 !important;
-    font-size: 18pt !important;
-    font-weight: 800 !important;
-  }
-
-  .banner-type-badge {
-    color: #444444 !important;
-    font-size: 9pt !important;
-  }
-
-  /* Forza visualizzazione della griglia settimanale */
+  /* 5. Visualizzazione forzata della griglia settimanale */
   .weekly-grid-container {
     display: block !important;
     padding: 0 !important;
+    margin: 0 !important;
     overflow: visible !important;
     width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .weekly-grid {
     display: grid !important;
-    grid-template-columns: 90px repeat(6, 1fr) !important;
+    grid-template-columns: 65px repeat(6, 1fr) !important;
     gap: 0 !important;
     min-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
     border: 1px solid #000000 !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  /* Bordi netti e rimozione ombre/sfondi */
+  /* 6. Intestazioni colonne (Giorni e Ora) */
   .grid-header-cell {
-    background: #f0f0f0 !important;
+    background: #f2f2f2 !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    font-weight: 700 !important;
-    font-size: 10pt !important;
-    padding: 6px 4px !important;
+    font-weight: 800 !important;
+    font-size: 8.5pt !important;
+    padding: 3px 2px !important;
+    margin: 0 !important;
     text-align: center !important;
+    line-height: 1.1 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
+  /* 7. Colonna Ora scansione temporale */
   .grid-time-cell {
-    background: #f8f8f8 !important;
+    background: #fafafa !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    font-size: 9pt !important;
-    padding: 4px 2px !important;
+    font-size: 7.5pt !important;
+    padding: 2px !important;
+    margin: 0 !important;
     text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 1px !important;
+    line-height: 1.1 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
+  .grid-time-cell strong {
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+  }
+
+  /* 8. Celle contenuto lezioni */
   .grid-content-cell {
     background: #ffffff !important;
     color: #000000 !important;
     border: 1px solid #000000 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    padding: 6px !important;
-    min-height: 60px !important;
+    padding: 3px 4px !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: 1px !important;
+    line-height: 1.1 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -146,33 +180,42 @@
   .grid-subject {
     color: #000000 !important;
     font-weight: 800 !important;
-    font-size: 9.5pt !important;
-    line-height: 1.15 !important;
+    font-size: 8pt !important;
+    line-height: 1.1 !important;
   }
 
   .grid-subtext {
-    color: #222222 !important;
-    font-size: 8.5pt !important;
-    margin-top: 2px !important;
+    color: #111111 !important;
+    font-size: 7.5pt !important;
+    line-height: 1.1 !important;
   }
 
-  /* Badge in scala di grigi pulita per la stampa */
+  /* 9. Badges compatti per la stampa */
+  .badges-group {
+    margin-top: 1px !important;
+    gap: 2px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
   .badge {
     background: transparent !important;
     color: #000000 !important;
-    border: 1px solid #666666 !important;
-    font-size: 7.5pt !important;
-    padding: 1px 4px !important;
-    border-radius: 3px !important;
+    border: 0.5pt solid #444444 !important;
+    font-size: 6.5pt !important;
+    padding: 0 2px !important;
+    border-radius: 2px !important;
     box-shadow: none !important;
+    line-height: 1.1 !important;
   }
 
-  .badge svg {
+  .badge svg,
+  .badge .material-symbols-outlined {
     display: none !important;
   }
 
   .grid-content-cell.is-disposizione {
-    background: #fafafa !important;
+    background: #fdfdfd !important;
     border: 1px dashed #000000 !important;
   }
 }

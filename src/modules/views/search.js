@@ -97,14 +97,14 @@ export function setupUnifiedSearch({
     let html = '';
 
     if (classes.length > 0) {
-      html += `<div class="search-group-header">🏫 Classi</div>`;
+      html += `<div class="search-group-header"><span class="material-symbols-outlined" style="font-size: 16px;">school</span> Classi</div>`;
       classes.forEach((item, idx) => {
         html += renderSearchItem(item, idx);
       });
     }
 
     if (teachers.length > 0) {
-      html += `<div class="search-group-header">👨‍🏫 Docenti</div>`;
+      html += `<div class="search-group-header"><span class="material-symbols-outlined" style="font-size: 16px;">person</span> Docenti</div>`;
       teachers.forEach((item, idx) => {
         const globalIdx = classes.length + idx;
         html += renderSearchItem(item, globalIdx);
@@ -112,7 +112,7 @@ export function setupUnifiedSearch({
     }
 
     if (subjects.length > 0) {
-      html += `<div class="search-group-header">📚 Materie</div>`;
+      html += `<div class="search-group-header"><span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Materie</div>`;
       subjects.forEach((item, idx) => {
         const globalIdx = classes.length + teachers.length + idx;
         html += renderSearchItem(item, globalIdx);

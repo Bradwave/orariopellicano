@@ -92,7 +92,7 @@ export function exportScheduleToIcs({ title, type, scheduleData, timeSlots, days
         const dtend = formatIcsDateTime(baseDayDate, endMins);
 
         const uid = `orario-${type}-${encodeURIComponent(title)}-${day}-${slot.index}-${actIdx}-${startMins}@orariopellicano`;
-        const summary = act.isDisposizione ? '⚡ Disposizione per Sostituzioni' : (act.matNome || act.matCod);
+        const summary = act.isDisposizione ? 'Disposizione per Sostituzioni' : (act.matNome || act.matCod);
         
         let description = '';
         if (type === 'class') {

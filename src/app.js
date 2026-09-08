@@ -84,10 +84,14 @@ export function showToast(message, type = 'info', duration = 3500) {
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="font-size: 1.1rem;">${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+      <span class="material-symbols-outlined" style="font-size: 20px; color: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : 'var(--accent-primary)'};">
+        ${type === 'success' ? 'check_circle' : type === 'warning' ? 'warning' : 'info'}
+      </span>
       <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">${message}</span>
     </div>
-    <button style="color: var(--text-muted); font-size: 16px; padding: 2px;">&times;</button>
+    <button style="color: var(--text-muted); font-size: 16px; padding: 2px;">
+      <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+    </button>
   `;
 
   toast.querySelector('button').addEventListener('click', () => toast.remove());
@@ -115,7 +119,7 @@ function showUpdateSnackbar({ newXml, newHash }) {
   snackbar.id = 'updateSnackbar';
   snackbar.innerHTML = `
     <div class="snackbar-text-content">
-      <span style="font-size: 1.3rem;">📢</span>
+      <span class="material-symbols-outlined" style="font-size: 24px; color: #a5b4fc;">campaign</span>
       <div>
         <div class="snackbar-title">L'orario è stato aggiornato dalla segreteria</div>
         <div class="snackbar-sub">Nuova versione oraria disponibile per la consultazione</div>
@@ -186,7 +190,7 @@ function renderQuickPills() {
     pillsData = favs.map(f => ({
       type: f.type,
       id: f.id,
-      label: `⭐ ${f.id}`,
+      label: `<span class="material-symbols-outlined" style="font-size: 14px; vertical-align: -2px; margin-right: 2px;">star</span>${f.id}`,
       active: state.activeView === f.type && state.activeId === f.id
     }));
   } else {
@@ -416,8 +420,9 @@ function renderFavoritesView() {
     <div class="schedule-list">
       ${defaultPref ? `
         <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid var(--border-focus); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 8px;">
-          <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 4px;">
-            🏠 Vista Predefinita all'Avvio
+          <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 15px;">home</span>
+            Vista Predefinita all'Avvio
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <strong>${defaultPref.title || defaultPref.id}</strong>
@@ -430,7 +435,7 @@ function renderFavoritesView() {
 
       ${favs.length === 0 ? `
         <div class="state-container">
-          <div class="state-icon">⭐</div>
+          <div class="state-icon"><span class="material-symbols-outlined" style="font-size: 32px; color: var(--accent-primary);">star_outline</span></div>
           <div class="state-title">Nessun preferito salvato</div>
           <div class="state-desc">Usa il pulsante "Salva" o la stellina quando consulti una classe o un docente per aggiungerli qui.</div>
         </div>
@@ -585,7 +590,7 @@ async function loadFreshXml() {
     updateSyncStatus('offline', 'Offline');
     DOM.mainContainer.innerHTML = `
       <div class="state-container">
-        <div class="state-icon">❌</div>
+        <div class="state-icon"><span class="material-symbols-outlined" style="font-size: 36px; color: #ef4444;">error</span></div>
         <div class="state-title">Impossibile caricare l'orario</div>
         <div class="state-desc">${err.message}</div>
         <button class="btn-primary" onclick="window.location.reload()" style="max-width: 200px;">Riprova</button>

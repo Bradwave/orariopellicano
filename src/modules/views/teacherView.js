@@ -173,8 +173,8 @@ export function renderTeacherView({
               const isDisp = act.isDisposizione;
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''} ${isDisp ? 'is-disposizione' : ''}">
-                  <div class="grid-subject" style="${isDisp ? 'color: #fbbf24;' : ''}">
-                    ${isDisp ? '⚡ Disposizione' : (act.matNome || act.matCod)}
+                  <div class="grid-subject" style="${isDisp ? 'color: #fbbf24; display: flex; align-items: center; gap: 2px;' : ''}">
+                    ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 14px;">bolt</span> Disposizione' : (act.matNome || act.matCod)}
                   </div>
                   <div class="grid-subtext">
                     ${act.classeShort ? 'Classe ' + act.classeShort : (isDisp ? 'Sede' : '')}
@@ -339,8 +339,8 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
         </div>
 
         <div class="hour-card-body">
-          <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text);' : ''}">
-            ${isDisp ? '⚡ Disposizione per Sostituzioni' : (act.matNome || act.matCod)}
+          <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 4px;' : ''}">
+            ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span> Disposizione per Sostituzioni' : (act.matNome || act.matCod)}
           </div>
           <div class="subject-code">${isDisp ? 'Disponibile per supplenze' : act.matCod}</div>
         </div>

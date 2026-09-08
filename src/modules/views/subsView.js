@@ -40,8 +40,9 @@ export function renderSubsDashboard({
           Docenti con ora a DISPOSIZIONE pronti per coperture
         </span>
       </div>
-      <div class="badge badge-disposizione" style="font-size: 0.85rem; padding: 6px 12px;">
-        ⚡ ${availableTeachers.length} Disponibili
+      <div class="badge badge-disposizione" style="font-size: 0.85rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+        <span class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
+        ${availableTeachers.length} Disponibili
       </div>
     </div>
 

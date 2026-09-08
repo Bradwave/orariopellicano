@@ -24,7 +24,10 @@ export function renderRadarView({
     <!-- Header Banner Radar -->
     <div class="active-view-banner" style="background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, transparent 100%);">
       <div class="banner-entity-info">
-        <span class="banner-type-badge" style="color: #10b981;">🛰️ Live Tracker</span>
+        <span class="banner-type-badge" style="color: #10b981; display: inline-flex; align-items: center; gap: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">radar</span>
+          Live Tracker
+        </span>
         <h1 class="banner-entity-name">Radar Colleghi</h1>
         <span style="font-size: 0.82rem; color: var(--text-muted);">
           Individua all'istante la posizione e l'attività in corso dei docenti
@@ -133,11 +136,13 @@ export function renderRadarView({
 
         <!-- Azioni Rapide per Docente -->
         <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
-          <button id="radarViewScheduleBtn" class="btn-primary" style="flex: 2; padding: 10px 16px; font-size: 0.85rem;">
-            📅 Vedi Orario Completo
+          <button id="radarViewScheduleBtn" class="btn-primary" style="flex: 2; padding: 10px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">calendar_month</span>
+            Vedi Orario Completo
           </button>
-          <button id="radarShareBtn" class="btn-secondary" style="flex: 1; padding: 10px 14px; font-size: 0.85rem;" title="Condividi posizione live">
-            🔗 Condividi
+          <button id="radarShareBtn" class="btn-secondary" style="flex: 1; padding: 10px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" title="Condividi posizione live">
+            <span class="material-symbols-outlined" style="font-size: 18px;">share</span>
+            Condividi
           </button>
         </div>
       </div>

@@ -45,11 +45,11 @@ export function setupSettingsModal({
     if (statsContainer && dataset) {
       statsContainer.innerHTML = `
         <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-md); padding: 12px; font-size: 0.82rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px;">
-          <div>🏫 Classi caricate: <strong style="color: var(--text-primary);">${dataset.classes.length}</strong></div>
-          <div>👨‍🏫 Docenti caricati: <strong style="color: var(--text-primary);">${dataset.teachers.length}</strong></div>
-          <div>📚 Materie registrate: <strong style="color: var(--text-primary);">${dataset.subjects.length}</strong></div>
-          <div>⏱️ Fasce orarie: <strong style="color: var(--text-primary);">${dataset.timeSlots.length}</strong></div>
-          <div>📦 Attività totali indicizzate: <strong style="color: var(--text-primary);">${dataset.totalActivities || 0}</strong></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">school</span> Classi caricate: <strong style="color: var(--text-primary);">${dataset.classes.length}</strong></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">person</span> Docenti caricati: <strong style="color: var(--text-primary);">${dataset.teachers.length}</strong></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Materie registrate: <strong style="color: var(--text-primary);">${dataset.subjects.length}</strong></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">schedule</span> Fasce orarie: <strong style="color: var(--text-primary);">${dataset.timeSlots.length}</strong></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span> Attività totali indicizzate: <strong style="color: var(--text-primary);">${dataset.totalActivities || 0}</strong></div>
           <div style="margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-muted);">
             Ultimo Sync: <strong>${lastSync ? lastSync.toLocaleString('it-IT') : 'Dataset locale iniziale'}</strong>
             <br>Versione Hash: <code>${hash || 'locale'}</code>
@@ -60,8 +60,8 @@ export function setupSettingsModal({
 
     if (themeToggleBtn) {
       themeToggleBtn.innerHTML = currentTheme === 'dark' 
-        ? '<span>☀️ Attiva Tema Chiaro</span>' 
-        : '<span>🌙 Attiva Tema Scuro</span>';
+        ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Attiva Tema Chiaro</span>' 
+        : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Attiva Tema Scuro</span>';
     }
   }
 

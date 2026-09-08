@@ -968,11 +968,32 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* Weekly Grid for Desktop & Tablet */
+/* Material Symbols Outlined Helper */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+}
+
+/* Weekly Grid for Desktop, Tablet & Mobile Horizontal Scroll */
 .weekly-grid-container {
   display: none;
-  padding: 16px calc(var(--bottom-nav-height) + 24px);
+  padding: 16px 16px calc(var(--bottom-nav-height) + 64px) 16px;
   overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 @media (min-width: 900px) {
@@ -989,6 +1010,7 @@
   grid-template-columns: 80px repeat(6, 1fr);
   gap: 8px;
   min-width: 820px;
+  margin-bottom: 32px;
 }
 
 .grid-header-cell {

@@ -51,8 +51,9 @@ export function renderSubjectView({
     <div style="padding: 16px 16px 8px 16px; display: flex; flex-direction: column; gap: 12px;">
       <!-- Docenti che insegnano la materia -->
       <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 14px 16px;">
-        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
-          👨‍🏫 Docenti del dipartimento (${sortedTeachers.length})
+        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
+          Docenti del dipartimento (${sortedTeachers.length})
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
           ${sortedTeachers.map(([tId, tName]) => `
@@ -65,8 +66,9 @@ export function renderSubjectView({
 
       <!-- Classi coinvolte -->
       <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 14px 16px;">
-        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
-          🏫 Classi (${sortedClasses.length})
+        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">school</span>
+          Classi (${sortedClasses.length})
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
           ${sortedClasses.map(cls => `
