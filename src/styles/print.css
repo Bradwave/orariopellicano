@@ -54,6 +54,7 @@
   button,
   .icon-btn,
   .star-fav-btn,
+  .grid-scrollbar-top,
   #settingsModalOverlay {
     display: none !important;
   }

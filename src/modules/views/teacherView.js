@@ -11,6 +11,7 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
+import { copyScheduleAsText, exportScheduleAsImage } from '../exportManager.js';
 import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo } from '../colors.js';
 
 export function renderTeacherView({
@@ -67,9 +68,6 @@ export function renderTeacherView({
     <div class="active-view-banner">
       <div class="banner-title-group">
         <h1 class="banner-entity-name">${teacher.displayName}</h1>
-        <span class="banner-meta-chip">
-          ${totalHours} ore (${disposizioniCount} a disp.)
-        </span>
       </div>
       
       <div class="banner-actions">
@@ -84,6 +82,19 @@ export function renderTeacherView({
             <span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
           </button>
           <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
+            <div class="actions-dropdown-header">
+              <div class="dropdown-header-stat">
+                <span class="material-symbols-outlined" style="font-size: 15px; color: var(--accent-primary);">schedule</span>
+                <span><strong>${totalHours}</strong> ore</span>
+              </div>
+              ${disposizioniCount > 0 ? `
+                <div class="dropdown-header-stat" style="color: var(--badge-disposizione-text);">
+                  <span class="material-symbols-outlined" style="font-size: 15px;">swap_horiz</span>
+                  <span><strong>${disposizioniCount}</strong> a disposizione</span>
+                </div>
+              ` : ''}
+            </div>
+            <div class="actions-dropdown-divider"></div>
             <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
               <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
               <span>Radar Colleghi</span>
@@ -91,6 +102,14 @@ export function renderTeacherView({
             <button class="dropdown-item-btn" id="teacherShareBtn">
               <span class="material-symbols-outlined">share</span>
               <span>Condividi link</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherCopyTextBtn">
+              <span class="material-symbols-outlined">content_copy</span>
+              <span>Copia testo orario</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherExportImgBtn">
+              <span class="material-symbols-outlined">image</span>
+              <span>Esporta immagine PNG</span>
             </button>
             <button class="dropdown-item-btn" id="teacherExportIcsBtn">
               <span class="material-symbols-outlined">calendar_month</span>
@@ -105,20 +124,6 @@ export function renderTeacherView({
       </div>
     </div>
 
-    <!-- View Mode Toggle Bar (Lista vs Settimana) -->
-    <div class="view-toggle-bar">
-      <div class="view-mode-selector">
-        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
-          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
-          Lista
-        </button>
-        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
-          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
-          Settimana
-        </button>
-      </div>
-    </div>
-
     <!-- Day Selector Pills (Attivo solo in List View) -->
     ${viewMode === 'list' ? `
       <div class="day-selector-container">
@@ -129,7 +134,6 @@ export function renderTeacherView({
             return `
               <button class="day-pill-btn ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${day}">
                 <span class="day-short">${day.substring(0, 3)}</span>
-                <span class="day-indicator"></span>
               </button>
             `;
           }).join('')}
@@ -139,7 +143,7 @@ export function renderTeacherView({
 
     <!-- 1. Mobile-First Card Schedule List (Mostrata solo se viewMode === 'list') -->
     ${viewMode === 'list' ? `
-      <div class="schedule-list">
+      <div class="schedule-list" id="teacherScheduleList">
         ${renderTeacherDayCards({
           timeSlots: dataset.timeSlots,
           daySchedule: scheduleForTeacher[currentDay] || {},
@@ -149,6 +153,11 @@ export function renderTeacherView({
         })}
       </div>
     ` : ''}
+
+    <!-- Top Horizontal Scrollbar per Griglia Settimanale -->
+    <div class="grid-scrollbar-top ${viewMode === 'weekly' ? 'visible' : ''}" id="teacherGridScrollTop">
+      <div class="grid-scrollbar-track"></div>
+    </div>
 
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''}" id="teacherWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
@@ -175,18 +184,18 @@ export function renderTeacherView({
               const isDisp = act.isDisposizione;
               const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
               const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
-              const classInfo = act.classeShort ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
-              const classLabel = act.classeShort || (isDisp ? '(Supplenze)' : '');
+              const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
+              const classLabel = isDisp ? '' : (act.classeShort || '');
               const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
                   <div class="grid-cell-top">
                     <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
-                    <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>
+                    ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
                   </div>
                   <div class="grid-cell-bottom">
-                    ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
-                    ${renderLocationBadge(act.sede, '')}
+                    ${(!isDisp && act.aula) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
+                    ${(!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : ''}
                   </div>
                 </div>
               `;
@@ -196,7 +205,59 @@ export function renderTeacherView({
         }).join('')}
       </div>
     </div>
+
+    <!-- Floating View Mode Toggle (Centrato sopra la bottom nav) -->
+    <div class="floating-view-toggle">
+      <div class="view-mode-selector floating">
+        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
+          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
+          Lista
+        </button>
+        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
+          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
+          Settimana
+        </button>
+      </div>
+    </div>
   `;
+
+  // Sincronizzazione scroll orizzontale fluida tra la scrollbar superiore e la griglia
+  const gridContainer = container.querySelector('#teacherWeeklyGrid');
+  const gridScrollTop = container.querySelector('#teacherGridScrollTop');
+  if (gridContainer && gridScrollTop) {
+    const updateTrackWidth = () => {
+      const grid = gridContainer.querySelector('.weekly-grid');
+      const track = gridScrollTop.querySelector('.grid-scrollbar-track');
+      if (grid && track) {
+        track.style.width = grid.scrollWidth + 'px';
+      }
+    };
+    updateTrackWidth();
+
+    let rafId = null;
+    let activeScroller = null;
+
+    gridContainer.addEventListener('pointerdown', () => { activeScroller = 'container'; }, { passive: true });
+    gridScrollTop.addEventListener('pointerdown', () => { activeScroller = 'top'; }, { passive: true });
+
+    gridContainer.addEventListener('scroll', () => {
+      if (activeScroller === 'top') return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        gridScrollTop.scrollLeft = gridContainer.scrollLeft;
+      });
+    }, { passive: true });
+
+    gridScrollTop.addEventListener('scroll', () => {
+      if (activeScroller === 'container') return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        gridContainer.scrollLeft = gridScrollTop.scrollLeft;
+      });
+    }, { passive: true });
+
+    window.addEventListener('pointerup', () => { activeScroller = null; }, { passive: true });
+  }
 
   // Listener Toggle View Mode
   const listBtn = container.querySelector('#modeListBtn');
@@ -275,6 +336,42 @@ export function renderTeacherView({
       });
       if (res.success && res.method === 'clipboard' && onShowToast) {
         onShowToast(`Link docente ${teacher.displayName} copiato!`, 'success');
+      }
+    });
+  }
+
+  // Listener Copia Testo
+  const copyTextBtn = container.querySelector('#teacherCopyTextBtn');
+  if (copyTextBtn) {
+    copyTextBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const ok = await copyScheduleAsText({
+        title: teacher.displayName,
+        type: 'teacher',
+        scheduleData: scheduleForTeacher,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (ok && onShowToast) {
+        onShowToast(`Orario di ${teacher.displayName} copiato!`, 'success');
+      }
+    });
+  }
+
+  // Listener Esporta Immagine PNG
+  const exportImgBtn = container.querySelector('#teacherExportImgBtn');
+  if (exportImgBtn) {
+    exportImgBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const filename = await exportScheduleAsImage({
+        title: `Docente ${teacher.displayName}`,
+        type: 'teacher',
+        scheduleData: scheduleForTeacher,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (filename && onShowToast) {
+        onShowToast(`Immagine ${filename} scaricata!`, 'success');
       }
     });
   }
@@ -359,7 +456,7 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
               <span class="slot-time">${slot.timeFormatted}</span>
             </div>
           </div>
-          <div class="empty-hour-text">Nessun impegno scolastico (Ora Libera)</div>
+          <div class="empty-hour-text">Ora libera</div>
         </div>
       `);
       continue;
@@ -389,8 +486,11 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
     const isCurrent = isTodayActive && (currentSlotIndex >= slot.index && currentSlotIndex <= endSlot.index);
 
     const subjectColor = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
-    const cleanName = isDisp ? 'Disposizione per Sostituzioni' : cleanSubjectName(act.matNome || act.matCod);
-    const durationLabel = formatDurationLabel(act.durata, span);
+    const cleanName = isDisp ? 'Disposizione per sostituzioni' : cleanSubjectName(act.matNome || act.matCod);
+    const hasLocation = Boolean(act.aula || (act.sede && act.sede !== 'DISPOSIZIONE'));
+    const locationBadges = (!isDisp && hasLocation) ? renderLocationBadge(act.sede, act.aula) : '';
+    const coDocenzaBadges = act.isCoDocenza ? renderCoDocenzaBadge(['Co-docente']) : '';
+    const hasFooter = Boolean(locationBadges || coDocenzaBadges);
 
     renderedHtml.push(`
       <div class="hour-card ${isDisp ? 'is-disposizione' : ''} ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
@@ -406,34 +506,41 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
             <span class="slot-number">${slotLabel}</span>
             <span class="slot-time">${timeLabel}</span>
           </div>
-          <div class="slot-duration">${durationLabel}</div>
+          ${act.classeShort ? (() => {
+            const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
+            return `
+              <span class="class-chip card-mobile-tag" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
+                ${act.classeShort}
+              </span>
+            `;
+          })() : ''}
         </div>
 
         <div class="hour-card-body">
-          <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 6px;' : ''}">
-            ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>' : ''}
-            ${cleanName}
-          </div>
-        </div>
-
-        <div class="hour-card-footer">
-          <div>
+          <div class="subject-row">
+            <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 6px;' : ''}">
+              ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>' : ''}
+              ${cleanName}
+            </div>
             ${act.classeShort ? (() => {
               const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
               return `
-                <span class="class-chip" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
-                  Classe ${act.classeShort}
+                <span class="class-chip card-desktop-tag" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
+                  ${act.classeShort}
                 </span>
               `;
             })() : ''}
           </div>
-
-          <div class="badges-group">
-            ${act.isCoDocenza ? renderCoDocenzaBadge(['Co-docente']) : ''}
-            ${renderLocationBadge(act.sede, act.aula)}
-          </div>
         </div>
+
+        ${hasFooter ? `
+          <div class="hour-card-footer">
+            <div class="badges-group" style="margin-left: auto;">
+              ${coDocenzaBadges}
+              ${locationBadges}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `);
   }

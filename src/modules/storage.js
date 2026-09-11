@@ -12,7 +12,8 @@ const STORAGE_KEYS = {
   DEFAULT_VIEW: 'orario_pellicano_default_view',
   FAVORITES: 'orario_pellicano_favorites',
   PROXY_URL: 'orario_pellicano_proxy_url',
-  THEME: 'orario_pellicano_theme'
+  THEME: 'orario_pellicano_theme',
+  VIEW_MODE: 'orario_pellicano_view_mode'
 };
 
 export const DEFAULT_PROXY_URL = 'https://proxy-orario-pellicano.[inserisci-qui-il-tuo-account].workers.dev';
@@ -175,5 +176,26 @@ export function setTheme(theme) {
   try {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
     applyThemeVariables(theme);
+  } catch (e) {}
+}
+
+/**
+ * Recupera la preferenza della modalità di visualizzazione ('list' o 'weekly').
+ */
+export function getViewModePreference() {
+  try {
+    const val = localStorage.getItem(STORAGE_KEYS.VIEW_MODE);
+    return val === 'weekly' ? 'weekly' : 'list';
+  } catch (e) {
+    return 'list';
+  }
+}
+
+/**
+ * Salva la preferenza della modalità di visualizzazione.
+ */
+export function setViewModePreference(mode) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode === 'weekly' ? 'weekly' : 'list');
   } catch (e) {}
 }

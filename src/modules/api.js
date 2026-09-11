@@ -21,14 +21,19 @@ export const FALLBACK_XML_PATH = './public/default-schedule.xml';
  * La chiamata è una Simple Request (nessun header custom) per garantire compatibilità CORS al 100%.
  */
 export async function fetchRemoteScheduleXml() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
     const res = await fetch(PRIMARY_PROXY_URL, {
       method: 'GET',
       cache: 'no-store', // Dice al browser locale di richiedere la versione fresca a Cloudflare
       headers: {
         'Accept': 'application/xml, text/xml, */*'
-      }
+      },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Server proxy (${res.status} ${res.statusText || 'Offline'})`);
@@ -41,6 +46,10 @@ export async function fetchRemoteScheduleXml() {
       throw new Error('Risposta del server priva di dati orario validi');
     }
   } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Timeout connessione (8s)');
+    }
     throw err;
   }
 }

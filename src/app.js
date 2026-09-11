@@ -15,7 +15,9 @@ import {
   toggleFavorite,
   isFavorite,
   getTheme,
-  setTheme
+  setTheme,
+  getViewModePreference,
+  setViewModePreference
 } from './modules/storage.js';
 import { fetchScheduleXml, checkBackgroundUpdate } from './modules/api.js';
 import { startTimeWatcher } from './modules/time.js';
@@ -35,7 +37,7 @@ const state = {
   activeView: 'class', // 'class' | 'teacher' | 'subject' | 'subs' | 'radar' | 'favorites'
   activeId: null,
   activeDay: null,
-  viewMode: 'list',    // 'list' | 'weekly'
+  viewMode: getViewModePreference(),    // 'list' | 'weekly' persistito
   subsDay: null,
   subsSlot: 1,
   radarTeacherId: null,
@@ -49,8 +51,9 @@ const DOM = {
   quickPillsBar: document.getElementById('quickPillsBar'),
   bottomNav: document.getElementById('bottomNav'),
   syncStatusBadge: document.getElementById('syncStatusBadge'),
-  syncStatusText: document.getElementById('syncStatusText'),
-  syncDot: document.getElementById('syncDot'),
+  syncIcon: document.getElementById('syncIcon'),
+  favsDropdownToggleBtn: document.getElementById('favsDropdownToggleBtn'),
+  favsChevron: document.getElementById('favsChevron'),
   toastContainer: document.getElementById('toastContainer'),
   settingsModalOverlay: document.getElementById('settingsModalOverlay'),
   settingsBtn: document.getElementById('settingsBtn')
@@ -107,111 +110,52 @@ export function showToast(message, type = 'info', duration = 3500) {
 }
 
 /**
- * Mostra la snackbar persistente di notifica aggiornamento segreteria con "Applica modifiche".
+ * Aggiorna il badge dello stato di sincronizzazione nell'header con Material Symbol.
  */
-function showUpdateSnackbar({ newXml, newHash }) {
-  state.pendingUpdate = { newXml, newHash };
+function updateSyncStatus(status, tooltipText) {
+  if (DOM.syncStatusBadge) {
+    DOM.syncStatusBadge.className = 'sync-status-badge ' + status;
+    DOM.syncStatusBadge.title = tooltipText || 'Stato sincronizzazione orario';
+  }
 
-  // Evita duplicati se già visibile
-  if (document.getElementById('updateSnackbar')) return;
+  if (DOM.syncIcon) {
+    DOM.syncIcon.className = 'material-symbols-outlined sync-icon ' + status;
+    if (status === 'syncing') {
+      DOM.syncIcon.textContent = 'sync';
+    } else if (status === 'error') {
+      DOM.syncIcon.textContent = 'sync_problem';
+    } else if (status === 'offline') {
+      DOM.syncIcon.textContent = 'cloud_off';
+    } else if (status === 'online') {
+      DOM.syncIcon.textContent = 'cloud_done';
+    }
+  }
 
-  const snackbar = document.createElement('div');
-  snackbar.className = 'update-snackbar';
-  snackbar.id = 'updateSnackbar';
-  snackbar.innerHTML = `
-    <div class="snackbar-text-content">
-      <span class="material-symbols-outlined" style="font-size: 24px; color: #a5b4fc;">campaign</span>
-      <div>
-        <div class="snackbar-title">L'orario è stato aggiornato dalla segreteria</div>
-        <div class="snackbar-sub">Nuova versione oraria disponibile per la consultazione</div>
-      </div>
-    </div>
-    <button class="snackbar-apply-btn" id="applyUpdateBtn">
-      Applica modifiche
-    </button>
-  `;
-
-  document.body.appendChild(snackbar);
-
-  snackbar.querySelector('#applyUpdateBtn').addEventListener('click', () => {
-    applyPendingUpdate();
-  });
-}
-
-/**
- * Applica le modifiche dell'orario aggiornato e ri-renderizza il DOM.
- */
-function applyPendingUpdate() {
-  if (!state.pendingUpdate) return;
-  const { newXml, newHash } = state.pendingUpdate;
-
-  try {
-    saveXmlCache(newXml, newHash);
-    state.dataset = parseEDTXml(newXml);
-    updateSyncStatus('online', 'Orario aggiornato');
-
-    const snackbar = document.getElementById('updateSnackbar');
-    if (snackbar) snackbar.remove();
-    state.pendingUpdate = null;
-
-    showToast('Nuovo orario applicato con successo!', 'success');
-    renderCurrentView();
-    renderQuickPills();
-    if (settingsModal) settingsModal.updateStats();
-  } catch (err) {
-    console.error('Errore applicazione nuovo orario:', err);
-    showToast('Errore durante l\'aggiornamento dell\'orario', 'warning');
+  if (settingsModal && settingsModal.setSyncStatus) {
+    settingsModal.setSyncStatus(status, null, tooltipText);
   }
 }
 
 /**
- * Aggiorna il badge dello stato di sincronizzazione nell'header.
- */
-function updateSyncStatus(status, text) {
-  if (!DOM.syncStatusBadge) return;
-  DOM.syncStatusText.textContent = text;
-  DOM.syncDot.className = 'sync-dot';
-  DOM.syncStatusBadge.className = 'sync-status-badge';
-
-  if (status === 'syncing') {
-    DOM.syncDot.classList.add('syncing');
-    DOM.syncStatusBadge.classList.add('syncing');
-  } else if (status === 'error') {
-    DOM.syncDot.classList.add('error');
-    DOM.syncStatusBadge.classList.add('error');
-  } else if (status === 'offline') {
-    DOM.syncDot.classList.add('offline');
-    DOM.syncStatusBadge.classList.add('offline');
-  } else if (status === 'online') {
-    DOM.syncDot.classList.add('online');
-    DOM.syncStatusBadge.classList.add('online');
-  }
-}
-
-/**
- * Renderizza i Quick Pills (classi rapide o preferiti) sotto la search bar.
+ * Renderizza i Quick Pills (preferiti) nel dropdown sotto la search bar.
  */
 function renderQuickPills() {
   if (!DOM.quickPillsBar || !state.dataset) return;
   const favs = getFavorites();
 
-  let pillsData = [];
-  if (favs.length > 0) {
-    pillsData = favs.map(f => ({
-      type: f.type,
-      id: f.id,
-      label: `<span class="material-symbols-outlined" style="font-size: 14px; vertical-align: -2px; margin-right: 2px;">star</span>${f.id}`,
-      active: state.activeView === f.type && state.activeId === f.id
-    }));
-  } else {
-    // Prime 8 classi più frequenti come scorciatoie
-    pillsData = state.dataset.classes.slice(0, 8).map(c => ({
-      type: 'class',
-      id: c.short,
-      label: c.short,
-      active: state.activeView === 'class' && state.activeId === c.short
-    }));
+  if (favs.length === 0) {
+    DOM.quickPillsBar.innerHTML = `
+      <span class="quick-pills-empty">Nessun preferito salvato. Aggiungi con la stella ⭐</span>
+    `;
+    return;
   }
+
+  const pillsData = favs.map(f => ({
+    type: f.type,
+    id: f.id,
+    label: `<span class="material-symbols-outlined" style="font-size: 14px; vertical-align: -2px; margin-right: 3px;">star</span>${f.id}`,
+    active: state.activeView === f.type && state.activeId === f.id
+  }));
 
   DOM.quickPillsBar.innerHTML = pillsData.map(p => `
     <button class="quick-pill ${p.active ? 'active' : ''}" data-type="${p.type}" data-id="${p.id}">
@@ -246,6 +190,9 @@ export function navigateTo(viewType, id = null, day = null) {
     }
   }
 
+  const previousView = state.activeView;
+  const previousId = state.activeId;
+
   state.activeView = targetView;
   if (day) state.activeDay = day;
 
@@ -271,9 +218,17 @@ export function navigateTo(viewType, id = null, day = null) {
     if (!isValid) {
       targetId = state.dataset?.subjects?.[0]?.code || '';
     }
-    state.activeId = targetId;
   } else if (targetView === 'radar') {
-    if (id) state.radarTeacherId = id;
+    if (id) {
+      state.radarTeacherId = id;
+    } else if (previousView === 'teacher' && previousId) {
+      // Se nella vista orario era selezionato un docente, usalo come punto di partenza
+      state.radarTeacherId = previousId;
+    } else if (state.lastTeacherId) {
+      state.radarTeacherId = state.lastTeacherId;
+    } else {
+      state.radarTeacherId = null;
+    }
   } else {
     if (id) state.activeId = id;
   }
@@ -291,7 +246,7 @@ function updateBottomNavHighlight() {
   const isScheduleView = ['class', 'teacher', 'subject'].includes(state.activeView);
   DOM.bottomNav.querySelectorAll('.nav-item-btn').forEach(btn => {
     const target = btn.getAttribute('data-nav');
-    const isActive = (target === 'class' && isScheduleView) || target === state.activeView;
+    const isActive = ((target === 'schedule' || target === 'class') && isScheduleView) || target === state.activeView;
     if (isActive) {
       btn.classList.add('active');
     } else {
@@ -325,6 +280,7 @@ function renderCurrentView() {
           renderCurrentView();
         },
         onViewModeChange: (mode) => {
+          setViewModePreference(mode);
           state.viewMode = mode;
           renderCurrentView();
         },
@@ -363,6 +319,7 @@ function renderCurrentView() {
           renderCurrentView();
         },
         onViewModeChange: (mode) => {
+          setViewModePreference(mode);
           state.viewMode = mode;
           renderCurrentView();
         },
@@ -451,12 +408,8 @@ function renderFavoritesView() {
 
   DOM.mainContainer.innerHTML = `
     <div class="active-view-banner">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge">Segnalibri</span>
-        <h1 class="banner-entity-name">I Tuoi Preferiti</h1>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">
-          Accesso rapido a classi e docenti salvati
-        </span>
+      <div class="banner-title-group">
+        <h1 class="banner-entity-name">I tuoi preferiti</h1>
       </div>
     </div>
 
@@ -661,7 +614,9 @@ function initializeUI() {
     modalOverlay: DOM.settingsModalOverlay,
     dataset: state.dataset,
     onSyncRequest: () => {
-      loadFreshXml();
+      updateSyncStatus('syncing', 'Verifica in corso...');
+      showToast('Controllo aggiornamenti orario in corso...', 'info', 2000);
+      runBackgroundSync(true);
     },
     onResetCache: () => {
       localStorage.clear();
@@ -675,10 +630,30 @@ function initializeUI() {
     });
   }
 
+  // Toggle a scomparsa della barra preferiti
+  if (DOM.favsDropdownToggleBtn && DOM.quickPillsBar) {
+    DOM.favsDropdownToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = DOM.quickPillsBar.classList.toggle('open');
+      DOM.favsDropdownToggleBtn.classList.toggle('open', isOpen);
+      DOM.favsDropdownToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      try {
+        localStorage.setItem('orario_pellicano_favs_open', isOpen ? 'true' : 'false');
+      } catch (_) {}
+    });
+
+    const wasOpen = localStorage.getItem('orario_pellicano_favs_open') === 'true';
+    if (wasOpen) {
+      DOM.quickPillsBar.classList.add('open');
+      DOM.favsDropdownToggleBtn.classList.add('open');
+      DOM.favsDropdownToggleBtn.setAttribute('aria-expanded', 'true');
+    }
+  }
+
   // Tocco sul badge di sincronizzazione per forzare un controllo manuale
   if (DOM.syncStatusBadge) {
     DOM.syncStatusBadge.addEventListener('click', () => {
-      updateSyncStatus('syncing', 'Verifica...');
+      updateSyncStatus('syncing', 'Verifica in corso...');
       showToast('Controllo aggiornamenti orario in corso...', 'info', 2000);
       runBackgroundSync(true);
     });
@@ -701,19 +676,27 @@ function initializeUI() {
 }
 
 /**
- * Esegue il silent background sync con notifica non distruttiva tramite snackbar.
+ * Esegue il silent background sync con notifica non bloccante a tema.
  */
 function runBackgroundSync(isManual = false) {
   checkBackgroundUpdate({
     onUpdateAvailable: ({ newXml, newHash }) => {
-      showUpdateSnackbar({ newXml, newHash });
-      updateSyncStatus('syncing', 'Nuova versione');
+      try {
+        saveXmlCache(newXml, newHash);
+        state.dataset = parseEDTXml(newXml);
+        updateSyncStatus('online', 'Orario sincronizzato con il server');
+        renderCurrentView();
+        renderQuickPills();
+        if (settingsModal) settingsModal.updateStats();
+        showToast('Orario aggiornato all\'ultima versione dalla segreteria', 'info', 3500);
+      } catch (err) {
+        console.error('Errore aggiornamento automatico orario:', err);
+        updateSyncStatus('error', 'Errore applicazione orario');
+      }
     },
     onNoChange: () => {
-      updateSyncStatus('online', 'Orario sincronizzato');
-      if (DOM.syncStatusBadge) {
-        DOM.syncStatusBadge.title = 'Orario sincronizzato con il server remoto. Tocca per verificare.';
-      }
+      updateSyncStatus('online', 'Orario sincronizzato con il server');
+      if (settingsModal) settingsModal.updateStats();
       if (isManual) {
         showToast('Orario verificato: versione sincronizzata!', 'success', 2500);
       }
@@ -727,10 +710,7 @@ function runBackgroundSync(isManual = false) {
         label = 'Dispositivo offline';
       }
       updateSyncStatus('error', label);
-
-      if (DOM.syncStatusBadge) {
-        DOM.syncStatusBadge.title = `Sincronizzazione non riuscita: ${err.message}. Mostrati dati in cache. Tocca per riprovare.`;
-      }
+      if (settingsModal) settingsModal.updateStats();
 
       if (isManual) {
         showToast(`Impossibile sincronizzare: ${err.message}`, 'warning', 4000);

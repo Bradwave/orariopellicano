@@ -34,6 +34,11 @@
     <!-- Search Bar Unificata con Sync Badge Integrato (Header rimosso per massima compattezza) -->
     <div class="search-container" id="searchContainer">
       <div class="search-bar-row">
+        <!-- Sync Status Badge (Quadrato a sinistra con icona Material Symbols) -->
+        <button class="sync-status-badge syncing" id="syncStatusBadge" title="Tocca per verificare aggiornamenti">
+          <span class="material-symbols-outlined sync-icon syncing" id="syncIcon">sync</span>
+        </button>
+
         <div class="unified-search-box">
           <span class="material-symbols-outlined search-icon-left" style="font-size: 18px;">search</span>
           <input type="text" id="unifiedSearchInput" class="search-input"
@@ -44,19 +49,18 @@
           </button>
         </div>
 
-        <!-- Sync Status Badge (Inizializzato in stato di verifica giallo) -->
-        <button class="sync-status-badge syncing" id="syncStatusBadge" title="Tocca per verificare aggiornamenti">
-          <span class="sync-dot syncing" id="syncDot"></span>
-          <span id="syncStatusText" class="sync-status-text">Verifica...</span>
+        <!-- Dropdown Preferiti Toggle (Chevron essenziale senza bordi a destra) -->
+        <button class="favs-dropdown-toggle-btn" id="favsDropdownToggleBtn" title="Mostra/nascondi preferiti" aria-label="Mostra/nascondi preferiti" aria-expanded="false">
+          <span class="material-symbols-outlined favs-chevron" id="favsChevron">expand_more</span>
         </button>
       </div>
+
+      <!-- Quick Filter Pills (Preferiti a comparsa / dropdown) -->
+      <div class="quick-picks-bar" id="quickPillsBar"></div>
 
       <!-- Autocomplete Dropdown -->
       <div class="search-results-dropdown" id="searchResultsDropdown"></div>
     </div>
-
-    <!-- Quick Filter Pills (Classi rapide / Preferiti) -->
-    <div class="quick-picks-bar" id="quickPillsBar"></div>
 
     <!-- Main Dynamic Content (Viste SPA) -->
     <main class="main-content" id="mainContent">
@@ -68,36 +72,31 @@
 
     <!-- Bottom Navigation Bar (Ergonomica a una mano) -->
     <nav class="bottom-nav" id="bottomNav">
-      <button class="nav-item-btn active" data-nav="class" title="Orario Classi">
+      <button class="nav-item-btn active" data-nav="schedule" title="Orario" aria-label="Orario">
         <span class="material-symbols-outlined">calendar_today</span>
-        <span>Orario</span>
       </button>
 
-      <button class="nav-item-btn" data-nav="radar" title="Radar Colleghi Live Tracker">
+      <button class="nav-item-btn" data-nav="radar" title="Radar docenti" aria-label="Radar">
         <span class="material-symbols-outlined">radar</span>
-        <span>Radar</span>
       </button>
 
-      <button class="nav-item-btn" data-nav="subs" title="Dashboard Sostituzioni">
+      <button class="nav-item-btn" data-nav="subs" title="Dashboard sostituzioni" aria-label="Sostituzioni">
         <span class="material-symbols-outlined">swap_horiz</span>
-        <span>Sostituzioni</span>
       </button>
 
-      <button class="nav-item-btn" data-nav="favorites" title="Preferiti Salvati">
+      <button class="nav-item-btn" data-nav="favorites" title="Preferiti salvati" aria-label="Preferiti">
         <span class="material-symbols-outlined">star</span>
-        <span>Preferiti</span>
       </button>
 
-      <button class="nav-item-btn" data-nav="settings" title="Impostazioni">
+      <button class="nav-item-btn" data-nav="settings" title="Impostazioni" aria-label="Impostazioni">
         <span class="material-symbols-outlined">settings</span>
-        <span>Impostazioni</span>
       </button>
     </nav>
 
     <!-- Container Toast Notifiche -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Modal Impostazioni & Informazioni -->
+    <!-- Modal Impostazioni & Informazioni Semplificato -->
     <div class="modal-overlay" id="settingsModalOverlay">
       <div class="modal-content">
         <div class="modal-header">
@@ -110,30 +109,33 @@
           </button>
         </div>
 
-        <div style="margin-bottom: 20px;">
-          <label class="form-label">Sincronizzazione & Cache</label>
-          <div style="display: flex; gap: 8px; margin-top: 6px;">
-            <button class="btn-primary" id="modalSyncBtn" style="flex: 1;">
-              <span class="material-symbols-outlined" style="font-size: 18px;">sync</span>
-              Sincronizza Ora
+        <!-- Sincronizzazione compatta con Sync Badge + Descrittore + Svuota Cache -->
+        <div class="settings-sync-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="sync-status-badge online" id="modalSyncBadgeBtn" title="Tocca per forzare la sincronizzazione" style="background: var(--bg-input);">
+              <span class="material-symbols-outlined sync-icon online" id="modalSyncIcon">cloud_done</span>
             </button>
-            <button class="btn-secondary" id="modalClearCacheBtn" style="flex: 1; color: #f87171;">
-              <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-              Svuota Cache
-            </button>
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);" id="modalSyncStatusTitle">Sincronizzato</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);" id="modalSyncStatusSub">Tocca per verificare</div>
+            </div>
           </div>
+          <button class="btn-secondary" id="modalClearCacheBtn" title="Svuota cache locale" style="padding: 6px 10px; font-size: 0.76rem; color: #f87171; display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+            Svuota cache
+          </button>
         </div>
 
-        <div style="margin-bottom: 20px;">
-          <label class="form-label">Tema Interfaccia</label>
-          <button class="btn-secondary" id="modalThemeToggleBtn" style="width: 100%; margin-top: 6px;">
+        <!-- Toggle Tema Diretto (senza titolo) -->
+        <div style="margin-bottom: 16px;">
+          <button class="btn-secondary" id="modalThemeToggleBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px;">
             <span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span>
-            Attiva Tema Chiaro
+            Attiva tema chiaro
           </button>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Statistiche Dataset</label>
+          <label class="form-label">Statistiche dataset</label>
           <div id="modalStatsContainer"></div>
         </div>
       </div>

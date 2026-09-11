@@ -77,19 +77,11 @@ html {
 /* Desktop layout enhancements */
 @media (min-width: 768px) {
   .search-container {
-    padding: 16px 24px 8px 24px;
-  }
-
-  .quick-picks-bar {
-    padding: 8px 24px;
+    padding: 16px 24px 6px 24px;
   }
 
   .active-view-banner {
-    padding: 16px 24px 4px 24px;
-  }
-
-  .view-toggle-bar {
-    padding: 0 24px 12px 24px;
+    padding: 6px 24px 14px 24px;
   }
 
   .day-selector-container {
@@ -97,7 +89,7 @@ html {
   }
 
   .schedule-list {
-    padding: 16px 24px calc(var(--bottom-nav-height) + 24px) 24px;
+    padding: 16px 24px calc(var(--bottom-nav-height) + 68px) 24px;
     max-width: 800px;
     margin: 0 auto;
     width: 100%;

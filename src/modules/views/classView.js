@@ -11,6 +11,7 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
+import { copyScheduleAsText, exportScheduleAsImage } from '../exportManager.js';
 import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel } from '../colors.js';
 
 export function renderClassView({
@@ -73,6 +74,14 @@ export function renderClassView({
               <span class="material-symbols-outlined">share</span>
               <span>Condividi link</span>
             </button>
+            <button class="dropdown-item-btn" id="classCopyTextBtn">
+              <span class="material-symbols-outlined">content_copy</span>
+              <span>Copia testo orario</span>
+            </button>
+            <button class="dropdown-item-btn" id="classExportImgBtn">
+              <span class="material-symbols-outlined">image</span>
+              <span>Esporta immagine PNG</span>
+            </button>
             <button class="dropdown-item-btn" id="classExportIcsBtn">
               <span class="material-symbols-outlined">calendar_month</span>
               <span>Esporta .ICS</span>
@@ -83,20 +92,6 @@ export function renderClassView({
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- View Mode Toggle Bar (Lista vs Settimana) -->
-    <div class="view-toggle-bar">
-      <div class="view-mode-selector">
-        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
-          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
-          Lista
-        </button>
-        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
-          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
-          Settimana
-        </button>
       </div>
     </div>
 
@@ -111,7 +106,6 @@ export function renderClassView({
             return `
               <button class="day-pill-btn ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${day}">
                 <span class="day-short">${dayShort}</span>
-                <span class="day-indicator"></span>
               </button>
             `;
           }).join('')}
@@ -131,6 +125,11 @@ export function renderClassView({
         })}
       </div>
     ` : ''}
+
+    <!-- Top Horizontal Scrollbar per Griglia Settimanale -->
+    <div class="grid-scrollbar-top ${viewMode === 'weekly' ? 'visible' : ''}" id="classGridScrollTop">
+      <div class="grid-scrollbar-track"></div>
+    </div>
 
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''}" id="classWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
@@ -154,13 +153,14 @@ export function renderClassView({
               rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
             } else {
               const act = dayActs[0];
-              const colorObj = getSubjectColor(act.matNome, act.matCod);
-              const cleanName = cleanSubjectName(act.matNome || act.matCod);
-              const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : '';
+              const isDisp = act.isDisposizione;
+              const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
+              const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+              const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
                   <div class="grid-cell-top">
-                    <div class="grid-subject" title="${cleanName}">${cleanName}</div>
+                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
                     <div class="grid-subtext" title="${teacherName}">${teacherName}</div>
                   </div>
                   <div class="grid-cell-bottom">
@@ -175,7 +175,59 @@ export function renderClassView({
         }).join('')}
       </div>
     </div>
+
+    <!-- Floating View Mode Toggle (Centrato sopra la bottom nav) -->
+    <div class="floating-view-toggle">
+      <div class="view-mode-selector floating">
+        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
+          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
+          Lista
+        </button>
+        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
+          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
+          Settimana
+        </button>
+      </div>
+    </div>
   `;
+
+  // Sincronizzazione scroll orizzontale fluida tra la scrollbar superiore e la griglia
+  const gridContainer = container.querySelector('#classWeeklyGrid');
+  const gridScrollTop = container.querySelector('#classGridScrollTop');
+  if (gridContainer && gridScrollTop) {
+    const updateTrackWidth = () => {
+      const grid = gridContainer.querySelector('.weekly-grid');
+      const track = gridScrollTop.querySelector('.grid-scrollbar-track');
+      if (grid && track) {
+        track.style.width = grid.scrollWidth + 'px';
+      }
+    };
+    updateTrackWidth();
+
+    let rafId = null;
+    let activeScroller = null;
+
+    gridContainer.addEventListener('pointerdown', () => { activeScroller = 'container'; }, { passive: true });
+    gridScrollTop.addEventListener('pointerdown', () => { activeScroller = 'top'; }, { passive: true });
+
+    gridContainer.addEventListener('scroll', () => {
+      if (activeScroller === 'top') return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        gridScrollTop.scrollLeft = gridContainer.scrollLeft;
+      });
+    }, { passive: true });
+
+    gridScrollTop.addEventListener('scroll', () => {
+      if (activeScroller === 'container') return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        gridContainer.scrollLeft = gridScrollTop.scrollLeft;
+      });
+    }, { passive: true });
+
+    window.addEventListener('pointerup', () => { activeScroller = null; }, { passive: true });
+  }
 
   // Listener Toggle View Mode
   const listBtn = container.querySelector('#modeListBtn');
@@ -246,6 +298,42 @@ export function renderClassView({
       });
       if (res.success && res.method === 'clipboard' && onShowToast) {
         onShowToast(`Link classe ${classObj.short} copiato negli appunti!`, 'success');
+      }
+    });
+  }
+
+  // Listener Copia Testo
+  const copyTextBtn = container.querySelector('#classCopyTextBtn');
+  if (copyTextBtn) {
+    copyTextBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const ok = await copyScheduleAsText({
+        title: `Classe ${classObj.short}`,
+        type: 'class',
+        scheduleData: scheduleForClass,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (ok && onShowToast) {
+        onShowToast(`Orario classe ${classObj.short} copiato!`, 'success');
+      }
+    });
+  }
+
+  // Listener Esporta Immagine PNG
+  const exportImgBtn = container.querySelector('#classExportImgBtn');
+  if (exportImgBtn) {
+    exportImgBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const filename = await exportScheduleAsImage({
+        title: `Classe ${classObj.short}`,
+        type: 'class',
+        scheduleData: scheduleForClass,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (filename && onShowToast) {
+        onShowToast(`Immagine ${filename} scaricata!`, 'success');
       }
     });
   }
@@ -365,11 +453,12 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
     // Color coding e pulizia nome materia
     const subjectColor = getSubjectColor(mainAct.matNome, mainAct.matCod);
     const cleanName = cleanSubjectName(mainAct.matNome || mainAct.matCod);
-    const durationLabel = formatDurationLabel(mainAct.durata, span);
-
     // Docenti (inclusi eventuali colleghi in co-docenza)
     const teachersList = acts.map(a => a.teacherDisplayName).filter(Boolean);
     const isMultipleTeachers = teachersList.length > 1;
+    const locationBadges = renderLocationBadge(mainAct.sede, mainAct.aula);
+    const coDocenzaBadges = (isMultipleTeachers || mainAct.isCoDocenza) ? renderCoDocenzaBadge(teachersList) : '';
+    const hasFooter = Boolean(locationBadges || coDocenzaBadges);
 
     renderedHtml.push(`
       <div class="hour-card ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
@@ -385,15 +474,7 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
             <span class="slot-number">${slotLabel}</span>
             <span class="slot-time">${timeLabel}</span>
           </div>
-          <div class="slot-duration">${durationLabel}</div>
-        </div>
-
-        <div class="hour-card-body">
-          <div class="subject-name">${cleanName}</div>
-        </div>
-
-        <div class="hour-card-footer">
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+          <div class="card-mobile-tag" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end;">
             ${acts.map(a => a.teacherId ? `
               <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
                 <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
@@ -401,12 +482,30 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
               </span>
             ` : '').join('')}
           </div>
+        </div>
 
-          <div class="badges-group">
-            ${isMultipleTeachers || mainAct.isCoDocenza ? renderCoDocenzaBadge(teachersList) : ''}
-            ${renderLocationBadge(mainAct.sede, mainAct.aula)}
+        <div class="hour-card-body">
+          <div class="subject-row">
+            <div class="subject-name">${cleanName}</div>
+            <div class="card-desktop-tag" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+              ${acts.map(a => a.teacherId ? `
+                <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
+                  ${a.teacherDisplayName}
+                </span>
+              ` : '').join('')}
+            </div>
           </div>
         </div>
+
+        ${hasFooter ? `
+          <div class="hour-card-footer">
+            <div class="badges-group" style="margin-left: auto;">
+              ${coDocenzaBadges}
+              ${locationBadges}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `);
   }

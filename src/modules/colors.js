@@ -58,6 +58,7 @@ export function getClassColorInfo(className = '', fullClassName = '') {
 
   // 3. Identificazione Indirizzo con euristica sezioni Liceo Peano-Pellico
   let trackKey = 'ordinamentale';
+  let customTrackName = null;
 
   if (
     combined.includes('ALFA') ||
@@ -71,6 +72,13 @@ export function getClassColorInfo(className = '', fullClassName = '') {
     section === 'GAMMA'
   ) {
     trackKey = 'classico';
+    if (combined.includes('DIGITALE')) {
+      customTrackName = 'Classico Digitale';
+    } else if (combined.includes('ESABAC')) {
+      customTrackName = 'Classico Esabac';
+    } else {
+      customTrackName = 'Classico';
+    }
   } else if (
     combined.includes('ESABAC') ||
     section === 'H'
@@ -113,7 +121,7 @@ export function getClassColorInfo(className = '', fullClassName = '') {
     bg: `${color}1f`, // ~12% opacity in hex
     border: color,
     trackKey,
-    trackName: track ? track.name : 'Classe',
+    trackName: customTrackName || (track ? track.name : 'Classe'),
     grade
   };
 }
@@ -134,11 +142,29 @@ export function cleanSubjectName(rawName = '') {
   // Rimuove qualsiasi contenuto tra parentesi tonde es. (I011), (DISPOSIZIONE)
   let cleaned = rawName.replace(/\s*\([^)]*\)/g, '').trim();
 
-  // Se tutto maiuscolo con più parole, formatta con capitalizzazione pulita
+  // Se tutto maiuscolo con più parole, formatta secondo la sintassi italiana delle maiuscole (Sentence case)
   if (cleaned === cleaned.toUpperCase() && cleaned.length > 3) {
-    cleaned = cleaned.toLowerCase().replace(/(^|\s|-)\S/g, l => l.toUpperCase());
-    // Mantiene acronimi speciali
-    cleaned = cleaned.replace(/\bEd\b/g, 'Ed.').replace(/\bIta\b/g, 'Italiano');
+    cleaned = cleaned.toLowerCase();
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+
+    // Mantiene maiuscole per nomi propri di lingue/discipline specifiche e acronimi
+    const properNouns = [
+      { regex: /\binglese\b/gi, replacement: 'Inglese' },
+      { regex: /\bitaliano\b/gi, replacement: 'Italiano' },
+      { regex: /\blatino\b/gi, replacement: 'Latino' },
+      { regex: /\bspagnolo\b/gi, replacement: 'Spagnolo' },
+      { regex: /\bfrancese\b/gi, replacement: 'Francese' },
+      { regex: /\btedesco\b/gi, replacement: 'Tedesco' },
+      { regex: /\birc\b/gi, replacement: 'IRC' },
+      { regex: /\btic\b/gi, replacement: 'TIC' },
+      { regex: /\bstem\b/gi, replacement: 'STEM' },
+      { regex: /\bed\b/gi, replacement: 'Ed.' },
+      { regex: /\bita\b/gi, replacement: 'Italiano' }
+    ];
+
+    properNouns.forEach(({ regex, replacement }) => {
+      cleaned = cleaned.replace(regex, replacement);
+    });
   }
 
   return cleaned || rawName;

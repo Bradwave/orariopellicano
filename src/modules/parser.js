@@ -61,13 +61,16 @@ function getNodeText(parentNode, tagName) {
 
 /**
  * Normalizza il nome della classe per la visualizzazione compatta e la ricerca.
- * Es. "1A  ORDINAMENT." -> label: "1A ORDINAMENT.", short: "1A"
+ * Es. ".1ALFA ORDINAM." -> full: "1ALFA ORDINAM.", short: "1ALFA"
+ * Es. ".2BETA DIGITALE" -> full: "2BETA DIGITALE", short: "2BETA"
  */
 export function normalizeClassName(rawClass) {
   if (!rawClass) return { full: '', short: '' };
-  const cleaned = rawClass.replace(/\s+/g, ' ').trim();
-  const shortMatch = cleaned.match(/^(\d[A-Z]+)/i);
-  const short = shortMatch ? shortMatch[1].toUpperCase() : cleaned;
+  // Rimuove punti e spazi iniziali/finali spuri
+  const cleaned = rawClass.replace(/^[.\s]+/, '').replace(/\s+/g, ' ').trim();
+  // Riconosce sia sezioni standard (1A, 3F, 4T) sia sezioni in lettere greche (1ALFA, 2BETA, 3GAMMA)
+  const shortMatch = cleaned.match(/^(\d+(?:ALFA|BETA|GAMMA|[A-Z]+))/i);
+  const short = shortMatch ? shortMatch[1].toUpperCase() : (cleaned.split(' ')[0] || cleaned).toUpperCase();
   return { full: cleaned, short };
 }
 

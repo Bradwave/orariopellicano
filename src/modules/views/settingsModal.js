@@ -15,7 +15,10 @@ export function setupSettingsModal({
   onSyncRequest,
   onResetCache
 }) {
-  const syncNowBtn = modalOverlay.querySelector('#modalSyncBtn');
+  const syncNowBtn = modalOverlay.querySelector('#modalSyncBadgeBtn') || modalOverlay.querySelector('#modalSyncBtn');
+  const syncIcon = modalOverlay.querySelector('#modalSyncIcon');
+  const syncStatusTitle = modalOverlay.querySelector('#modalSyncStatusTitle');
+  const syncStatusSub = modalOverlay.querySelector('#modalSyncStatusSub');
   const clearCacheBtn = modalOverlay.querySelector('#modalClearCacheBtn');
   const themeToggleBtn = modalOverlay.querySelector('#modalThemeToggleBtn');
   const closeBtn = modalOverlay.querySelector('#modalCloseBtn');
@@ -30,10 +33,49 @@ export function setupSettingsModal({
     modalOverlay.classList.remove('open');
   }
 
+  function setSyncStatus(status = 'online', title = null, sub = null) {
+    const lastSync = getLastSyncTime();
+    if (syncNowBtn) {
+      syncNowBtn.className = 'sync-status-badge ' + status;
+    }
+    if (syncIcon) {
+      syncIcon.className = 'material-symbols-outlined sync-icon ' + status;
+      if (status === 'syncing') {
+        syncIcon.textContent = 'sync';
+      } else if (status === 'error') {
+        syncIcon.textContent = 'sync_problem';
+      } else if (status === 'offline') {
+        syncIcon.textContent = 'cloud_off';
+      } else {
+        syncIcon.textContent = 'cloud_done';
+      }
+    }
+    if (syncStatusTitle) {
+      if (title) syncStatusTitle.textContent = title;
+      else if (status === 'syncing') syncStatusTitle.textContent = 'Verifica in corso...';
+      else if (status === 'error') syncStatusTitle.textContent = 'Errore sincronizzazione';
+      else if (status === 'offline') syncStatusTitle.textContent = 'Dispositivo offline';
+      else syncStatusTitle.textContent = 'Orario sincronizzato';
+    }
+    if (syncStatusSub) {
+      if (sub) syncStatusSub.textContent = sub;
+      else if (status === 'syncing') syncStatusSub.textContent = 'Connessione al server...';
+      else {
+        syncStatusSub.textContent = lastSync 
+          ? `Ultimo sync: ${lastSync.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`
+          : 'Dataset locale iniziale';
+      }
+    }
+  }
+
   function updateStats() {
     const lastSync = getLastSyncTime();
     const hash = getCachedXmlHash();
     const currentTheme = getTheme();
+
+    if (!syncNowBtn || !syncNowBtn.classList.contains('syncing')) {
+      setSyncStatus('online');
+    }
 
     if (statsContainer && dataset) {
       statsContainer.innerHTML = `
@@ -44,8 +86,8 @@ export function setupSettingsModal({
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">schedule</span> Fasce orarie: <strong style="color: var(--text-primary);">${dataset.timeSlots.length}</strong></div>
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span> Attività totali indicizzate: <strong style="color: var(--text-primary);">${dataset.totalActivities || 0}</strong></div>
           <div style="margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border-subtle); font-size: 0.72rem; color: var(--text-muted);">
-            Ultimo Sync: <strong>${lastSync ? lastSync.toLocaleString('it-IT') : 'Dataset locale iniziale'}</strong>
-            <br>Versione Hash: <code>${hash || 'locale'}</code>
+            Ultimo sync: <strong>${lastSync ? lastSync.toLocaleString('it-IT') : 'Dataset locale iniziale'}</strong>
+            <br>Versione hash: <code>${hash || 'locale'}</code>
           </div>
         </div>
       `;
@@ -53,8 +95,8 @@ export function setupSettingsModal({
 
     if (themeToggleBtn) {
       themeToggleBtn.innerHTML = currentTheme === 'dark' 
-        ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Attiva Tema Chiaro</span>' 
-        : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Attiva Tema Scuro</span>';
+        ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Attiva tema chiaro</span>' 
+        : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Attiva tema scuro</span>';
     }
   }
 
@@ -66,7 +108,7 @@ export function setupSettingsModal({
 
   if (syncNowBtn) {
     syncNowBtn.addEventListener('click', () => {
-      closeModal();
+      setSyncStatus('syncing', 'Verifica in corso...', 'Connessione al server...');
       if (onSyncRequest) onSyncRequest();
     });
   }
@@ -92,6 +134,7 @@ export function setupSettingsModal({
   return {
     open: openModal,
     close: closeModal,
-    updateStats
+    updateStats,
+    setSyncStatus
   };
 }

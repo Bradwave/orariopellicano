@@ -65,9 +65,9 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       currentDay,
       statusCode: 'day_off',
       badgeClass: 'status-neutral',
-      title: 'Giorno Libero',
-      description: 'Non a scuola (Nessuna lezione in programma oggi)',
-      subtext: 'Il docente non ha ore assegnate in questo giorno'
+      title: 'Giorno libero',
+      description: 'Non a scuola',
+      subtext: ''
     };
   }
 
@@ -83,8 +83,8 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       title: 'Prima delle lezioni',
       description: `Inizio previsto alle ${nextFirst.slot.startTimeFormatted}`,
       subtext: nextFirst.act.isDisposizione
-        ? 'Prima ora a DISPOSIZIONE'
-        : `1ª lezione: ${nextFirst.act.matNome || nextFirst.act.matCod} in Classe ${nextFirst.act.classeShort}`,
+        ? 'Prima ora a disposizione'
+        : `1ª lezione: ${nextFirst.act.matNome || nextFirst.act.matCod} in ${nextFirst.act.classeShort}`,
       remainingMinutes: minsToStart
     };
   }
@@ -96,9 +96,9 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       currentDay,
       statusCode: 'after_school',
       badgeClass: 'status-offline',
-      title: 'Lezioni Concluse',
-      description: 'Non a scuola (Lezioni per oggi terminate)',
-      subtext: 'Tutte le attività della giornata sono state completate'
+      title: 'Lezioni concluse',
+      description: 'Non a scuola',
+      subtext: ''
     };
   }
 
@@ -121,7 +121,7 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
             slot,
             statusCode: 'disposizione',
             badgeClass: 'status-disposizione',
-            title: 'Ora a DISPOSIZIONE',
+            title: 'Ora a disposizione',
             description: `Attualmente a disposizione per sostituzioni (Sede: ${currentAct.sede || 'Centrale'})`,
             subtext: `Termina tra ${remainingMinutes} minuti (alle ${slot.endTimeFormatted})`,
             classe: null,
@@ -136,7 +136,7 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
             slot,
             statusCode: 'in_service',
             badgeClass: 'status-active',
-            title: 'In Servizio (Lezione in corso)',
+            title: 'In servizio (lezione in corso)',
             description: `Attualmente in servizio nella classe ${currentAct.classeShort || currentAct.classeFull}${currentAct.aula ? ', aula ' + currentAct.aula : ''}`,
             subtext: `Materia: ${currentAct.matNome || currentAct.matCod} • Termina tra ${remainingMinutes} minuti (alle ${slot.endTimeFormatted})`,
             classe: currentAct.classeShort,

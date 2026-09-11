@@ -36,23 +36,18 @@ export function renderSubsDashboard({
       <div class="banner-title-group">
         <h1 class="banner-entity-name">Sostituzioni</h1>
       </div>
-      <div class="badge badge-disposizione" style="font-size: 0.8rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 15px;">bolt</span>
-        ${availableTeachers.length} a disposizione
-      </div>
     </div>
 
     <div class="subs-dashboard">
       <!-- Card Filtri: Giorno e Ora -->
       <div class="subs-filters-card">
-        <div class="day-pills-row" id="subsDayPills" style="padding: 0;">
+        <div class="day-pills-row" id="subsDayPills">
           ${dataset.days.map(d => {
             const isActive = d === day;
             const isToday = d === realCurrentDay;
             return `
               <button class="day-pill-btn ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${d}">
                 <span class="day-short">${d.substring(0, 3)}</span>
-                <span class="day-indicator"></span>
               </button>
             `;
           }).join('')}
