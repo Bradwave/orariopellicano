@@ -64,10 +64,29 @@ export function renderClassView({
         <button id="classDefaultBtn" class="icon-action-btn ${isDefault ? 'default-active' : ''}" title="${isDefault ? 'Vista predefinita attiva' : 'Imposta come vista predefinita all\'avvio'}" aria-label="Predefinito">
           <span class="material-symbols-outlined" style="font-size: 18px;">push_pin</span>
         </button>
+        <div class="actions-dropdown-container">
+          <button class="icon-action-btn" id="actionsDropdownTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false" aria-label="Altre azioni">
+            <span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+          </button>
+          <div class="actions-dropdown-menu" id="actionsDropdownMenu" hidden>
+            <button class="dropdown-item-btn" id="classShareBtn">
+              <span class="material-symbols-outlined">share</span>
+              <span>Condividi link</span>
+            </button>
+            <button class="dropdown-item-btn" id="classExportIcsBtn">
+              <span class="material-symbols-outlined">calendar_month</span>
+              <span>Esporta .ICS</span>
+            </button>
+            <button class="dropdown-item-btn" id="classPrintBtn">
+              <span class="material-symbols-outlined">print</span>
+              <span>Stampa / PDF</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- View Mode Toggle Bar (Lista vs Settimana) & Menu Azioni Compatto -->
+    <!-- View Mode Toggle Bar (Lista vs Settimana) -->
     <div class="view-toggle-bar">
       <div class="view-mode-selector">
         <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
@@ -78,27 +97,6 @@ export function renderClassView({
           <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
           Settimana
         </button>
-      </div>
-
-      <div class="actions-dropdown-container">
-        <button class="action-chip-btn" id="actionsDropdownTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false">
-          <span class="material-symbols-outlined" style="font-size: 16px;">more_horiz</span>
-          Azioni
-        </button>
-        <div class="actions-dropdown-menu" id="actionsDropdownMenu" hidden>
-          <button class="dropdown-item-btn" id="classShareBtn">
-            <span class="material-symbols-outlined">share</span>
-            <span>Condividi link</span>
-          </button>
-          <button class="dropdown-item-btn" id="classExportIcsBtn">
-            <span class="material-symbols-outlined">calendar_month</span>
-            <span>Esporta .ICS</span>
-          </button>
-          <button class="dropdown-item-btn" id="classPrintBtn">
-            <span class="material-symbols-outlined">print</span>
-            <span>Stampa / PDF</span>
-          </button>
-        </div>
       </div>
     </div>
 

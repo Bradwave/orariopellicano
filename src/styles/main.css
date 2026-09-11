@@ -3,10 +3,9 @@
 @import './components.css';
 @import './print.css';
 
-/* Stable Scrollbar Gutter to prevent horizontal layout jumping */
 html {
-  scrollbar-gutter: stable;
-  overflow-y: scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Main App Container */
@@ -90,7 +89,7 @@ html {
   }
 
   .view-toggle-bar {
-    padding: 4px 24px 14px 24px;
+    padding: 0 24px 12px 24px;
   }
 
   .day-selector-container {

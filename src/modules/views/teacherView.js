@@ -79,10 +79,33 @@ export function renderTeacherView({
         <button id="teacherDefaultBtn" class="icon-action-btn ${isDefault ? 'default-active' : ''}" title="${isDefault ? 'Vista predefinita attiva' : 'Imposta come vista predefinita all\'avvio'}" aria-label="Predefinito">
           <span class="material-symbols-outlined" style="font-size: 18px;">push_pin</span>
         </button>
+        <div class="actions-dropdown-container">
+          <button class="icon-action-btn" id="teacherActionsTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false" aria-label="Altre azioni">
+            <span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+          </button>
+          <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
+            <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
+              <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
+              <span>Radar Colleghi</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherShareBtn">
+              <span class="material-symbols-outlined">share</span>
+              <span>Condividi link</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherExportIcsBtn">
+              <span class="material-symbols-outlined">calendar_month</span>
+              <span>Esporta .ICS</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherPrintBtn">
+              <span class="material-symbols-outlined">print</span>
+              <span>Stampa / PDF</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- View Mode Toggle Bar (Lista vs Settimana) & Menu Azioni Compatto -->
+    <!-- View Mode Toggle Bar (Lista vs Settimana) -->
     <div class="view-toggle-bar">
       <div class="view-mode-selector">
         <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
@@ -93,31 +116,6 @@ export function renderTeacherView({
           <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
           Settimana
         </button>
-      </div>
-
-      <div class="actions-dropdown-container">
-        <button class="action-chip-btn" id="teacherActionsTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false">
-          <span class="material-symbols-outlined" style="font-size: 16px;">more_horiz</span>
-          Azioni
-        </button>
-        <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
-          <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
-            <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
-            <span>Radar Colleghi</span>
-          </button>
-          <button class="dropdown-item-btn" id="teacherShareBtn">
-            <span class="material-symbols-outlined">share</span>
-            <span>Condividi link</span>
-          </button>
-          <button class="dropdown-item-btn" id="teacherExportIcsBtn">
-            <span class="material-symbols-outlined">calendar_month</span>
-            <span>Esporta .ICS</span>
-          </button>
-          <button class="dropdown-item-btn" id="teacherPrintBtn">
-            <span class="material-symbols-outlined">print</span>
-            <span>Stampa / PDF</span>
-          </button>
-        </div>
       </div>
     </div>
 

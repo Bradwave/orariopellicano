@@ -1,0 +1,219 @@
+{
+  "uiThemes": {
+    "dark": {
+      "--bg-primary": "#091315",
+      "--bg-secondary": "#0e1c1f",
+      "--bg-card": "#122226",
+      "--bg-card-hover": "#182c31",
+      "--bg-card-active": "#1f373d",
+      "--bg-input": "#0b171a",
+      "--bg-glass": "rgba(9, 19, 21, 0.95)",
+      "--border-subtle": "rgba(148, 163, 184, 0.12)",
+      "--border-focus": "#1ba098",
+      "--border-highlight": "rgba(27, 160, 152, 0.28)",
+      "--accent-primary": "#1ba098",
+      "--accent-primary-hover": "#14807a",
+      "--accent-gradient": "#1ba098",
+      "--accent-text": "#ffffff",
+      "--accent-glow": "transparent",
+      "--badge-sede-bg": "rgba(27, 160, 152, 0.12)",
+      "--badge-sede-text": "#2dd4bf",
+      "--badge-sede-border": "rgba(27, 160, 152, 0.25)",
+      "--badge-succursale-bg": "rgba(239, 68, 68, 0.12)",
+      "--badge-succursale-text": "#f87171",
+      "--badge-succursale-border": "rgba(239, 68, 68, 0.25)",
+      "--badge-palestra-bg": "rgba(16, 185, 129, 0.12)",
+      "--badge-palestra-text": "#34d399",
+      "--badge-palestra-border": "rgba(16, 185, 129, 0.25)",
+      "--badge-disposizione-bg": "rgba(217, 119, 6, 0.14)",
+      "--badge-disposizione-text": "#fbbf24",
+      "--badge-disposizione-border": "rgba(245, 158, 11, 0.3)",
+      "--badge-codocenza-bg": "rgba(139, 92, 246, 0.12)",
+      "--badge-codocenza-text": "#c084fc",
+      "--badge-codocenza-border": "rgba(139, 92, 246, 0.25)",
+      "--text-primary": "#f1f5f9",
+      "--text-secondary": "#94a3b8",
+      "--text-muted": "#64748b",
+      "--text-dimmed": "#475569",
+      "--text-inverted": "#091315"
+    },
+    "light": {
+      "--bg-primary": "#fdf6e3",
+      "--bg-secondary": "#f5eedb",
+      "--bg-card": "#fbf5e7",
+      "--bg-card-hover": "#f2e9d2",
+      "--bg-card-active": "#e8dec2",
+      "--bg-input": "#eee8d5",
+      "--bg-glass": "rgba(253, 246, 227, 0.96)",
+      "--border-subtle": "rgba(101, 123, 131, 0.16)",
+      "--border-focus": "#207c74",
+      "--border-highlight": "rgba(32, 124, 116, 0.25)",
+      "--accent-primary": "#207c74",
+      "--accent-primary-hover": "#165b55",
+      "--accent-gradient": "#207c74",
+      "--accent-text": "#ffffff",
+      "--accent-glow": "transparent",
+      "--badge-sede-bg": "rgba(32, 124, 116, 0.12)",
+      "--badge-sede-text": "#1a7c73",
+      "--badge-sede-border": "rgba(32, 124, 116, 0.28)",
+      "--badge-succursale-bg": "rgba(220, 50, 47, 0.10)",
+      "--badge-succursale-text": "#cb4b16",
+      "--badge-succursale-border": "rgba(220, 50, 47, 0.25)",
+      "--badge-palestra-bg": "rgba(133, 153, 0, 0.12)",
+      "--badge-palestra-text": "#6c7d00",
+      "--badge-palestra-border": "rgba(133, 153, 0, 0.25)",
+      "--badge-disposizione-bg": "rgba(181, 137, 0, 0.12)",
+      "--badge-disposizione-text": "#a16207",
+      "--badge-disposizione-border": "rgba(181, 137, 0, 0.28)",
+      "--badge-codocenza-bg": "rgba(108, 113, 196, 0.12)",
+      "--badge-codocenza-text": "#5a5fa8",
+      "--badge-codocenza-border": "rgba(108, 113, 196, 0.25)",
+      "--text-primary": "#073642",
+      "--text-secondary": "#586e75",
+      "--text-muted": "#839496",
+      "--text-dimmed": "#93a1a1",
+      "--text-inverted": "#fdf6e3"
+    }
+  },
+  "trackPalettes": {
+    "classico": {
+      "name": "Classico",
+      "shades": {
+        "1": "#fb923c",
+        "2": "#f97316",
+        "3": "#ea580c",
+        "4": "#c2410c",
+        "5": "#9a3412"
+      }
+    },
+    "esabac": {
+      "name": "Esabac",
+      "shades": {
+        "1": "#a78bfa",
+        "2": "#8b5cf6",
+        "3": "#7c3aed",
+        "4": "#6d28d9",
+        "5": "#5b21b6"
+      }
+    },
+    "applicate": {
+      "name": "Scienze Applicate",
+      "shades": {
+        "1": "#10b981",
+        "2": "#059669",
+        "3": "#047857",
+        "4": "#065f46",
+        "5": "#166534"
+      }
+    },
+    "sportivo": {
+      "name": "Sportivo",
+      "shades": {
+        "1": "#c7d2fe",
+        "2": "#a5b4fc",
+        "3": "#818cf8",
+        "4": "#6366f1",
+        "5": "#4f46e5"
+      }
+    },
+    "ordinamentale": {
+      "name": "Ordinamentale",
+      "shades": {
+        "1": "#60a5fa",
+        "2": "#3b82f6",
+        "3": "#2563eb",
+        "4": "#1d4ed8",
+        "5": "#1e40af"
+      }
+    }
+  },
+  "subjectRules": [
+    {
+      "name": "Matematica",
+      "pattern": "matematica|^\\s*mat\\b",
+      "color": "#3b82f6",
+      "bg": "rgba(59, 130, 246, 0.14)",
+      "border": "#60a5fa"
+    },
+    {
+      "name": "Fisica",
+      "pattern": "fisica|^\\s*fis\\b",
+      "color": "#10b981",
+      "bg": "rgba(16, 185, 129, 0.14)",
+      "border": "#34d399"
+    },
+    {
+      "name": "Italiano / Lettere",
+      "pattern": "italiano|lettere|^\\s*ita\\b",
+      "color": "#e11d48",
+      "bg": "rgba(225, 29, 72, 0.14)",
+      "border": "#f43f5e"
+    },
+    {
+      "name": "Latino / Greco",
+      "pattern": "latino|greco",
+      "color": "#7c3aed",
+      "bg": "rgba(124, 58, 237, 0.14)",
+      "border": "#8b5cf6"
+    },
+    {
+      "name": "Inglese / Lingua",
+      "pattern": "inglese|straniera|lingua",
+      "color": "#ea580c",
+      "bg": "rgba(234, 88, 12, 0.14)",
+      "border": "#f97316"
+    },
+    {
+      "name": "Storia / Filosofia",
+      "pattern": "storia|filosofia",
+      "color": "#d97706",
+      "bg": "rgba(217, 119, 6, 0.14)",
+      "border": "#f59e0b"
+    },
+    {
+      "name": "Scienze / Chimica / Biologia / Geografia",
+      "pattern": "scienze|chimica|biologia|geografia",
+      "color": "#0891b2",
+      "bg": "rgba(8, 145, 178, 0.14)",
+      "border": "#06b6d4"
+    },
+    {
+      "name": "Arte / Disegno",
+      "pattern": "arte|disegno",
+      "color": "#db2777",
+      "bg": "rgba(219, 39, 119, 0.14)",
+      "border": "#ec4899"
+    },
+    {
+      "name": "Scienze Motorie / Sport",
+      "pattern": "motori|sport|ed\\.\\s*fisica",
+      "color": "#65a30d",
+      "bg": "rgba(101, 163, 13, 0.14)",
+      "border": "#84cc16"
+    },
+    {
+      "name": "Religione / Alternativa",
+      "pattern": "religione|alternativa",
+      "color": "#64748b",
+      "bg": "rgba(100, 116, 139, 0.14)",
+      "border": "#94a3b8"
+    },
+    {
+      "name": "Disposizione",
+      "pattern": "disposizione",
+      "color": "#d97706",
+      "bg": "rgba(217, 119, 6, 0.14)",
+      "border": "#f59e0b"
+    }
+  ],
+  "fallbackPalette": [
+    "#0284c7",
+    "#0d9488",
+    "#4f46e5",
+    "#9333ea",
+    "#c026d3",
+    "#e11d48",
+    "#d97706",
+    "#059669"
+  ]
+}

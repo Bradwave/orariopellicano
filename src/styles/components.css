@@ -893,9 +893,9 @@
   color: var(--accent-primary);
 }
 
-.nav-item-btn.active svg {
-  transform: scale(1.12);
-  filter: drop-shadow(0 2px 8px var(--accent-glow));
+.nav-item-btn.active .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
+  transform: scale(1.08);
 }
 
 /* Toast Notification */
@@ -1092,7 +1092,7 @@
   display: none;
   padding: 16px 16px calc(var(--bottom-nav-height) + 64px) 16px;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   width: 100%;
 }
@@ -1245,7 +1245,7 @@
 
 /* View Mode Toggle (Lista vs Settimana) */
 .view-toggle-bar {
-  padding: 4px 16px 12px 16px;
+  padding: 0 16px 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1258,9 +1258,10 @@
   display: inline-flex;
   align-items: center;
   background: var(--bg-input);
-  padding: 3px;
+  padding: 0;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
+  overflow: hidden;
 }
 
 .view-mode-btn {
@@ -1268,7 +1269,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -1322,8 +1323,8 @@
   top: calc(100% + 6px);
   right: 0;
   background: var(--bg-card);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   min-width: 175px;
   z-index: 80;
@@ -1344,9 +1345,9 @@
   padding: 8px 12px;
   background: transparent;
   border: none;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   font-size: 0.8rem;
-  font-family: var(--font-family);
+  font-family: inherit;
   font-weight: 500;
   color: var(--text-primary);
   text-align: left;

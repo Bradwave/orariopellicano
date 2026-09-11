@@ -27,6 +27,7 @@ import { renderSubjectView } from './modules/views/subjectView.js';
 import { renderSubsDashboard } from './modules/views/subsView.js';
 import { renderRadarView } from './modules/views/radarView.js';
 import { setupSettingsModal } from './modules/views/settingsModal.js';
+import { loadThemeConfig } from './modules/themeManager.js';
 
 // Stato reattivo dell'applicazione
 const state = {
@@ -287,9 +288,11 @@ export function navigateTo(viewType, id = null, day = null) {
  */
 function updateBottomNavHighlight() {
   if (!DOM.bottomNav) return;
+  const isScheduleView = ['class', 'teacher', 'subject'].includes(state.activeView);
   DOM.bottomNav.querySelectorAll('.nav-item-btn').forEach(btn => {
     const target = btn.getAttribute('data-nav');
-    if (target === state.activeView) {
+    const isActive = (target === 'class' && isScheduleView) || target === state.activeView;
+    if (isActive) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
@@ -580,7 +583,8 @@ async function bootstrap() {
   // 1. Registra Service Worker PWA
   registerServiceWorker();
 
-  // 2. Applica tema
+  // 2. Carica configurazione temi da JSON e applica tema
+  await loadThemeConfig();
   setTheme(getTheme());
 
   // 3. Controlla se abbiamo XML in LocalStorage

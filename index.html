@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#041718">
-  <title>Orario Pellicano • Consultazione Orario</title>
-  <meta name="description" content="Single Page Application mobile-first per la consultazione rapida dell'orario scolastico EDT: classi, docenti, radar colleghi, sostituzioni e stampa.">
+  <title>Orario Pellicano</title>
+  <meta name="description"
+    content="Single Page Application mobile-first per la consultazione rapida dell'orario scolastico EDT: classi, docenti, radar colleghi, sostituzioni e stampa.">
 
   <!-- PWA Manifest & Favicon -->
   <link rel="manifest" href="./manifest.json">
@@ -17,13 +20,15 @@
   <!-- Google Fonts: Space Mono & Material Symbols Outlined -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
   <!-- Styles: Main & Print -->
   <link rel="stylesheet" href="./src/styles/main.css">
   <link rel="stylesheet" href="./src/styles/print.css">
 </head>
+
 <body>
   <div id="app">
     <!-- Search Bar Unificata con Sync Badge Integrato (Header rimosso per massima compattezza) -->
@@ -31,16 +36,9 @@
       <div class="search-bar-row">
         <div class="unified-search-box">
           <span class="material-symbols-outlined search-icon-left" style="font-size: 18px;">search</span>
-          <input 
-            type="text" 
-            id="unifiedSearchInput" 
-            class="search-input" 
-            placeholder="Cerca classe, docente o materia..." 
-            autocomplete="off" 
-            autocorrect="off" 
-            autocapitalize="none" 
-            spellcheck="false"
-          >
+          <input type="text" id="unifiedSearchInput" class="search-input"
+            placeholder="Cerca classe, docente o materia..." autocomplete="off" autocorrect="off" autocapitalize="none"
+            spellcheck="false">
           <button id="searchClearBtn" class="search-clear-btn" title="Cancella ricerca">
             <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
           </button>
@@ -145,4 +143,5 @@
   <!-- Entry point JavaScript modulare -->
   <script type="module" src="./src/app.js"></script>
 </body>
+
 </html>

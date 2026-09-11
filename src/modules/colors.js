@@ -3,176 +3,43 @@
  * e helper per la pulizia dei nomi e formattazione della durata.
  */
 
-// Palette coerente e armoniosa per le materie (Matematica = Blu cobalto, Fisica = Verde smeraldo)
-const SUBJECT_COLOR_RULES = [
-  {
-    pattern: /matematica|^\s*mat\b/i,
-    color: '#3b82f6', // Blu cobalto
-    bg: 'rgba(59, 130, 246, 0.14)',
-    border: '#60a5fa'
-  },
-  {
-    pattern: /fisica|^\s*fis\b/i,
-    color: '#10b981', // Verde smeraldo
-    bg: 'rgba(16, 185, 129, 0.14)',
-    border: '#34d399'
-  },
-  {
-    pattern: /italiano|lettere|^\s*ita\b/i,
-    color: '#e11d48', // Rosso corallo / Carminio
-    bg: 'rgba(225, 29, 72, 0.14)',
-    border: '#f43f5e'
-  },
-  {
-    pattern: /latino|greco/i,
-    color: '#7c3aed', // Viola / Pervinca
-    bg: 'rgba(124, 58, 237, 0.14)',
-    border: '#8b5cf6'
-  },
-  {
-    pattern: /inglese|straniera|lingua/i,
-    color: '#ea580c', // Arancio dorato
-    bg: 'rgba(234, 88, 12, 0.14)',
-    border: '#f97316'
-  },
-  {
-    pattern: /storia|filosofia/i,
-    color: '#d97706', // Ocra / Ambra calda
-    bg: 'rgba(217, 119, 6, 0.14)',
-    border: '#f59e0b'
-  },
-  {
-    pattern: /scienze|chimica|biologia|geografia/i,
-    color: '#0891b2', // Ciano profondo
-    bg: 'rgba(8, 145, 178, 0.14)',
-    border: '#06b6d4'
-  },
-  {
-    pattern: /arte|disegno/i,
-    color: '#db2777', // Magenta / Rosa antico
-    bg: 'rgba(219, 39, 119, 0.14)',
-    border: '#ec4899'
-  },
-  {
-    pattern: /motori|sport|ed\. fisica/i,
-    color: '#65a30d', // Lime / Oliva bosco
-    bg: 'rgba(101, 163, 13, 0.14)',
-    border: '#84cc16'
-  },
-  {
-    pattern: /religione|alternativa/i,
-    color: '#64748b', // Ardesia neutro
-    bg: 'rgba(100, 116, 139, 0.14)',
-    border: '#94a3b8'
-  },
-  {
-    pattern: /disposizione/i,
-    color: '#d97706', // Oro ambra
-    bg: 'rgba(217, 119, 6, 0.14)',
-    border: '#f59e0b'
-  }
-];
-
-// Palette di fallback deterministica per materie rare
-const FALLBACK_PALETTE = [
-  '#0284c7', '#0d9488', '#4f46e5', '#9333ea',
-  '#c026d3', '#e11d48', '#d97706', '#059669'
-];
+import {
+  getSubjectRules,
+  getTrackPalettes,
+  getFallbackPalette
+} from './themeManager.js';
 
 /**
  * Restituisce i colori associati a una materia.
  */
 export function getSubjectColor(subjectName = '', subjectCode = '') {
   const combined = `${subjectName} ${subjectCode}`.trim();
+  const rules = getSubjectRules();
 
-  for (const rule of SUBJECT_COLOR_RULES) {
-    if (rule.pattern.test(combined)) {
+  for (const rule of rules) {
+    const isMatch = rule.regex ? rule.regex.test(combined) : new RegExp(rule.pattern, 'i').test(combined);
+    if (isMatch) {
       return {
         color: rule.color,
-        bg: rule.bg,
-        border: rule.border
+        bg: rule.bg || `${rule.color}24`,
+        border: rule.border || rule.color
       };
     }
   }
 
-  // Hash deterministico
+  // Hash deterministico per materie senza regola esplicita
   let hash = 0;
   for (let i = 0; i < combined.length; i++) {
     hash = (hash * 31 + combined.charCodeAt(i)) >>> 0;
   }
-  const color = FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
+  const fallbackPalette = getFallbackPalette();
+  const color = fallbackPalette[hash % fallbackPalette.length];
   return {
     color,
     bg: 'rgba(255, 255, 255, 0.06)',
     border: color
   };
 }
-
-/**
- * Color coding per le classi:
- * - Scientifico Ordinamentale (Blu freddo): 1ª chiaro (#60a5fa) -> 5ª profondo (#1e40af)
- * - Scienze Applicate (Verde freddo): 1ª menta (#34d399) -> 5ª pino (#065f46)
- * - Scientifico Sportivo (Grigio/Slate tecnico): 1ª slate (#94a3b8) -> 5ª slate (#1e293b)
- * - Esabac (Intermedio Indaco/Violetto): 1ª lavanda (#a78bfa) -> 5ª violetto (#5b21b6)
- * - Classico (Caldi Terracotta/Rame): 1ª albicocca (#fb923c) -> 5ª mogano (#9a3412)
- */
-const TRACK_PALETTES = {
-  // Caldo: Classico (Sezioni Alfa, Beta, Gamma o "Classico")
-  classico: {
-    name: 'Classico',
-    shades: {
-      '1': '#fb923c', // 1ª ginnasio (più chiaro/luminoso)
-      '2': '#f97316',
-      '3': '#ea580c',
-      '4': '#c2410c',
-      '5': '#9a3412'  // 3ª liceo (profondo)
-    }
-  },
-  // Intermedio: Esabac (Indaco / Violetto)
-  esabac: {
-    name: 'Esabac',
-    shades: {
-      '1': '#a78bfa',
-      '2': '#8b5cf6',
-      '3': '#7c3aed',
-      '4': '#6d28d9',
-      '5': '#5b21b6'
-    }
-  },
-  // Freddo: Scienze Applicate (Verde foresta / Smeraldo ad alto contrasto)
-  applicate: {
-    name: 'Scienze Applicate',
-    shades: {
-      '1': '#10b981', // 1ª smeraldo vivo
-      '2': '#059669', // 2ª verde bosco
-      '3': '#047857', // 3ª pino intenso
-      '4': '#065f46', // 4ª verde profondo
-      '5': '#166534'  // 5ª foresta scuro
-    }
-  },
-  // Freddo: Sportivo (Slate tecnico con sfumatura indaco freddo ad alto contrasto)
-  sportivo: {
-    name: 'Sportivo',
-    shades: {
-      '1': '#c7d2fe', // 1ª indaco polvere chiaro
-      '2': '#a5b4fc', // 2ª indaco perla
-      '3': '#818cf8', // 3ª indaco tecnico
-      '4': '#6366f1', // 4ª indaco vivido
-      '5': '#4f46e5'  // 5ª indaco profondo luminoso (mai scuro/invisibile)
-    }
-  },
-  // Freddo: Scientifico Ordinamentale (Blu)
-  ordinamentale: {
-    name: 'Ordinamentale',
-    shades: {
-      '1': '#60a5fa',
-      '2': '#3b82f6',
-      '3': '#2563eb',
-      '4': '#1d4ed8',
-      '5': '#1e40af'
-    }
-  }
-};
 
 /**
  * Restituisce i dettagli completi sul colore e l'indirizzo della classe.
@@ -237,15 +104,16 @@ export function getClassColorInfo(className = '', fullClassName = '') {
     trackKey = 'ordinamentale';
   }
 
-  const track = TRACK_PALETTES[trackKey] || TRACK_PALETTES.ordinamentale;
-  const color = track.shades[grade] || track.shades['1'];
+  const trackPalettes = getTrackPalettes();
+  const track = trackPalettes[trackKey] || trackPalettes.ordinamentale;
+  const color = (track && track.shades && track.shades[grade]) || (track && track.shades && track.shades['1']) || '#3b82f6';
 
   return {
     color,
     bg: `${color}1f`, // ~12% opacity in hex
     border: color,
     trackKey,
-    trackName: track.name,
+    trackName: track ? track.name : 'Classe',
     grade
   };
 }

@@ -3,6 +3,8 @@
  * Salva e recupera cache XML, preferenze utente, default view e preferiti.
  */
 
+import { applyThemeVariables } from './themeManager.js';
+
 const STORAGE_KEYS = {
   XML_RAW: 'orario_pellicano_xml_raw',
   XML_HASH: 'orario_pellicano_xml_hash',
@@ -156,7 +158,7 @@ export function isFavorite(type, id) {
 
 
 /**
- * Recupera il tema salvato (dark / light).
+ * Recupera il tema impostato ('dark' o 'light').
  */
 export function getTheme() {
   try {
@@ -167,11 +169,11 @@ export function getTheme() {
 }
 
 /**
- * Imposta il tema.
+ * Imposta il tema e applica le variabili CSS da themes.json.
  */
 export function setTheme(theme) {
   try {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    applyThemeVariables(theme);
   } catch (e) {}
 }
