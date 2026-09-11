@@ -89,21 +89,21 @@ html {
   }
 
   .schedule-list {
-    padding: 16px 24px calc(var(--bottom-nav-height) + 68px) 24px;
+    padding: 16px 24px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 68px) 24px;
     max-width: 640px;
     margin: 0 auto;
     width: 100%;
   }
 
   .radar-container {
-    padding: 20px 24px calc(var(--bottom-nav-height) + 24px) 24px;
+    padding: 20px 24px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 24px) 24px;
     max-width: 640px;
     margin: 0 auto;
     width: 100%;
   }
 
   .subs-dashboard {
-    padding: 20px 24px calc(var(--bottom-nav-height) + 24px) 24px;
+    padding: 20px 24px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 24px) 24px;
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
