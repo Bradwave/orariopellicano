@@ -1616,8 +1616,15 @@
 }
 
 .view-mode-selector.floating .view-mode-btn.icon-only-btn {
-  padding: 0 9px;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  aspect-ratio: 1 / 1;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  border-radius: calc(var(--radius-md) - 1px);
+  flex-shrink: 0;
 }
 
 .view-mode-btn {
@@ -1641,7 +1648,13 @@
 }
 
 .view-mode-btn.icon-only-btn {
-  padding: 6px 10px;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  aspect-ratio: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .view-mode-btn:disabled {
