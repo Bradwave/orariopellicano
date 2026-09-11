@@ -1,15 +1,21 @@
 /**
  * Service Worker per Orario Pellicano PWA.
- * Strategia di caching offline per shell dell'app e fallback orario.
+ * Strategia di caching offline per shell dell'app, moduli ES6 e fallback orario.
+ * Adozione di Stale-While-Revalidate per auto-aggiornamento silenzioso delle risorse.
  */
 
-const CACHE_NAME = 'orario-pellicano-v1';
+const CACHE_NAME = 'orario-pellicano-v1.4';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './favicon.svg',
   './public/default-schedule.xml',
+  './public/themes.json',
+  './src/config/themes.json',
+  './src/config/calendar.json',
+  './public/fonts/SpaceMono-Regular.woff2',
+  './public/fonts/SpaceMono-Bold.woff2',
   './public/icon-192.png',
   './public/icon-512.png',
   './src/styles/variables.css',
@@ -18,30 +24,35 @@ const STATIC_ASSETS = [
   './src/styles/print.css',
   './src/styles/main.css',
   './src/app.js',
-  './src/modules/parser.js',
-  './src/modules/storage.js',
   './src/modules/api.js',
-  './src/modules/time.js',
+  './src/modules/calendar.js',
+  './src/modules/colors.js',
+  './src/modules/exportIcs.js',
+  './src/modules/exportManager.js',
+  './src/modules/icons.js',
+  './src/modules/parser.js',
   './src/modules/radar.js',
   './src/modules/share.js',
-  './src/modules/exportIcs.js',
+  './src/modules/storage.js',
+  './src/modules/themeManager.js',
+  './src/modules/time.js',
   './src/modules/views/badges.js',
-  './src/modules/views/search.js',
   './src/modules/views/classView.js',
-  './src/modules/views/teacherView.js',
+  './src/modules/views/radarView.js',
+  './src/modules/views/search.js',
+  './src/modules/views/settingsModal.js',
   './src/modules/views/subjectView.js',
   './src/modules/views/subsView.js',
-  './src/modules/views/radarView.js',
-  './src/modules/views/settingsModal.js'
+  './src/modules/views/teacherView.js'
 ];
 
-// Installazione Service Worker e pre-caching asset
+// Installazione Service Worker e pre-caching asset locali
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 [PWA Service Worker] Pre-caching app shell...');
+      console.log('📦 [PWA Service Worker] Pre-caching asset completi shell...');
       return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('Alcuni asset statici non sono stati memorizzati in cache:', err);
+        console.warn('Avviso: alcuni asset statici non sono stati memorizzati in cache:', err);
       });
     }).then(() => self.skipWaiting())
   );
@@ -52,7 +63,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => {
+        keys.filter((key) => key !== CACHE_NAME && !key.startsWith('google-fonts-')).map((key) => {
           console.log('🧹 [PWA Service Worker] Eliminazione vecchia cache:', key);
           return caches.delete(key);
         })
@@ -61,53 +72,65 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Intercettazione richieste di rete (Cache First per asset locali, Network First per proxy)
+// Intercettazione richieste di rete
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Non intercettare richieste diverse da GET o schemi non-http
+  // Non intercettare richieste non GET o schemi non-http
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
     return;
   }
 
-  // Se è una richiesta di proxy orario remoto, prova prima la rete
+  // 1. Proxy Cloudflare dell'orario scolastico (Network First con timeout locale)
   if (url.hostname.includes('workers.dev')) {
     event.respondWith(
       fetch(event.request).catch(() => {
-        // Se offline, l'app usa il localStorage nativamente
         return new Response('', { status: 503, statusText: 'Offline' });
       })
     );
     return;
   }
 
-  // Per gli asset statici dell'applicazione: Cache-First con fallback alla rete
+  // 2. Google Fonts (Cache First con salvataggio runtime)
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open('google-fonts-cache').then((cache) => cache.put(event.request, clone));
+          }
+          return networkRes;
+        }).catch(() => cached);
+      })
+    );
+    return;
+  }
+
+  // 3. Asset locali dell'applicazione: Stale-While-Revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
+      // Revalidate in background se online
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      }).catch(() => {});
+
+      // Se già in cache, rispondi subito (istantaneo)
       if (cachedResponse) {
-        // Ritorna subito dalla cache e aggiorna silenziosamente in background
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
         return cachedResponse;
       }
 
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
-      });
+      // Altrimenti attendi la rete
+      return fetchPromise;
     }).catch(() => {
-      // Fallback offline se la richiesta fallisce completamente
+      // Fallback per navigazione offline
       if (event.request.headers.get('accept')?.includes('text/html')) {
         return caches.match('./index.html');
       }

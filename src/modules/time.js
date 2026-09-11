@@ -27,6 +27,66 @@ export function getMinutesFromMidnight(date = new Date()) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
+export const SCHOOL_BREAKS = [
+  {
+    id: 1,
+    name: '1° Intervallo',
+    label: '09:50 - 10:00',
+    startTimeFormatted: '09:50',
+    endTimeFormatted: '10:00',
+    startMinutes: 590, // 09:50
+    endMinutes: 600,   // 10:00
+    afterSlotIndex: 2,
+    appliesToSaturday: true
+  },
+  {
+    id: 2,
+    name: '2° Intervallo',
+    label: '11:50 - 12:00',
+    startTimeFormatted: '11:50',
+    endTimeFormatted: '12:00',
+    startMinutes: 710, // 11:50
+    endMinutes: 720,   // 12:00
+    afterSlotIndex: 4,
+    appliesToSaturday: false // Sabato c'è solo il 1° intervallo
+  }
+];
+
+/**
+ * Verifica se per un dato giorno esiste un intervallo dopo il dato slot orario.
+ */
+export function getBreakAfterSlot(dayName, slotIndex) {
+  const normalizedDay = (dayName || '').toLowerCase();
+  return SCHOOL_BREAKS.find(b => {
+    if (b.afterSlotIndex !== slotIndex) return false;
+    if (normalizedDay === 'sabato' && !b.appliesToSaturday) return false;
+    return true;
+  }) || null;
+}
+
+/**
+ * Restituisce i dettagli sull'intervallo corrente, tenendo conto della regola del sabato.
+ */
+export function getCurrentBreakInfo(now = new Date()) {
+  const dayName = getCurrentDayName(now);
+  const minutes = getMinutesFromMidnight(now);
+
+  for (const b of SCHOOL_BREAKS) {
+    if (dayName === 'sabato' && !b.appliesToSaturday) continue;
+    if (minutes >= b.startMinutes && minutes < b.endMinutes) {
+      return {
+        isBreak: true,
+        breakObj: b,
+        name: b.name,
+        remainingMinutes: b.endMinutes - minutes,
+        endTime: b.endTimeFormatted
+      };
+    }
+  }
+
+  return { isBreak: false, breakObj: null };
+}
+
 /**
  * Valuta lo stato dell'orario scolastico per il giorno e ora correnti.
  * @param {Array} timeSlots - Elenco degli slot estratti dal parser
@@ -90,11 +150,14 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
     if (i < timeSlots.length - 1) {
       const nextSlot = timeSlots[i + 1];
       if (currentMinutes >= slot.endMinutes && currentMinutes < nextSlot.startMinutes) {
+        const breakInfo = getCurrentBreakInfo(now);
         return {
           currentDay,
           currentSlot: null,
           isSchoolHours: true,
           status: 'break',
+          isOfficialBreak: breakInfo.isBreak,
+          breakName: breakInfo.name || 'Intervallo / Cambio d\'ora',
           nextSlot: nextSlot,
           remainingMinutes: nextSlot.startMinutes - currentMinutes
         };

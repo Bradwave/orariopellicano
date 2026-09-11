@@ -1797,3 +1797,319 @@
   font-weight: 700;
   color: var(--text-primary);
 }
+
+/* ==========================================================================
+   Intervalli Scolastici (Lista Giornaliera & Griglia Settimanale)
+   ========================================================================== */
+.schedule-break-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px 0;
+  position: relative;
+}
+
+.schedule-break-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--border-subtle);
+  z-index: 1;
+}
+
+.break-pill {
+  position: relative;
+  z-index: 2;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-primary);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .break-pill {
+  background: #f8fafc;
+  color: #0f766e;
+  border-color: var(--border-subtle);
+}
+
+/* Griglia Settimanale: Riga Intervallo Compatta con Bordo Solido */
+.grid-break-time-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px 1px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.15;
+  color: var(--accent-primary);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.grid-break-banner-cell {
+  background: rgba(20, 184, 166, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-align: center;
+}
+
+[data-theme="light"] .grid-break-banner-cell {
+  background: rgba(15, 118, 110, 0.06);
+  color: #0f766e;
+  border-color: var(--border-subtle);
+}
+
+.grid-break-saturday-empty {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  padding: 2px;
+}
+
+.grid-double-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+  background: rgba(20, 184, 166, 0.2);
+  color: var(--accent-primary);
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+[data-theme="light"] .grid-double-badge {
+  background: rgba(15, 118, 110, 0.15);
+  color: #0f766e;
+}
+
+.grid-content-cell.span-double-hour {
+  min-height: 140px;
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Widget Next-Up (Prossima Lezione)
+   ========================================================================== */
+.next-up-card {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(99, 102, 241, 0.12));
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.next-up-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-primary);
+}
+
+.next-up-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.next-up-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.next-up-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-primary);
+  color: white;
+}
+
+.next-up-countdown {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+[data-theme="light"] .next-up-countdown {
+  color: #0f766e;
+}
+
+.next-up-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.next-up-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   Switch Toggle Custom (Design Tecnico Squadrato Coerente con l'UI)
+   ========================================================================== */
+.custom-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.custom-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-secondary);
+  border-radius: 2px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.custom-toggle-switch input:checked + .toggle-slider {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.custom-toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   Modal Export .ICS (Custom Period Option Cards & Date Range Picker)
+   ========================================================================== */
+.ics-period-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ics-option-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.ics-option-card:hover {
+  border-color: var(--border-focus);
+  background: var(--bg-surface);
+}
+
+.ics-option-card.selected {
+  border-color: var(--accent-primary);
+  background: rgba(20, 184, 166, 0.08);
+}
+
+[data-theme="light"] .ics-option-card.selected {
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.ics-custom-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 2px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.ics-option-card.selected .ics-custom-radio {
+  border-color: var(--accent-primary);
+}
+
+.ics-option-card.selected .ics-custom-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--accent-primary);
+}
+
+.ics-option-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ics-custom-date-row {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}

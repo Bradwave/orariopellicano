@@ -17,10 +17,13 @@ import {
   getTheme,
   setTheme,
   getViewModePreference,
-  setViewModePreference
+  setViewModePreference,
+  getNextUpPreference
 } from './modules/storage.js';
 import { fetchScheduleXml, checkBackgroundUpdate } from './modules/api.js';
-import { startTimeWatcher } from './modules/time.js';
+import { startTimeWatcher, getCurrentScheduleState, getCurrentDayName } from './modules/time.js';
+import { getHolidayOrVacation } from './modules/calendar.js';
+import { getIcon } from './modules/icons.js';
 
 import { setupUnifiedSearch } from './modules/views/search.js';
 import { renderClassView } from './modules/views/classView.js';
@@ -411,6 +414,94 @@ function renderCurrentView() {
     default:
       navigateTo('class');
   }
+
+  // Renderizza la card "Prossima Lezione" (Next-Up) se abilitata nelle impostazioni
+  renderNextUpCard();
+}
+
+/**
+ * Renderizza la card "Prossima Lezione" (Next-Up) in cima alla vista orario se abilitata.
+ */
+function renderNextUpCard() {
+  if (!getNextUpPreference() || !state.dataset) return;
+  const listContainer = DOM.mainContainer.querySelector('.schedule-list');
+  if (!listContainer) return;
+
+  const now = new Date();
+  const holidayCheck = getHolidayOrVacation(now);
+  if (holidayCheck.isHoliday) return;
+
+  const realDay = getCurrentDayName(now);
+  if (realDay === 'domenica') return;
+
+  const targetType = state.activeView === 'class' ? 'class' : (state.activeView === 'teacher' ? 'teacher' : null);
+  if (!targetType) return;
+
+  const targetId = state.activeId;
+  const daySchedule = targetType === 'class' 
+    ? (state.dataset.byClass[targetId] && state.dataset.byClass[targetId][realDay]) || {}
+    : (state.dataset.byTeacher[targetId] && state.dataset.byTeacher[targetId][realDay]) || {};
+
+  const timeState = getCurrentScheduleState(state.dataset.timeSlots, now);
+  if (timeState.status === 'after_school' || timeState.status === 'outside') return;
+
+  let activeAct = null;
+  let label = '';
+  let countdownText = '';
+
+  if (timeState.status === 'in_progress' && timeState.currentSlot) {
+    const currentActs = daySchedule[timeState.currentSlot.index] || [];
+    if (currentActs.length > 0) {
+      activeAct = currentActs[0];
+      label = 'Ora in corso';
+      countdownText = `Termina tra ${timeState.remainingMinutes} min`;
+    }
+  } else if (timeState.status === 'break' && timeState.nextSlot) {
+    const nextActs = daySchedule[timeState.nextSlot.index] || [];
+    if (nextActs.length > 0) {
+      activeAct = nextActs[0];
+      label = timeState.breakName || 'Intervallo';
+      countdownText = `Inizia tra ${timeState.remainingMinutes} min`;
+    }
+  } else if (timeState.status === 'before_school') {
+    const firstSlot = state.dataset.timeSlots[0];
+    const firstActs = daySchedule[firstSlot.index] || [];
+    if (firstActs.length > 0) {
+      activeAct = firstActs[0];
+      label = '1ª Lezione';
+      countdownText = `Inizio alle ${firstSlot.startTimeFormatted}`;
+    }
+  }
+
+  if (!activeAct) return;
+
+  const cleanSubject = activeAct.isDisposizione ? 'Disposizione per sostituzioni' : (activeAct.matNome || activeAct.matCod);
+  const where = [
+    activeAct.aula ? `Aula ${activeAct.aula}` : '',
+    (activeAct.sede && activeAct.sede !== 'DISPOSIZIONE') ? activeAct.sede : ''
+  ].filter(Boolean).join(' • ');
+
+  const who = targetType === 'class'
+    ? (activeAct.teacherDisplayName ? activeAct.teacherDisplayName : '')
+    : (activeAct.classeShort ? `Classe ${activeAct.classeShort}` : '');
+
+  const card = document.createElement('div');
+  card.className = 'next-up-card';
+  card.innerHTML = `
+    <div class="next-up-info">
+      <div class="next-up-badge-row">
+        <span class="next-up-tag">${label}</span>
+        <span class="next-up-countdown">${countdownText}</span>
+      </div>
+      <div class="next-up-title">${cleanSubject}</div>
+      <div class="next-up-sub">${[who, where].filter(Boolean).join(' • ')}</div>
+    </div>
+    <div style="color: var(--accent-primary);">
+      ${getIcon('schedule', { size: 24 })}
+    </div>
+  `;
+
+  listContainer.prepend(card);
 }
 
 /**
@@ -691,6 +782,9 @@ function initializeUI() {
     onResetCache: () => {
       localStorage.clear();
       window.location.reload();
+    },
+    onNextUpChange: () => {
+      renderCurrentView();
     }
   });
 

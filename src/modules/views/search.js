@@ -27,11 +27,26 @@ export function setupUnifiedSearch({
 
     // Cerca Classi
     for (const cls of dataset.classes) {
-      if (cls.short.toLowerCase().includes(q) || cls.full.toLowerCase().includes(q)) {
+      const short = (cls.short || '').toLowerCase();
+      const full = (cls.full || '').toLowerCase();
+      const display = (cls.displayShort || cls.short || '').toLowerCase();
+      
+      const aliases = [
+        short,
+        full,
+        display,
+        short.replace('alfa', 'a'),
+        short.replace('alfa', 'alpha'),
+        short.replace('alfa', 'α'),
+        short.replace('beta', 'β'),
+        short.replace('gamma', 'γ')
+      ];
+
+      if (aliases.some(a => a.includes(q)) || q.includes(short) || q === display) {
         matchedClasses.push({
           type: 'class',
           id: cls.short,
-          title: cls.short,
+          title: cls.displayShort ? `${cls.displayShort} (${cls.short})` : cls.short,
           subtitle: cls.full,
           badgeText: 'Classe',
           badgeClass: 'badge-class'

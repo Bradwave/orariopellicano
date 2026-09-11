@@ -17,11 +17,11 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="apple-touch-icon" href="./public/icon-192.png">
 
-  <!-- Google Fonts: Space Mono & Material Symbols Outlined -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-    rel="stylesheet">
+  <!-- Preload Font Locale Space Mono per rendering istantaneo a zero latenza -->
+  <link rel="preload" href="./public/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./public/fonts/SpaceMono-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Google Fonts: Material Symbols Outlined -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
   <!-- Styles: Main & Print -->
@@ -127,11 +127,20 @@
         </div>
 
         <!-- Toggle Tema Diretto (senza titolo) -->
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 14px;">
           <button class="btn-secondary" id="modalThemeToggleBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px;">
             <span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span>
             Attiva tema chiaro
           </button>
+        </div>
+
+        <!-- Widget Next-Up Toggle -->
+        <div style="margin-bottom: 16px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Widget "Prossima Lezione"</div>
+          <label class="custom-toggle-switch" for="modalNextUpToggle" aria-label="Attiva widget Prossima Lezione">
+            <input type="checkbox" id="modalNextUpToggle">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
 
         <div class="form-group">

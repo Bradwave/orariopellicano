@@ -65,7 +65,7 @@ export function renderRadarView({
           </div>
 
           <div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+            <div style="font-size: 1.1rem; font-weight: 700; color: ${status.isOffSchool ? 'var(--text-muted)' : 'var(--text-primary)'}; margin-bottom: 4px;">
               ${status.description}
             </div>
             ${status.subtext ? `

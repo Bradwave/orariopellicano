@@ -60,18 +60,31 @@ function getNodeText(parentNode, tagName) {
 }
 
 /**
+ * Converte le sezioni con lettere greche scritte in lettere latine (ALFA, BETA, GAMMA)
+ * nella corrispondente lettera greca tipografica (es. 1ALFA -> 1α, 2BETA -> 2β, 3GAMMA -> 3γ).
+ */
+export function formatClassDisplayName(shortName) {
+  if (!shortName) return '';
+  return shortName
+    .replace(/^(\d+)ALFA$/i, '$1α')
+    .replace(/^(\d+)BETA$/i, '$1β')
+    .replace(/^(\d+)GAMMA$/i, '$1γ');
+}
+
+/**
  * Normalizza il nome della classe per la visualizzazione compatta e la ricerca.
- * Es. ".1ALFA ORDINAM." -> full: "1ALFA ORDINAM.", short: "1ALFA"
- * Es. ".2BETA DIGITALE" -> full: "2BETA DIGITALE", short: "2BETA"
+ * Es. ".1ALFA ORDINAM." -> full: "1ALFA ORDINAM.", short: "1ALFA", displayShort: "1α"
+ * Es. ".2BETA DIGITALE" -> full: "2BETA DIGITALE", short: "2BETA", displayShort: "2β"
  */
 export function normalizeClassName(rawClass) {
-  if (!rawClass) return { full: '', short: '' };
+  if (!rawClass) return { full: '', short: '', displayShort: '' };
   // Rimuove punti e spazi iniziali/finali spuri
   const cleaned = rawClass.replace(/^[.\s]+/, '').replace(/\s+/g, ' ').trim();
   // Riconosce sia sezioni standard (1A, 3F, 4T) sia sezioni in lettere greche (1ALFA, 2BETA, 3GAMMA)
   const shortMatch = cleaned.match(/^(\d+(?:ALFA|BETA|GAMMA|[A-Z]+))/i);
   const short = shortMatch ? shortMatch[1].toUpperCase() : (cleaned.split(' ')[0] || cleaned).toUpperCase();
-  return { full: cleaned, short };
+  const displayShort = formatClassDisplayName(short);
+  return { full: cleaned, short, displayShort };
 }
 
 /**

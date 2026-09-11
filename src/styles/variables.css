@@ -1,3 +1,24 @@
+/* ==========================================================================
+   Self-Hosted Space Mono Fonts (100% Offline PWA & Zero Latency)
+   ========================================================================== */
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../public/fonts/SpaceMono-Regular.woff2') format('woff2'),
+       url('../../public/fonts/SpaceMono-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../../public/fonts/SpaceMono-Bold.woff2') format('woff2'),
+       url('../../public/fonts/SpaceMono-Bold.ttf') format('truetype');
+}
+
 :root {
   /* Color Palette - Desaturated Deep Teal / Petrolio Nordico (Sobrio, Profondo, Meno Verde) */
   --bg-primary: #091315;

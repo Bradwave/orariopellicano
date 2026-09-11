@@ -1,0 +1,32 @@
+{
+  "year": "2026/2027",
+  "region": "Piemonte",
+  "startDate": "2026-09-14",
+  "endDate": "2027-06-10",
+  "singleHolidays": [
+    { "date": "2026-10-04", "name": "San Francesco (Festa Nazionale)" },
+    { "date": "2026-11-01", "name": "Tutti i Santi" },
+    { "date": "2026-12-07", "name": "Ponte Immacolata (Sospensione lezioni)" },
+    { "date": "2026-12-08", "name": "Immacolata Concezione" },
+    { "date": "2027-04-25", "name": "Festa della Liberazione" },
+    { "date": "2027-05-01", "name": "Festa del Lavoro" },
+    { "date": "2027-06-02", "name": "Festa della Repubblica" }
+  ],
+  "vacationRanges": [
+    {
+      "name": "Vacanze di Natale",
+      "start": "2026-12-23",
+      "end": "2027-01-06"
+    },
+    {
+      "name": "Vacanze di Carnevale",
+      "start": "2027-02-06",
+      "end": "2027-02-10"
+    },
+    {
+      "name": "Vacanze di Pasqua",
+      "start": "2027-03-25",
+      "end": "2027-03-30"
+    }
+  ]
+}

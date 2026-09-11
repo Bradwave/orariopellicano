@@ -4,7 +4,8 @@
  * incrociando l'orario di sistema con le fasce orarie e l'albero delle attività.
  */
 
-import { getCurrentDayName, getMinutesFromMidnight } from './time.js';
+import { getCurrentDayName, getMinutesFromMidnight, getCurrentBreakInfo } from './time.js';
+import { getHolidayOrVacation } from './calendar.js';
 
 /**
  * Calcola la posizione e lo stato attuale in tempo reale di un docente.
@@ -22,6 +23,21 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
   const scheduleForTeacher = dataset.byTeacher[teacherId] || {};
   const dayActivities = scheduleForTeacher[currentDay] || {};
 
+  // Verifica prima di tutto se oggi è un giorno festivo, vacanza o sospensione lezioni
+  const holidayCheck = getHolidayOrVacation(now);
+  if (holidayCheck.isHoliday) {
+    return {
+      teacher,
+      currentDay,
+      statusCode: 'holiday',
+      badgeClass: 'status-neutral',
+      title: holidayCheck.name || 'Sospensione delle lezioni',
+      description: 'Scuola chiusa',
+      subtext: '',
+      isOffSchool: true
+    };
+  }
+
   // Se è domenica o giorno senza lezioni
   if (currentDay === 'domenica') {
     return {
@@ -30,8 +46,9 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       statusCode: 'weekend',
       badgeClass: 'status-offline',
       title: 'Domenica',
-      description: 'Scuola chiusa (Giorno festivo)',
-      subtext: 'Nessuna attività programmata per oggi'
+      description: 'Scuola chiusa',
+      subtext: '',
+      isOffSchool: true
     };
   }
 
@@ -67,7 +84,8 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       badgeClass: 'status-neutral',
       title: 'Giorno libero',
       description: 'Non a scuola',
-      subtext: ''
+      subtext: '',
+      isOffSchool: true
     };
   }
 
@@ -98,7 +116,8 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
       badgeClass: 'status-offline',
       title: 'Lezioni concluse',
       description: 'Non a scuola',
-      subtext: ''
+      subtext: '',
+      isOffSchool: true
     };
   }
 
@@ -168,19 +187,22 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
     if (i < timeSlots.length - 1) {
       const nextSlot = timeSlots[i + 1];
       if (currentMinutes >= slot.endMinutes && currentMinutes < nextSlot.startMinutes) {
+        const breakInfo = getCurrentBreakInfo(now);
         const remainingMinutes = nextSlot.startMinutes - currentMinutes;
         const nextActs = dayActivities[nextSlot.index] || [];
         const nextAct = nextActs[0];
+
+        const breakTitle = breakInfo.isBreak ? `${breakInfo.name} (Ricreazione)` : 'Intervallo / Cambio d\'ora';
 
         return {
           teacher,
           currentDay,
           statusCode: 'break',
           badgeClass: 'status-break',
-          title: 'Intervallo / Cambio d\'ora',
+          title: breakTitle,
           description: `Pausa fino alle ${nextSlot.startTimeFormatted} (tra ${remainingMinutes} min)`,
           subtext: nextAct 
-            ? `Prossima ora: ${nextAct.isDisposizione ? 'Disposizione' : (nextAct.matNome || nextAct.matCod)} in Classe ${nextAct.classeShort}`
+            ? `Prossima ora: ${nextAct.isDisposizione ? 'Disposizione' : (nextAct.matNome || nextAct.matCod)} in ${nextAct.classeShort || 'classe'}`
             : 'Prossima ora: Libera',
           remainingMinutes
         };

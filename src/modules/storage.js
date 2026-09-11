@@ -199,3 +199,23 @@ export function setViewModePreference(mode) {
     localStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode === 'weekly' ? 'weekly' : 'list');
   } catch (e) {}
 }
+
+/**
+ * Recupera la preferenza per il widget Next-Up (Prossima Lezione).
+ */
+export function getNextUpPreference() {
+  try {
+    return localStorage.getItem('orario_pellicano_next_up') === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Salva la preferenza per il widget Next-Up.
+ */
+export function setNextUpPreference(enabled) {
+  try {
+    localStorage.setItem('orario_pellicano_next_up', enabled ? 'true' : 'false');
+  } catch (e) {}
+}

@@ -6,14 +6,17 @@ import {
   getLastSyncTime,
   getCachedXmlHash,
   getTheme,
-  setTheme
+  setTheme,
+  getNextUpPreference,
+  setNextUpPreference
 } from '../storage.js';
 
 export function setupSettingsModal({
   modalOverlay,
   dataset,
   onSyncRequest,
-  onResetCache
+  onResetCache,
+  onNextUpChange
 }) {
   const syncNowBtn = modalOverlay.querySelector('#modalSyncBadgeBtn') || modalOverlay.querySelector('#modalSyncBtn');
   const syncIcon = modalOverlay.querySelector('#modalSyncIcon');
@@ -21,6 +24,7 @@ export function setupSettingsModal({
   const syncStatusSub = modalOverlay.querySelector('#modalSyncStatusSub');
   const clearCacheBtn = modalOverlay.querySelector('#modalClearCacheBtn');
   const themeToggleBtn = modalOverlay.querySelector('#modalThemeToggleBtn');
+  const nextUpToggle = modalOverlay.querySelector('#modalNextUpToggle');
   const closeBtn = modalOverlay.querySelector('#modalCloseBtn');
   const statsContainer = modalOverlay.querySelector('#modalStatsContainer');
 
@@ -98,6 +102,10 @@ export function setupSettingsModal({
         ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Attiva tema chiaro</span>' 
         : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Attiva tema scuro</span>';
     }
+
+    if (nextUpToggle) {
+      nextUpToggle.checked = getNextUpPreference();
+    }
   }
 
   // Event Listeners
@@ -128,6 +136,13 @@ export function setupSettingsModal({
       const next = current === 'dark' ? 'light' : 'dark';
       setTheme(next);
       updateStats();
+    });
+  }
+
+  if (nextUpToggle) {
+    nextUpToggle.addEventListener('change', () => {
+      setNextUpPreference(nextUpToggle.checked);
+      if (onNextUpChange) onNextUpChange(nextUpToggle.checked);
     });
   }
 

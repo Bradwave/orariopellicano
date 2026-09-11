@@ -8,11 +8,12 @@
  */
 
 import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
-import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
-import { exportScheduleToIcs } from '../exportIcs.js';
+import { getCurrentScheduleState, getCurrentDayName, getBreakAfterSlot } from '../time.js';
+import { openIcsExportModal } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
 import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '../exportManager.js';
 import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo, getGridSubjectName } from '../colors.js';
+import { getIcon } from '../icons.js';
 
 export function renderTeacherView({
   container,
@@ -72,58 +73,58 @@ export function renderTeacherView({
       
       <div class="banner-actions">
         <button id="teacherFavBtn" class="icon-action-btn ${isFavorite ? 'favorited' : ''}" title="${isFavorite ? 'Rimuovi dai preferiti' : 'Salva nei preferiti'}" aria-label="Preferito">
-          <span class="material-symbols-outlined" style="font-size: 19px;">${isFavorite ? 'star' : 'star_outline'}</span>
+          ${getIcon(isFavorite ? 'star' : 'star_outline', { size: 19 })}
         </button>
         <button id="teacherDefaultBtn" class="icon-action-btn ${isDefault ? 'default-active' : ''}" title="${isDefault ? 'Vista predefinita attiva' : 'Imposta come vista predefinita all\'avvio'}" aria-label="Predefinito">
-          <span class="material-symbols-outlined" style="font-size: 18px;">push_pin</span>
+          ${getIcon('push_pin', { size: 18 })}
         </button>
         <div class="actions-dropdown-container">
           <button class="icon-action-btn" id="teacherActionsTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false" aria-label="Altre azioni">
-            <span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+            ${getIcon('more_horiz', { size: 20 })}
           </button>
           <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
             <div class="actions-dropdown-header">
               <div class="dropdown-header-stat">
-                <span class="material-symbols-outlined" style="font-size: 15px; color: var(--accent-primary);">schedule</span>
+                ${getIcon('schedule', { size: 15, style: 'color: var(--accent-primary);' })}
                 <span><strong>${totalHours}</strong> ore</span>
               </div>
               ${disposizioniCount > 0 ? `
                 <div class="dropdown-header-stat" style="color: var(--badge-disposizione-text);">
-                  <span class="material-symbols-outlined" style="font-size: 15px;">swap_horiz</span>
+                  ${getIcon('swap_horiz', { size: 15 })}
                   <span><strong>${disposizioniCount}</strong> a disposizione</span>
                 </div>
               ` : ''}
             </div>
             <div class="actions-dropdown-divider"></div>
             <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
-              <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--accent-primary);">radar</span>
               <span>Radar colleghi</span>
             </button>
             <div class="actions-dropdown-divider"></div>
             <div class="dropdown-section-label">Condividi</div>
             <button class="dropdown-item-btn" id="teacherShareImgBtn">
-              <span class="material-symbols-outlined">send</span>
+              ${getIcon('send', { size: 18 })}
               <span>Invia immagine</span>
             </button>
             <button class="dropdown-item-btn" id="teacherCopyTextBtn">
-              <span class="material-symbols-outlined">content_copy</span>
+              ${getIcon('content_copy', { size: 18 })}
               <span>Copia orario</span>
             </button>
             <button class="dropdown-item-btn" id="teacherShareBtn">
-              <span class="material-symbols-outlined">share</span>
+              ${getIcon('share', { size: 18 })}
               <span>Condividi link</span>
             </button>
             <div class="actions-dropdown-divider"></div>
             <div class="dropdown-section-label">Esporta</div>
             <div class="export-buttons-row">
               <button class="export-compact-btn" id="teacherExportImgBtn" title="Scarica immagine PNG" aria-label="Scarica immagine">
-                <span class="material-symbols-outlined">image</span>
+                ${getIcon('image', { size: 18 })}
               </button>
               <button class="export-compact-btn" id="teacherPrintBtn" title="Stampa o salva come PDF" aria-label="Stampa o salva come PDF">
-                <span class="material-symbols-outlined">print</span>
+                ${getIcon('print', { size: 18 })}
               </button>
               <button class="export-compact-btn" id="teacherExportIcsBtn" title="Esporta calendario (.ics)" aria-label="Esporta calendario .ics">
-                <span class="material-symbols-outlined">calendar_month</span>
+                ${getIcon('calendar_month', { size: 18 })}
                 <span class="ext-badge">.ics</span>
               </button>
             </div>
@@ -153,6 +154,7 @@ export function renderTeacherView({
     ${viewMode === 'list' ? `
       <div class="schedule-list" id="teacherScheduleList">
         ${renderTeacherDayCards({
+          currentDay,
           timeSlots: dataset.timeSlots,
           daySchedule: scheduleForTeacher[currentDay] || {},
           isTodayActive,
@@ -175,43 +177,104 @@ export function renderTeacherView({
           <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${d}</div>
         `).join('')}
 
-        ${dataset.timeSlots.map(slot => {
-          let rowHtml = `
-            <div class="grid-time-cell">
-              <strong>${slot.index}ª ora</strong>
-              <span>${slot.oInizio.replace('h', ':')}</span>
-            </div>
-          `;
-          dataset.days.forEach(d => {
-            const dayActs = (scheduleForTeacher[d] && scheduleForTeacher[d][slot.index]) || [];
-            const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
-            if (dayActs.length === 0) {
-              rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
-            } else {
-              const act = dayActs[0];
-              const isDisp = act.isDisposizione;
-              const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
-              const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
-              const gridSubName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
-              const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
-              const classLabel = isDisp ? '' : (act.classeShort || '');
-              const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
+        ${(() => {
+          const mergedGridSlots = new Set();
+          return dataset.timeSlots.map(slot => {
+            let rowHtml = `
+              <div class="grid-time-cell">
+                <strong>${slot.index}ª ora</strong>
+                <span>${slot.oInizio.replace('h', ':')}</span>
+              </div>
+            `;
+            dataset.days.forEach(d => {
+              // Se questa cella è già stata assorbita dall'ora precedente, non emettere nulla
+              if (mergedGridSlots.has(`${d}-${slot.index}`)) {
+                return;
+              }
+
+              const dayActs = (scheduleForTeacher[d] && scheduleForTeacher[d][slot.index]) || [];
+              const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
+              if (dayActs.length === 0) {
+                rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
+              } else {
+                const act = dayActs[0];
+                const isDisp = act.isDisposizione;
+                const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
+                const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+                const gridSubName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
+                const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
+                const classLabel = isDisp ? '' : (act.classeShort || '');
+                const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
+
+                // Controlla fusione con ora successiva se NON c'è intervallo intermedio
+                let canMergeWithNext = false;
+                if (!getBreakAfterSlot(d, slot.index)) {
+                  const nextSlotActs = (scheduleForTeacher[d] && scheduleForTeacher[d][slot.index + 1]) || [];
+                  const nextAct = nextSlotActs[0];
+                  if (nextAct && 
+                      !isDisp && !nextAct.isDisposizione &&
+                      nextAct.matCod === act.matCod && 
+                      nextAct.classeShort === act.classeShort && 
+                      nextAct.aula === act.aula) {
+                    canMergeWithNext = true;
+                    mergedGridSlots.add(`${d}-${slot.index + 1}`);
+                  }
+                }
+
+                rowHtml += `
+                  <div class="grid-content-cell ${canMergeWithNext ? 'span-double-hour' : ''} ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color}; ${canMergeWithNext ? 'grid-row: span 2;' : ''}">
+                    <div class="grid-cell-top">
+                      <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
+                        ${gridSubName}
+                        ${canMergeWithNext ? '<span class="grid-double-badge">2h</span>' : ''}
+                      </div>
+                      ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
+                    </div>
+                    <div class="grid-cell-bottom">
+                      ${(!isDisp && act.aula) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
+                      ${(!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : ''}
+                    </div>
+                  </div>
+                `;
+              }
+            });
+
+            // Inserimento 1° Intervallo (dopo 2ª ora, Lunedì–Sabato)
+            if (slot.index === 2) {
               rowHtml += `
-                <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
-                  <div class="grid-cell-top">
-                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${gridSubName}</div>
-                    ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
-                  </div>
-                  <div class="grid-cell-bottom">
-                    ${(!isDisp && act.aula) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
-                    ${(!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : ''}
-                  </div>
+                <div class="grid-break-time-cell">
+                  <strong>09:50</strong>
+                  <span>10:00</span>
+                </div>
+                <div class="grid-break-banner-cell" style="grid-column: 2 / span ${dataset.days.length};">
+                  ${getIcon('coffee', { size: 14 })} 1° intervallo
                 </div>
               `;
             }
-          });
-          return rowHtml;
-        }).join('')}
+
+            // Inserimento 2° Intervallo (dopo 4ª ora, Lunedì–Venerdì; vuoto di Sabato)
+            if (slot.index === 4) {
+              const hasSaturday = dataset.days.includes('sabato');
+              const weekdaysCount = hasSaturday ? dataset.days.length - 1 : dataset.days.length;
+              rowHtml += `
+                <div class="grid-break-time-cell">
+                  <strong>11:50</strong>
+                  <span>12:00</span>
+                </div>
+                <div class="grid-break-banner-cell" style="grid-column: 2 / span ${weekdaysCount};">
+                  ${getIcon('coffee', { size: 14 })} 2° intervallo
+                </div>
+                ${hasSaturday ? `
+                  <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
+                    —
+                  </div>
+                ` : ''}
+              `;
+            }
+
+            return rowHtml;
+          }).join('');
+        })()}
       </div>
     </div>
 
@@ -219,11 +282,11 @@ export function renderTeacherView({
     <div class="floating-view-toggle">
       <div class="view-mode-selector floating">
         <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
-          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
+          ${getIcon('calendar_today', { size: 16 })}
           Lista
         </button>
         <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
-          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
+          ${getIcon('calendar_month', { size: 16 })}
           Settimana
         </button>
       </div>
@@ -407,21 +470,19 @@ export function renderTeacherView({
     });
   }
 
-  // Listener Esporta .ICS
+  // Listener Esporta .ICS con Modal di selezione periodo ed esclusione vacanze
   const icsBtn = container.querySelector('#teacherExportIcsBtn');
   if (icsBtn) {
     icsBtn.addEventListener('click', () => {
       if (actionsMenu) actionsMenu.setAttribute('hidden', '');
-      const filename = exportScheduleToIcs({
-        title: `Docente_${teacher.displayName.replace(/\s+/g, '_')}`,
+      openIcsExportModal({
+        title: `Docente ${teacher.displayName}`,
         type: 'teacher',
         scheduleData: scheduleForTeacher,
         timeSlots: dataset.timeSlots,
-        days: dataset.days
+        days: dataset.days,
+        onShowToast
       });
-      if (filename && onShowToast) {
-        onShowToast(`File ${filename} scaricato!`, 'success');
-      }
     });
   }
 
@@ -453,9 +514,9 @@ export function renderTeacherView({
 
 /**
  * Renderizza le schede giornaliere per il docente con fusione delle ore consecutive,
- * rimozione ridondanze, durata formattata ("1 ora", "2 ore") e color-coding.
+ * rimozione ridondanze, durata formattata ("1 ora", "2 ore") e divisori per intervalli.
  */
-function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes }) {
+function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes }) {
   if (!timeSlots || timeSlots.length === 0) {
     return `<div class="state-container"><div class="state-title">Nessuna fascia oraria</div></div>`;
   }
@@ -490,6 +551,19 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
           <div class="empty-hour-text">Ora libera</div>
         </div>
       `);
+
+      // Divisore intervallo dopo ora libera
+      const breakObj = getBreakAfterSlot(currentDay, slot.index);
+      if (breakObj) {
+        renderedHtml.push(`
+          <div class="schedule-break-divider">
+            <div class="break-pill">
+              ${getIcon('coffee', { size: 15 })}
+              <span><strong>${breakObj.label}</strong> • ${breakObj.name} (Ricreazione)</span>
+            </div>
+          </div>
+        `);
+      }
       continue;
     }
 
@@ -497,16 +571,40 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
     const nonContinuationActs = acts.filter(a => !a.isContinuation);
     const act = nonContinuationActs[0] || acts[0];
     const isDisp = act.isDisposizione;
-    const span = Math.max(1, act.durataHours || 1);
 
-    // Calcola l'ora finale in caso di lezione plurioraria
-    let endSlot = slot;
-    if (span > 1) {
-      const targetEndIndex = slot.index + span - 1;
-      const foundEnd = timeSlots.find(s => s.index === targetEndIndex);
-      if (foundEnd) {
-        endSlot = foundEnd;
+    // Calcolo span: se c'è un intervallo subito dopo questo slot, non fondere oltre
+    let span = 1;
+    const hasBreakAfterCurrent = Boolean(getBreakAfterSlot(currentDay, slot.index));
+
+    if (!hasBreakAfterCurrent) {
+      const rawSpan = Math.max(1, act.durataHours || 1);
+      if (rawSpan > 1) {
+        let canSpan = true;
+        for (let offset = 0; offset < rawSpan - 1; offset++) {
+          if (getBreakAfterSlot(currentDay, slot.index + offset)) {
+            canSpan = false;
+            break;
+          }
+        }
+        if (canSpan) span = rawSpan;
       }
+
+      if (span === 1 && !isDisp) {
+        const nextActs = daySchedule[slot.index + 1] || [];
+        const nextAct = nextActs.find(a => !a.isContinuation) || nextActs[0];
+        if (nextAct && 
+            !nextAct.isDisposizione &&
+            nextAct.matCod === act.matCod && 
+            nextAct.classeShort === act.classeShort &&
+            nextAct.aula === act.aula) {
+          span = 2;
+        }
+      }
+    }
+
+    const endSlot = timeSlots.find(s => s.index === slot.index + span - 1) || slot;
+
+    if (span > 1) {
       for (let s = 1; s < span; s++) {
         skippedSlotIndices.add(slot.index + s);
       }
@@ -550,7 +648,7 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
         <div class="hour-card-body">
           <div class="subject-row">
             <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 6px;' : ''}">
-              ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>' : ''}
+              ${isDisp ? '<span style="font-size: 16px;">⚡</span>' : ''}
               ${cleanName}
             </div>
           </div>
@@ -566,6 +664,19 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
         ` : ''}
       </div>
     `);
+
+    // Inserimento divisore intervallo dopo la fine della lezione
+    const breakObj = getBreakAfterSlot(currentDay, endSlot.index);
+    if (breakObj) {
+      renderedHtml.push(`
+        <div class="schedule-break-divider">
+          <div class="break-pill">
+            ${getIcon('coffee', { size: 15 })}
+            <span><strong>${breakObj.label}</strong> • ${breakObj.name} (Ricreazione)</span>
+          </div>
+        </div>
+      `);
+    }
   }
 
   return renderedHtml.join('');
