@@ -8,7 +8,9 @@ import {
   getTheme,
   setTheme,
   getNextUpPreference,
-  setNextUpPreference
+  setNextUpPreference,
+  getShowTeacherRoomPreference,
+  setShowTeacherRoomPreference
 } from '../storage.js';
 
 export function setupSettingsModal({
@@ -16,7 +18,8 @@ export function setupSettingsModal({
   dataset,
   onSyncRequest,
   onResetCache,
-  onNextUpChange
+  onNextUpChange,
+  onTeacherRoomChange
 }) {
   const syncNowBtn = modalOverlay.querySelector('#modalSyncBadgeBtn') || modalOverlay.querySelector('#modalSyncBtn');
   const syncIcon = modalOverlay.querySelector('#modalSyncIcon');
@@ -25,6 +28,7 @@ export function setupSettingsModal({
   const clearCacheBtn = modalOverlay.querySelector('#modalClearCacheBtn');
   const themeToggleBtn = modalOverlay.querySelector('#modalThemeToggleBtn');
   const nextUpToggle = modalOverlay.querySelector('#modalNextUpToggle');
+  const teacherRoomToggle = modalOverlay.querySelector('#modalTeacherRoomToggle');
   const closeBtn = modalOverlay.querySelector('#modalCloseBtn');
   const statsContainer = modalOverlay.querySelector('#modalStatsContainer');
 
@@ -106,6 +110,10 @@ export function setupSettingsModal({
     if (nextUpToggle) {
       nextUpToggle.checked = getNextUpPreference();
     }
+
+    if (teacherRoomToggle) {
+      teacherRoomToggle.checked = getShowTeacherRoomPreference();
+    }
   }
 
   // Event Listeners
@@ -143,6 +151,13 @@ export function setupSettingsModal({
     nextUpToggle.addEventListener('change', () => {
       setNextUpPreference(nextUpToggle.checked);
       if (onNextUpChange) onNextUpChange(nextUpToggle.checked);
+    });
+  }
+
+  if (teacherRoomToggle) {
+    teacherRoomToggle.addEventListener('change', () => {
+      setShowTeacherRoomPreference(teacherRoomToggle.checked);
+      if (onTeacherRoomChange) onTeacherRoomChange(teacherRoomToggle.checked);
     });
   }
 

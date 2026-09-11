@@ -241,3 +241,24 @@ export function setWeeklyFitPreference(enabled) {
   } catch (e) {}
 }
 
+/**
+ * Recupera la preferenza per mostrare l'aula nella vista a lista docenti.
+ */
+export function getShowTeacherRoomPreference() {
+  try {
+    const val = localStorage.getItem('orario_pellicano_show_teacher_room');
+    return val === null ? true : val === 'true';
+  } catch (e) {
+    return true;
+  }
+}
+
+/**
+ * Salva la preferenza per mostrare l'aula nella vista a lista docenti.
+ */
+export function setShowTeacherRoomPreference(enabled) {
+  try {
+    localStorage.setItem('orario_pellicano_show_teacher_room', enabled ? 'true' : 'false');
+  } catch (e) {}
+}
+

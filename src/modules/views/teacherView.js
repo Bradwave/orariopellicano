@@ -17,6 +17,7 @@ import { getIcon } from '../icons.js';
 import { openLessonDetailSheet } from './lessonDetailSheet.js';
 import { getClassroomInfo } from '../classrooms.js';
 import { formatClassDisplayName } from '../parser.js';
+import { getShowTeacherRoomPreference } from '../storage.js';
 
 const DAY_SHORT_MAP = {
   lunedi: 'Lun',
@@ -724,8 +725,9 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
 
     const subjectColor = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
     const cleanName = isDisp ? 'Disposizione per sostituzioni' : cleanSubjectName(act.matNome || act.matCod);
+    const showRoomPref = getShowTeacherRoomPreference();
     const roomInfo = (!isDisp && act.classeShort) ? getClassroomInfo(act.classeShort) : null;
-    const classroomBadge = roomInfo ? `<span class="badge badge-classroom ${roomInfo.wingClass}" title="${roomInfo.fullLocation}">${getIcon('meeting_room', { size: 12, style: 'margin-right: 3px;' })}Aula ${roomInfo.aula} • ${roomInfo.piano} p.</span>` : '';
+    const classroomBadge = (showRoomPref && roomInfo) ? `<span class="badge badge-classroom ${roomInfo.wingClass}" title="${roomInfo.fullLocation}">${getIcon('meeting_room', { size: 12, style: 'margin-right: 3px;' })}Aula ${roomInfo.aula} • ${roomInfo.piano} p.</span>` : '';
     const hasLocation = Boolean(act.aula || (act.sede && act.sede !== 'DISPOSIZIONE'));
     const locationBadges = (!isDisp && hasLocation && (!roomInfo || act.aula !== roomInfo.aula)) ? renderLocationBadge(act.sede, act.aula) : ((!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : '');
     const coDocenzaBadges = act.isCoDocenza ? renderCoDocenzaBadge(['Co-docente']) : '';

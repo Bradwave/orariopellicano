@@ -821,6 +821,9 @@ function initializeUI() {
     },
     onNextUpChange: () => {
       renderCurrentView();
+    },
+    onTeacherRoomChange: () => {
+      renderCurrentView();
     }
   });
 

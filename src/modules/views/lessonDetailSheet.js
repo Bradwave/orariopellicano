@@ -130,9 +130,9 @@ export function openLessonDetailSheet({
             </div>
             <div class="sheet-detail-info">
               <span class="sheet-detail-label">Aula e Ubicazione</span>
-              <div class="sheet-actionable-value" style="flex-wrap: wrap; gap: 6px; align-items: baseline;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span class="badge badge-classroom ${classroom.wingClass}">Aula ${classroom.aula}</span>
-                <span class="sheet-detail-value" style="color: var(--text-secondary); font-size: 0.9rem;">
+                <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 500;">
                   ${classroom.fullLocation}
                 </span>
               </div>
