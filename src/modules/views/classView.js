@@ -11,7 +11,7 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
-import { getSubjectColor, cleanSubjectName, formatDurationLabel } from '../colors.js';
+import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel } from '../colors.js';
 
 export function renderClassView({
   container,
@@ -36,6 +36,7 @@ export function renderClassView({
 
   const timeState = getCurrentScheduleState(dataset.timeSlots);
   const isTodayActive = currentDay === realCurrentDay;
+  const classColorInfo = getClassColorInfo(classObj.short, classObj.full);
 
   container.innerHTML = `
     <!-- Intestazione visibile ESCLUSIVAMENTE in fase di STAMPA (@media print) -->
@@ -47,22 +48,21 @@ export function renderClassView({
       </div>
     </div>
 
-    <!-- Active Entity Banner -->
+    <!-- Active Entity Banner Compatto su Riga Singola -->
     <div class="active-view-banner">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge">Orario Classe</span>
+      <div class="banner-title-group">
         <h1 class="banner-entity-name">${classObj.short}</h1>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">${classObj.full}</span>
+        <span class="banner-meta-chip" style="color: ${classColorInfo.color}; border-color: ${classColorInfo.border}; background: ${classColorInfo.bg}; font-weight: 600;">
+          ${classColorInfo.trackName}
+        </span>
       </div>
       
       <div class="banner-actions">
-        <button id="classFavBtn" class="star-fav-btn ${isFavorite ? 'favorited' : ''}" title="Salva nei preferiti">
-          <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
-          ${isFavorite ? 'Salvato' : 'Salva'}
+        <button id="classFavBtn" class="icon-action-btn ${isFavorite ? 'favorited' : ''}" title="${isFavorite ? 'Rimuovi dai preferiti' : 'Salva nei preferiti'}" aria-label="Preferito">
+          <span class="material-symbols-outlined" style="font-size: 19px;">${isFavorite ? 'star' : 'star_outline'}</span>
         </button>
-        <button id="classDefaultBtn" class="star-fav-btn ${isDefault ? 'favorited' : ''}" title="Imposta come vista predefinita all'avvio">
-          <span class="material-symbols-outlined" style="font-size: 16px;">push_pin</span>
-          ${isDefault ? 'Predefinito' : 'Predefinisci'}
+        <button id="classDefaultBtn" class="icon-action-btn ${isDefault ? 'default-active' : ''}" title="${isDefault ? 'Vista predefinita attiva' : 'Imposta come vista predefinita all\'avvio'}" aria-label="Predefinito">
+          <span class="material-symbols-outlined" style="font-size: 18px;">push_pin</span>
         </button>
       </div>
     </div>
@@ -137,7 +137,7 @@ export function renderClassView({
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''}" id="classWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
       <div class="weekly-grid">
-        <div class="grid-header-cell">Ora / Giorno</div>
+        <div class="grid-header-cell empty-corner" aria-hidden="true"></div>
         ${dataset.days.map(d => `
           <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${d}</div>
         `).join('')}
@@ -153,16 +153,19 @@ export function renderClassView({
             const dayActs = (scheduleForClass[d] && scheduleForClass[d][slot.index]) || [];
             const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
             if (dayActs.length === 0) {
-              rowHtml += `<div class="grid-content-cell" style="opacity: 0.35; justify-content: center; align-items: center;"><span style="font-size: 0.72rem; color: var(--text-muted);">-</span></div>`;
+              rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
             } else {
               const act = dayActs[0];
               const colorObj = getSubjectColor(act.matNome, act.matCod);
               const cleanName = cleanSubjectName(act.matNome || act.matCod);
+              const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : '';
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
-                  <div class="grid-subject">${cleanName}</div>
-                  <div class="grid-subtext">${act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : ''}</div>
-                  <div class="badges-group" style="margin-top: 4px;">
+                  <div class="grid-cell-top">
+                    <div class="grid-subject" title="${cleanName}">${cleanName}</div>
+                    <div class="grid-subtext" title="${teacherName}">${teacherName}</div>
+                  </div>
+                  <div class="grid-cell-bottom">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
                     ${renderLocationBadge(act.sede, '')}
                   </div>

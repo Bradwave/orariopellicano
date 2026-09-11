@@ -21,16 +21,12 @@ export function renderRadarView({
   const status = getTeacherLiveStatus(dataset, teacherId);
 
   container.innerHTML = `
-    <!-- Header Banner Radar -->
-    <div class="active-view-banner" style="background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, transparent 100%);">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge" style="color: #10b981; display: inline-flex; align-items: center; gap: 4px;">
-          <span class="material-symbols-outlined" style="font-size: 16px;">radar</span>
-          Live Tracker
-        </span>
+    <!-- Header Banner Radar Compatto su Riga Singola -->
+    <div class="active-view-banner">
+      <div class="banner-title-group">
         <h1 class="banner-entity-name">Radar Colleghi</h1>
-        <span style="font-size: 0.82rem; color: var(--text-muted);">
-          Individua all'istante la posizione e l'attività in corso dei docenti
+        <span class="banner-meta-chip" style="color: var(--accent-primary);">
+          Live Tracker Docenti
         </span>
       </div>
     </div>

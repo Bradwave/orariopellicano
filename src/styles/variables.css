@@ -1,56 +1,57 @@
 :root {
-  /* Color Palette - Deep Teal Dark Mode (Minimale, Professionale, No Sfumature) */
-  --bg-primary: #041718;
-  --bg-secondary: #072326;
-  --bg-card: #092c30;
-  --bg-card-hover: #0c383d;
-  --bg-card-active: #10444a;
-  --bg-input: #051e21;
-  --bg-glass: rgba(7, 35, 38, 0.95);
-  --border-subtle: rgba(20, 184, 166, 0.16);
+  /* Color Palette - Desaturated Deep Teal / Petrolio Nordico (Con Carattere, Sobrio, Elegante) */
+  --bg-primary: #091315;
+  --bg-secondary: #0e1c1f;
+  --bg-card: #122226;
+  --bg-card-hover: #182c31;
+  --bg-card-active: #1f373d;
+  --bg-input: #0b171a;
+  --bg-glass: rgba(9, 19, 21, 0.95);
+  --border-subtle: rgba(45, 212, 191, 0.12);
   --border-focus: #14b8a6;
-  --border-highlight: rgba(20, 184, 166, 0.35);
+  --border-highlight: rgba(45, 212, 191, 0.28);
 
-  /* Solid Vibrant Accents - Flat Teal */
+  /* Accento primario distintivo ma non accecante */
   --accent-primary: #14b8a6;
   --accent-primary-hover: #0d9488;
-  --accent-gradient: #14b8a6; /* Flat solid color, no gradients */
-  --accent-glow: rgba(20, 184, 166, 0.2);
+  --accent-gradient: #14b8a6;
+  --accent-text: #041718;
+  --accent-glow: transparent;
 
   /* Sedi & Tags */
-  --badge-sede-bg: rgba(20, 184, 166, 0.1);
+  --badge-sede-bg: rgba(45, 212, 191, 0.12);
   --badge-sede-text: #2dd4bf;
-  --badge-sede-border: rgba(20, 184, 166, 0.25);
+  --badge-sede-border: rgba(45, 212, 191, 0.25);
 
   --badge-succursale-bg: rgba(239, 68, 68, 0.12);
   --badge-succursale-text: #f87171;
-  --badge-succursale-border: rgba(239, 68, 68, 0.3);
+  --badge-succursale-border: rgba(239, 68, 68, 0.25);
 
   --badge-palestra-bg: rgba(16, 185, 129, 0.12);
   --badge-palestra-text: #34d399;
-  --badge-palestra-border: rgba(16, 185, 129, 0.3);
+  --badge-palestra-border: rgba(16, 185, 129, 0.25);
 
-  --badge-disposizione-bg: rgba(245, 158, 11, 0.12);
+  --badge-disposizione-bg: rgba(217, 119, 6, 0.14);
   --badge-disposizione-text: #fbbf24;
   --badge-disposizione-border: rgba(245, 158, 11, 0.3);
 
-  --badge-codocenza-bg: rgba(168, 85, 247, 0.12);
+  --badge-codocenza-bg: rgba(139, 92, 246, 0.12);
   --badge-codocenza-text: #c084fc;
-  --badge-codocenza-border: rgba(168, 85, 247, 0.3);
+  --badge-codocenza-border: rgba(139, 92, 246, 0.25);
 
-  /* Typography */
-  --text-primary: #f0fdfa;
-  --text-secondary: #99f6e4;
-  --text-muted: #5eead4;
-  --text-dimmed: #2dd4bf;
-  --text-inverted: #041718;
+  /* Typography Chiara ad Alto Contrasto */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-dimmed: #475569;
+  --text-inverted: #091315;
 
   /* Font Families - Space Mono */
   --font-sans: 'Space Mono', monospace, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Space Mono', monospace, ui-monospace, SFMono-Regular;
 
   /* Layout & Spacing */
-  --header-height: 0px; /* Header rimosso */
+  --header-height: 0px;
   --bottom-nav-height: 64px;
   
   /* Curvatura ridotta (Boxy / Engineered) */
@@ -60,10 +61,10 @@
   --radius-xl: 6px;
   --radius-full: 4px;
 
-  /* Shadows - Minimal & Flat */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  /* Shadows - Minimal & Flat (Zero Glow) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
   --shadow-accent: none;
   --glass-blur: none;
   --glass-border: 1px solid var(--border-subtle);
@@ -73,29 +74,42 @@
   --transition-normal: 0.2s ease;
 }
 
-/* Light Theme Variables */
+/* Light Theme Variables con Contrasti Corretti */
 [data-theme="light"] {
-  --bg-primary: #f0fdfa;
+  --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #f8fafc;
+  --bg-card-hover: #f1f5f9;
   --bg-card-active: #e2e8f0;
   --bg-input: #ffffff;
   --bg-glass: #ffffff;
-  --border-subtle: rgba(13, 148, 136, 0.18);
-  --border-focus: #0d9488;
-  --border-highlight: rgba(13, 148, 136, 0.35);
+  --border-subtle: rgba(15, 23, 42, 0.12);
+  --border-focus: #0f766e;
+  --border-highlight: rgba(15, 23, 42, 0.22);
 
-  --accent-primary: #0d9488;
-  --accent-primary-hover: #0f766e;
-  --accent-gradient: #0d9488;
+  --accent-primary: #0f766e;
+  --accent-primary-hover: #115e59;
+  --accent-gradient: #0f766e;
+  --accent-text: #ffffff;
 
-  --text-primary: #042f2e;
-  --text-secondary: #115e59;
-  --text-muted: #134e4a;
+  /* Badges con contrasto ottimizzato per fondo chiaro */
+  --badge-sede-bg: rgba(15, 118, 110, 0.1);
+  --badge-sede-text: #0f766e;
+  --badge-sede-border: rgba(15, 118, 110, 0.3);
+
+  --badge-disposizione-bg: rgba(217, 119, 6, 0.12);
+  --badge-disposizione-text: #b45309; /* Ambra scuro leggibile */
+  --badge-disposizione-border: rgba(180, 83, 9, 0.35);
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-dimmed: #94a3b8;
   --text-inverted: #ffffff;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
+
+

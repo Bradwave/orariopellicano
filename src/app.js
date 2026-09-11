@@ -231,19 +231,50 @@ function renderQuickPills() {
  * Naviga verso una vista e aggiorna il rendering.
  */
 export function navigateTo(viewType, id = null, day = null) {
-  state.activeView = viewType;
-  if (id) state.activeId = id;
+  let targetView = viewType;
+  let targetId = id || state.activeId;
+
+  // Auto-rilevamento tipo entità se l'id fornito appartiene inequivocabilmente a docenti o classi
+  if (targetId && state.dataset) {
+    const isTeacher = state.dataset.teachers?.some(t => t.id === targetId);
+    const isClass = state.dataset.classes?.some(c => c.short === targetId);
+    if (targetView === 'class' && isTeacher && !isClass) {
+      targetView = 'teacher';
+    } else if (targetView === 'teacher' && isClass && !isTeacher) {
+      targetView = 'class';
+    }
+  }
+
+  state.activeView = targetView;
   if (day) state.activeDay = day;
 
-  // Gestione defaults
-  if (viewType === 'class' && !state.activeId && state.dataset.classes.length > 0) {
-    state.activeId = state.dataset.classes[0].short;
-  } else if (viewType === 'teacher' && !state.activeId && state.dataset.teachers.length > 0) {
-    state.activeId = state.dataset.teachers[0].id;
-  } else if (viewType === 'subject' && !state.activeId && state.dataset.subjects.length > 0) {
-    state.activeId = state.dataset.subjects[0].code;
-  } else if (viewType === 'radar' && id) {
-    state.radarTeacherId = id;
+  // Gestione defaults e garanzia di integrità dell'id per il tipo di vista
+  if (targetView === 'class') {
+    const isValid = state.dataset?.classes?.some(c => c.short === targetId);
+    if (!isValid) {
+      const def = getDefaultView();
+      targetId = (def && def.type === 'class') ? def.id : (state.lastClassId || state.dataset?.classes?.[0]?.short || '1A');
+    }
+    state.lastClassId = targetId;
+    state.activeId = targetId;
+  } else if (targetView === 'teacher') {
+    const isValid = state.dataset?.teachers?.some(t => t.id === targetId);
+    if (!isValid) {
+      const def = getDefaultView();
+      targetId = (def && def.type === 'teacher') ? def.id : (state.lastTeacherId || state.dataset?.teachers?.[0]?.id || '');
+    }
+    state.lastTeacherId = targetId;
+    state.activeId = targetId;
+  } else if (targetView === 'subject') {
+    const isValid = state.dataset?.subjects?.some(s => s.code === targetId);
+    if (!isValid) {
+      targetId = state.dataset?.subjects?.[0]?.code || '';
+    }
+    state.activeId = targetId;
+  } else if (targetView === 'radar') {
+    if (id) state.radarTeacherId = id;
+  } else {
+    if (id) state.activeId = id;
   }
 
   updateBottomNavHighlight();

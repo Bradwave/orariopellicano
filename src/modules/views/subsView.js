@@ -31,25 +31,20 @@ export function renderSubsDashboard({
   const currentSlotObj = dataset.timeSlots.find(s => s.index === slotIdx) || dataset.timeSlots[0];
 
   container.innerHTML = `
-    <!-- Header Dashboard -->
-    <div class="active-view-banner" style="background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, transparent 100%);">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge" style="color: #f59e0b;">Dashboard Docenti</span>
-        <h1 class="banner-entity-name">Sostituzioni & Supplenze</h1>
-        <span style="font-size: 0.82rem; color: var(--text-muted);">
-          Docenti con ora a DISPOSIZIONE pronti per coperture
-        </span>
+    <!-- Header Dashboard Compatto su Riga Singola -->
+    <div class="active-view-banner">
+      <div class="banner-title-group">
+        <h1 class="banner-entity-name">Sostituzioni</h1>
       </div>
-      <div class="badge badge-disposizione" style="font-size: 0.85rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
-        <span class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
-        ${availableTeachers.length} Disponibili
+      <div class="badge badge-disposizione" style="font-size: 0.8rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
+        <span class="material-symbols-outlined" style="font-size: 15px;">bolt</span>
+        ${availableTeachers.length} a disposizione
       </div>
     </div>
 
     <div class="subs-dashboard">
       <!-- Card Filtri: Giorno e Ora -->
       <div class="subs-filters-card">
-        <div class="filter-section-title">1. Seleziona Giorno</div>
         <div class="day-pills-row" id="subsDayPills" style="padding: 0;">
           ${dataset.days.map(d => {
             const isActive = d === day;
@@ -63,7 +58,6 @@ export function renderSubsDashboard({
           }).join('')}
         </div>
 
-        <div class="filter-section-title" style="margin-top: 8px;">2. Seleziona Ora di Lezione</div>
         <div class="slot-pills-grid" id="subsSlotGrid">
           ${dataset.timeSlots.map(s => {
             const isActive = s.index === slotIdx;
@@ -84,10 +78,10 @@ export function renderSubsDashboard({
         </div>
       </div>
 
-      <!-- Risultati Docenti a Disposizione -->
+      <!-- Elenco Docenti a Disposizione -->
       <div class="subs-results-counter">
-        <span>Docenti a disposizione per <strong>${day.toUpperCase()}</strong> alla <strong>${currentSlotObj ? currentSlotObj.index : slotIdx}ª ora</strong> (${currentSlotObj ? currentSlotObj.timeFormatted : ''}):</span>
-        <span style="font-weight: 700; color: #fbbf24;">${availableTeachers.length} trovati</span>
+        <span style="font-weight: 600;">Docenti in servizio a disposizione</span>
+        <span style="font-weight: 700; color: var(--badge-disposizione-text);">${availableTeachers.length} trovati</span>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">

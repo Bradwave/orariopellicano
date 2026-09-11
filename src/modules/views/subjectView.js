@@ -39,13 +39,12 @@ export function renderSubjectView({
   });
 
   container.innerHTML = `
-    <!-- Active Entity Banner -->
+    <!-- Active Entity Banner Compatto -->
     <div class="active-view-banner" style="border-left: 4px solid ${subjectColor.color};">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge">Materia</span>
+      <div class="banner-entity-info-compact">
         <h1 class="banner-entity-name">${cleanName}</h1>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">
-          Codice: <strong>${subject.code}</strong> • Insegnata in ${sortedClasses.length} classi da ${sortedTeachers.length} docenti
+        <span class="banner-meta-chip">
+          ${subject.code} · ${sortedClasses.length} classi · ${sortedTeachers.length} docenti
         </span>
       </div>
     </div>

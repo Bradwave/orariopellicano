@@ -3,6 +3,12 @@
 @import './components.css';
 @import './print.css';
 
+/* Stable Scrollbar Gutter to prevent horizontal layout jumping */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 /* Main App Container */
 #app {
   display: flex;

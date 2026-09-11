@@ -11,7 +11,7 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
-import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor } from '../colors.js';
+import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo } from '../colors.js';
 
 export function renderTeacherView({
   container,
@@ -63,24 +63,21 @@ export function renderTeacherView({
       </div>
     </div>
 
-    <!-- Active Entity Banner -->
+    <!-- Active Entity Banner Compatto su Riga Singola -->
     <div class="active-view-banner">
-      <div class="banner-entity-info">
-        <span class="banner-type-badge">Orario Docente</span>
+      <div class="banner-title-group">
         <h1 class="banner-entity-name">${teacher.displayName}</h1>
-        <span style="font-size: 0.8rem; color: var(--text-muted);">
-          ${totalHours} ore settimanali (${disposizioniCount} a disposizione)
+        <span class="banner-meta-chip">
+          ${totalHours} ore (${disposizioniCount} a disp.)
         </span>
       </div>
       
       <div class="banner-actions">
-        <button id="teacherFavBtn" class="star-fav-btn ${isFavorite ? 'favorited' : ''}" title="Salva nei preferiti">
-          <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
-          ${isFavorite ? 'Salvato' : 'Salva'}
+        <button id="teacherFavBtn" class="icon-action-btn ${isFavorite ? 'favorited' : ''}" title="${isFavorite ? 'Rimuovi dai preferiti' : 'Salva nei preferiti'}" aria-label="Preferito">
+          <span class="material-symbols-outlined" style="font-size: 19px;">${isFavorite ? 'star' : 'star_outline'}</span>
         </button>
-        <button id="teacherDefaultBtn" class="star-fav-btn ${isDefault ? 'favorited' : ''}" title="Imposta come vista predefinita all'avvio">
-          <span class="material-symbols-outlined" style="font-size: 16px;">push_pin</span>
-          ${isDefault ? 'Predefinito' : 'Predefinisci'}
+        <button id="teacherDefaultBtn" class="icon-action-btn ${isDefault ? 'default-active' : ''}" title="${isDefault ? 'Vista predefinita attiva' : 'Imposta come vista predefinita all\'avvio'}" aria-label="Predefinito">
+          <span class="material-symbols-outlined" style="font-size: 18px;">push_pin</span>
         </button>
       </div>
     </div>
@@ -158,7 +155,7 @@ export function renderTeacherView({
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''}" id="teacherWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
       <div class="weekly-grid">
-        <div class="grid-header-cell">Ora / Giorno</div>
+        <div class="grid-header-cell empty-corner" aria-hidden="true"></div>
         ${dataset.days.map(d => `
           <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${d}</div>
         `).join('')}
@@ -174,19 +171,22 @@ export function renderTeacherView({
             const dayActs = (scheduleForTeacher[d] && scheduleForTeacher[d][slot.index]) || [];
             const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
             if (dayActs.length === 0) {
-              rowHtml += `<div class="grid-content-cell" style="opacity: 0.35; justify-content: center; align-items: center;"><span style="font-size: 0.72rem; color: var(--text-muted);">-</span></div>`;
+              rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
             } else {
               const act = dayActs[0];
               const isDisp = act.isDisposizione;
-              const colorObj = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
+              const colorObj = isDisp ? { color: '#d97706' } : getSubjectColor(act.matNome, act.matCod);
               const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+              const classInfo = act.classeShort ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
+              const classLabel = act.classeShort || (isDisp ? 'A Disposizione' : '');
+              const classColor = classInfo ? classInfo.color : 'var(--text-secondary)';
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
-                  <div class="grid-subject" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
-                  <div class="grid-subtext">
-                    ${act.classeShort ? `<span style="color: ${getClassColor(act.classeShort)}; font-weight: 700;">${act.classeShort}</span>` : (isDisp ? 'A Disposizione' : '')}
+                  <div class="grid-cell-top">
+                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
+                    <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 700;">${classLabel}</div>
                   </div>
-                  <div class="badges-group" style="margin-top: 4px;">
+                  <div class="grid-cell-bottom">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
                     ${renderLocationBadge(act.sede, '')}
                   </div>
@@ -420,12 +420,15 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
 
         <div class="hour-card-footer">
           <div>
-            ${act.classeShort ? `
-              <span class="class-chip" data-class-name="${act.classeShort}" title="Vedi orario classe ${act.classeShort}">
-                <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
-                Classe ${act.classeShort}
-              </span>
-            ` : (isDisp ? '<span class="badge badge-disposizione">A Disposizione</span>' : '')}
+            ${act.classeShort ? (() => {
+              const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
+              return `
+                <span class="class-chip" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
+                  Classe ${act.classeShort}
+                </span>
+              `;
+            })() : (isDisp ? '<span class="badge badge-disposizione">A Disposizione</span>' : '')}
           </div>
 
           <div class="badges-group">
