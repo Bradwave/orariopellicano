@@ -90,7 +90,14 @@ html {
 
   .schedule-list {
     padding: 16px 24px calc(var(--bottom-nav-height) + 68px) 24px;
-    max-width: 800px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .radar-container {
+    padding: 20px 24px calc(var(--bottom-nav-height) + 24px) 24px;
+    max-width: 640px;
     margin: 0 auto;
     width: 100%;
   }
@@ -99,6 +106,14 @@ html {
     padding: 20px 24px calc(var(--bottom-nav-height) + 24px) 24px;
     max-width: 900px;
     margin: 0 auto;
+    width: 100%;
+  }
+
+  .subs-results-counter,
+  .subs-teachers-list {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
     width: 100%;
   }
 }

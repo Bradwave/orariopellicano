@@ -3,6 +3,8 @@
  * Riconosce automaticamente classi, docenti e materie con autocompletamento in tempo reale.
  */
 
+import { cleanSubjectName } from '../colors.js';
+
 export function setupUnifiedSearch({
   container,
   dataset,
@@ -55,11 +57,16 @@ export function setupUnifiedSearch({
 
     // Cerca Materie
     for (const sub of dataset.subjects) {
-      if (sub.code.toLowerCase().includes(q) || sub.name.toLowerCase().includes(q)) {
+      const cleanName = cleanSubjectName(sub.name || sub.code);
+      if (
+        sub.code.toLowerCase().includes(q) ||
+        (sub.name && sub.name.toLowerCase().includes(q)) ||
+        cleanName.toLowerCase().includes(q)
+      ) {
         matchedSubjects.push({
           type: 'subject',
           id: sub.code,
-          title: sub.name,
+          title: cleanName,
           subtitle: `Cod. ${sub.code}`,
           badgeText: 'Materia',
           badgeClass: 'badge-subject'

@@ -196,28 +196,42 @@ export function navigateTo(viewType, id = null, day = null) {
   state.activeView = targetView;
   if (day) state.activeDay = day;
 
-  // Gestione defaults e garanzia di integrità dell'id per il tipo di vista
+  // Gestione defaults e garanzia di integrità dell'id per il tipo di vista (con matching tollerante case-insensitive)
   if (targetView === 'class') {
-    const isValid = state.dataset?.classes?.some(c => c.short === targetId);
-    if (!isValid) {
+    const targetQ = (targetId || '').trim().toLowerCase();
+    const matched = state.dataset?.classes?.find(c => c.short.toLowerCase() === targetQ || c.full.toLowerCase() === targetQ);
+    if (matched) {
+      targetId = matched.short;
+    } else {
       const def = getDefaultView();
       targetId = (def && def.type === 'class') ? def.id : (state.lastClassId || state.dataset?.classes?.[0]?.short || '1A');
     }
     state.lastClassId = targetId;
     state.activeId = targetId;
   } else if (targetView === 'teacher') {
-    const isValid = state.dataset?.teachers?.some(t => t.id === targetId);
-    if (!isValid) {
+    const targetQ = (targetId || '').trim().toLowerCase();
+    const matched = state.dataset?.teachers?.find(t => 
+      t.id.toLowerCase() === targetQ || 
+      t.cognome.toLowerCase() === targetQ || 
+      t.displayName.toLowerCase() === targetQ
+    );
+    if (matched) {
+      targetId = matched.id;
+    } else {
       const def = getDefaultView();
       targetId = (def && def.type === 'teacher') ? def.id : (state.lastTeacherId || state.dataset?.teachers?.[0]?.id || '');
     }
     state.lastTeacherId = targetId;
     state.activeId = targetId;
   } else if (targetView === 'subject') {
-    const isValid = state.dataset?.subjects?.some(s => s.code === targetId);
-    if (!isValid) {
+    const targetQ = (targetId || '').trim().toLowerCase();
+    const matched = state.dataset?.subjects?.find(s => s.code.toLowerCase() === targetQ || s.name.toLowerCase() === targetQ);
+    if (matched) {
+      targetId = matched.code;
+    } else {
       targetId = state.dataset?.subjects?.[0]?.code || '';
     }
+    state.activeId = targetId;
   } else if (targetView === 'radar') {
     if (id) {
       state.radarTeacherId = id;
@@ -500,32 +514,88 @@ function setupBottomNav() {
 }
 
 /**
+ * Estrae i parametri di deep linking da window.location.search o window.location.hash.
+ */
+function getDeepLinkParams() {
+  let params = new URLSearchParams(window.location.search);
+  if (!params.has('classe') && !params.has('docente') && !params.has('materia') && !params.has('radar')) {
+    const hash = window.location.hash || '';
+    if (hash.includes('?')) {
+      params = new URLSearchParams(hash.substring(hash.indexOf('?')));
+    } else if (hash.includes('=')) {
+      params = new URLSearchParams(hash.replace(/^#\/?/, ''));
+    }
+  }
+  return params;
+}
+
+/**
  * Gestione deep linking tramite URL Search Params (?classe=, ?docente=, ?materia=, ?radar=).
+ * Indirizza alla risorsa richiesta e pulisce l'URL nel browser per mantenere la barra pulita.
  */
 function handleInitialDeepLinking() {
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = getDeepLinkParams();
   const classeParam = urlParams.get('classe');
   const docenteParam = urlParams.get('docente');
   const materiaParam = urlParams.get('materia');
   const radarParam = urlParams.get('radar');
 
-  if (classeParam) {
-    navigateTo('class', classeParam);
+  let handled = false;
+
+  if (classeParam && state.dataset?.classes) {
+    const q = classeParam.trim().toLowerCase();
+    const found = state.dataset.classes.find(c => 
+      c.short.toLowerCase() === q || 
+      c.full.toLowerCase() === q
+    );
+    if (found) {
+      navigateTo('class', found.short);
+      handled = true;
+    }
+  } else if (docenteParam && state.dataset?.teachers) {
+    const q = docenteParam.trim().toLowerCase();
+    const found = state.dataset.teachers.find(t => 
+      t.id.toLowerCase() === q || 
+      t.cognome.toLowerCase() === q || 
+      t.displayName.toLowerCase() === q
+    );
+    if (found) {
+      navigateTo('teacher', found.id);
+      handled = true;
+    }
+  } else if (materiaParam && state.dataset?.subjects) {
+    const q = materiaParam.trim().toLowerCase();
+    const found = state.dataset.subjects.find(s => 
+      s.code.toLowerCase() === q || 
+      s.name.toLowerCase() === q
+    );
+    if (found) {
+      navigateTo('subject', found.code);
+      handled = true;
+    }
+  } else if (radarParam && state.dataset?.teachers) {
+    const q = radarParam.trim().toLowerCase();
+    const found = state.dataset.teachers.find(t => 
+      t.id.toLowerCase() === q || 
+      t.cognome.toLowerCase() === q || 
+      t.displayName.toLowerCase() === q
+    );
+    if (found) {
+      state.radarTeacherId = found.id;
+      navigateTo('radar');
+      handled = true;
+    }
+  }
+
+  if (handled) {
+    // Pulisci l'URL nel browser per eliminare la query string mantenendo attiva la vista
+    try {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState(null, document.title, cleanUrl);
+    } catch (_) {}
     return true;
   }
-  if (docenteParam) {
-    navigateTo('teacher', docenteParam);
-    return true;
-  }
-  if (materiaParam) {
-    navigateTo('subject', materiaParam);
-    return true;
-  }
-  if (radarParam) {
-    state.radarTeacherId = radarParam;
-    navigateTo('radar');
-    return true;
-  }
+
   return false;
 }
 

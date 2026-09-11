@@ -79,7 +79,7 @@ export function renderSubsDashboard({
         <span style="font-weight: 700; color: var(--badge-disposizione-text);">${availableTeachers.length} trovati</span>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="subs-teachers-list">
         ${availableTeachers.length === 0 ? `
           <div class="state-container" style="padding: 32px 16px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle);">
             <div class="state-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">

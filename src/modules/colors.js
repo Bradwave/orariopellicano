@@ -179,3 +179,55 @@ export function formatDurationLabel(durataStr = '', durataHours = 1) {
   return `${hours} ore`;
 }
 
+/**
+ * Restituisce una versione abbreviata e ad alta leggibilità della materia per la vista a tabella e Canvas.
+ * Esempi: "Lingua e letteratura italiana" -> "Italiano", "Scienze motorie e sportive" -> "Scienze motorie",
+ * "Scienze naturali..." -> "Scienze", "Disegno e storia dell'arte" -> "Arte", "Religione..." -> "Religione/AA".
+ */
+export function getGridSubjectName(rawName = '', matCod = '') {
+  if (!rawName && !matCod) return '';
+  const upper = `${rawName} ${matCod || ''}`.toUpperCase();
+
+  if (upper.includes('LETTERATURA ITALIANA') || upper.includes('LINGUA ITALIANA') || matCod === 'ITA') {
+    return 'Italiano';
+  }
+  if (upper.includes('CULTURA GRECA') || upper.includes('LETTERATURA GRECA') || matCod === 'GRECO') {
+    return 'Greco';
+  }
+  if (upper.includes('CULTURA LATINA') || upper.includes('LETTERATURA LATINA') || matCod === 'LATINO' || matCod === 'LAT') {
+    return 'Latino';
+  }
+  if (upper.includes('SCIENZE MOTORIE') || matCod === 'SC.MOT' || matCod === 'SCIENZE MOT') {
+    return 'Scienze motorie';
+  }
+  if (upper.includes('SCIENZE NATURALI') || (upper.includes('SCIENZE') && (upper.includes('BIOLOGIA') || upper.includes('CHIMICA') || matCod === 'SCIENZE'))) {
+    return 'Scienze';
+  }
+  if (upper.includes('RELIGIONE') || upper.includes('ATTIVIT') || upper.includes('IRC') || matCod === 'REL' || matCod === 'IRC') {
+    return 'Religione/AA';
+  }
+  if (upper.includes('DISEGNO E STORIA DELL') || upper.includes('STORIA DELL\'ARTE') || matCod === 'DIS/ARTE' || matCod === 'ARTE') {
+    return 'Arte';
+  }
+  if (upper.includes('STORIA E GEOGRAFIA') || matCod === 'GEOSTORIA') {
+    return 'Geostoria';
+  }
+  if (upper.includes('CULTURA STRANIERA') && upper.includes('INGLESE')) {
+    return 'Inglese';
+  }
+  if (upper.includes('CULTURA STRANIERA') && upper.includes('FRANCESE')) {
+    return 'Francese';
+  }
+  if (upper.includes('CULTURA STRANIERA') && upper.includes('SPAGNOLO')) {
+    return 'Spagnolo';
+  }
+  if (upper.includes('CULTURA STRANIERA') && upper.includes('TEDESCO')) {
+    return 'Tedesco';
+  }
+  if (upper.includes('DISCIPLINE SPORTIVE')) {
+    return 'Disc. sportive';
+  }
+
+  return cleanSubjectName(rawName || matCod);
+}
+

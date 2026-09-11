@@ -11,8 +11,8 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
-import { copyScheduleAsText, exportScheduleAsImage } from '../exportManager.js';
-import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel } from '../colors.js';
+import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '../exportManager.js';
+import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel, getGridSubjectName } from '../colors.js';
 
 export function renderClassView({
   container,
@@ -38,6 +38,19 @@ export function renderClassView({
   const timeState = getCurrentScheduleState(dataset.timeSlots);
   const isTodayActive = currentDay === realCurrentDay;
   const classColorInfo = getClassColorInfo(classObj.short, classObj.full);
+
+  // Calcola totale ore settimanali della classe
+  let totalHours = 0;
+  dataset.days.forEach(d => {
+    const dSlots = scheduleForClass[d] || {};
+    Object.values(dSlots).forEach(acts => {
+      acts.forEach(a => {
+        if (!a.isContinuation) {
+          totalHours += a.durataHours || 1;
+        }
+      });
+    });
+  });
 
   container.innerHTML = `
     <!-- Intestazione visibile ESCLUSIVAMENTE in fase di STAMPA (@media print) -->
@@ -70,26 +83,40 @@ export function renderClassView({
             <span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
           </button>
           <div class="actions-dropdown-menu" id="actionsDropdownMenu" hidden>
+            <div class="actions-dropdown-header">
+              <div class="dropdown-header-stat">
+                <span class="material-symbols-outlined" style="font-size: 15px; color: var(--accent-primary);">schedule</span>
+                <span><strong>${totalHours}</strong> ore</span>
+              </div>
+            </div>
+            <div class="actions-dropdown-divider"></div>
+            <div class="dropdown-section-label">Condividi</div>
+            <button class="dropdown-item-btn" id="classShareImgBtn">
+              <span class="material-symbols-outlined">send</span>
+              <span>Invia immagine</span>
+            </button>
+            <button class="dropdown-item-btn" id="classCopyTextBtn">
+              <span class="material-symbols-outlined">content_copy</span>
+              <span>Copia orario</span>
+            </button>
             <button class="dropdown-item-btn" id="classShareBtn">
               <span class="material-symbols-outlined">share</span>
               <span>Condividi link</span>
             </button>
-            <button class="dropdown-item-btn" id="classCopyTextBtn">
-              <span class="material-symbols-outlined">content_copy</span>
-              <span>Copia testo orario</span>
-            </button>
-            <button class="dropdown-item-btn" id="classExportImgBtn">
-              <span class="material-symbols-outlined">image</span>
-              <span>Esporta immagine PNG</span>
-            </button>
-            <button class="dropdown-item-btn" id="classExportIcsBtn">
-              <span class="material-symbols-outlined">calendar_month</span>
-              <span>Esporta .ICS</span>
-            </button>
-            <button class="dropdown-item-btn" id="classPrintBtn">
-              <span class="material-symbols-outlined">print</span>
-              <span>Stampa / PDF</span>
-            </button>
+            <div class="actions-dropdown-divider"></div>
+            <div class="dropdown-section-label">Esporta</div>
+            <div class="export-buttons-row">
+              <button class="export-compact-btn" id="classExportImgBtn" title="Scarica immagine PNG" aria-label="Scarica immagine">
+                <span class="material-symbols-outlined">image</span>
+              </button>
+              <button class="export-compact-btn" id="classPrintBtn" title="Stampa o salva come PDF" aria-label="Stampa o salva come PDF">
+                <span class="material-symbols-outlined">print</span>
+              </button>
+              <button class="export-compact-btn" id="classExportIcsBtn" title="Esporta calendario (.ics)" aria-label="Esporta calendario .ics">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span class="ext-badge">.ics</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -156,11 +183,12 @@ export function renderClassView({
               const isDisp = act.isDisposizione;
               const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
               const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+              const gridSubName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
               const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
                   <div class="grid-cell-top">
-                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
+                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${gridSubName}</div>
                     <div class="grid-subtext" title="${teacherName}">${teacherName}</div>
                   </div>
                   <div class="grid-cell-bottom">
@@ -320,6 +348,28 @@ export function renderClassView({
     });
   }
 
+  // Listener Invia Immagine
+  const shareImgBtn = container.querySelector('#classShareImgBtn');
+  if (shareImgBtn) {
+    shareImgBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const res = await shareScheduleImage({
+        title: `Classe ${classObj.short}`,
+        type: 'class',
+        scheduleData: scheduleForClass,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (res.success && onShowToast) {
+        if (res.method === 'clipboard') {
+          onShowToast('Immagine copiata negli appunti!', 'success');
+        } else if (res.method === 'download') {
+          onShowToast(`Condivisione non supportata: immagine scaricata!`, 'success');
+        }
+      }
+    });
+  }
+
   // Listener Esporta Immagine PNG
   const exportImgBtn = container.querySelector('#classExportImgBtn');
   if (exportImgBtn) {
@@ -474,7 +524,7 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
             <span class="slot-number">${slotLabel}</span>
             <span class="slot-time">${timeLabel}</span>
           </div>
-          <div class="card-mobile-tag" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end;">
+          <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end;">
             ${acts.map(a => a.teacherId ? `
               <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
                 <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
@@ -487,14 +537,6 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
         <div class="hour-card-body">
           <div class="subject-row">
             <div class="subject-name">${cleanName}</div>
-            <div class="card-desktop-tag" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
-              ${acts.map(a => a.teacherId ? `
-                <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
-                  ${a.teacherDisplayName}
-                </span>
-              ` : '').join('')}
-            </div>
           </div>
         </div>
 

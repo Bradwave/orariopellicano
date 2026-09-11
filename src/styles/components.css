@@ -719,23 +719,6 @@
   color: var(--text-primary);
 }
 
-.card-desktop-tag {
-  display: none !important;
-}
-
-.card-mobile-tag {
-  display: inline-flex !important;
-}
-
-@media (min-width: 480px) {
-  .card-desktop-tag {
-    display: inline-flex !important;
-  }
-  .card-mobile-tag {
-    display: none !important;
-  }
-}
-
 .subject-code {
   font-size: 0.78rem;
   font-weight: 600;
@@ -1623,6 +1606,60 @@
 
 .dropdown-item-btn:hover .material-symbols-outlined {
   color: var(--accent-primary);
+}
+
+.dropdown-section-label {
+  padding: 8px 12px 3px 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.export-buttons-row {
+  display: flex;
+  gap: 6px;
+  padding: 4px 6px 4px 6px;
+}
+
+.export-compact-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 36px;
+  padding: 0 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.export-compact-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.export-compact-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.export-compact-btn .ext-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.01em;
+}
+
+.subs-teachers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Radar Colleghi (Live Tracker) */

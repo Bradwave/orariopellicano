@@ -11,8 +11,8 @@ import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
-import { copyScheduleAsText, exportScheduleAsImage } from '../exportManager.js';
-import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo } from '../colors.js';
+import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '../exportManager.js';
+import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo, getGridSubjectName } from '../colors.js';
 
 export function renderTeacherView({
   container,
@@ -97,28 +97,36 @@ export function renderTeacherView({
             <div class="actions-dropdown-divider"></div>
             <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
               <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
-              <span>Radar Colleghi</span>
+              <span>Radar colleghi</span>
+            </button>
+            <div class="actions-dropdown-divider"></div>
+            <div class="dropdown-section-label">Condividi</div>
+            <button class="dropdown-item-btn" id="teacherShareImgBtn">
+              <span class="material-symbols-outlined">send</span>
+              <span>Invia immagine</span>
+            </button>
+            <button class="dropdown-item-btn" id="teacherCopyTextBtn">
+              <span class="material-symbols-outlined">content_copy</span>
+              <span>Copia orario</span>
             </button>
             <button class="dropdown-item-btn" id="teacherShareBtn">
               <span class="material-symbols-outlined">share</span>
               <span>Condividi link</span>
             </button>
-            <button class="dropdown-item-btn" id="teacherCopyTextBtn">
-              <span class="material-symbols-outlined">content_copy</span>
-              <span>Copia testo orario</span>
-            </button>
-            <button class="dropdown-item-btn" id="teacherExportImgBtn">
-              <span class="material-symbols-outlined">image</span>
-              <span>Esporta immagine PNG</span>
-            </button>
-            <button class="dropdown-item-btn" id="teacherExportIcsBtn">
-              <span class="material-symbols-outlined">calendar_month</span>
-              <span>Esporta .ICS</span>
-            </button>
-            <button class="dropdown-item-btn" id="teacherPrintBtn">
-              <span class="material-symbols-outlined">print</span>
-              <span>Stampa / PDF</span>
-            </button>
+            <div class="actions-dropdown-divider"></div>
+            <div class="dropdown-section-label">Esporta</div>
+            <div class="export-buttons-row">
+              <button class="export-compact-btn" id="teacherExportImgBtn" title="Scarica immagine PNG" aria-label="Scarica immagine">
+                <span class="material-symbols-outlined">image</span>
+              </button>
+              <button class="export-compact-btn" id="teacherPrintBtn" title="Stampa o salva come PDF" aria-label="Stampa o salva come PDF">
+                <span class="material-symbols-outlined">print</span>
+              </button>
+              <button class="export-compact-btn" id="teacherExportIcsBtn" title="Esporta calendario (.ics)" aria-label="Esporta calendario .ics">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span class="ext-badge">.ics</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -184,13 +192,14 @@ export function renderTeacherView({
               const isDisp = act.isDisposizione;
               const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
               const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+              const gridSubName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
               const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
               const classLabel = isDisp ? '' : (act.classeShort || '');
               const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
                   <div class="grid-cell-top">
-                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
+                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${gridSubName}</div>
                     ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
                   </div>
                   <div class="grid-cell-bottom">
@@ -358,6 +367,28 @@ export function renderTeacherView({
     });
   }
 
+  // Listener Invia Immagine
+  const shareImgBtn = container.querySelector('#teacherShareImgBtn');
+  if (shareImgBtn) {
+    shareImgBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
+      const res = await shareScheduleImage({
+        title: `Docente ${teacher.displayName}`,
+        type: 'teacher',
+        scheduleData: scheduleForTeacher,
+        timeSlots: dataset.timeSlots,
+        days: dataset.days
+      });
+      if (res.success && onShowToast) {
+        if (res.method === 'clipboard') {
+          onShowToast('Immagine copiata negli appunti!', 'success');
+        } else if (res.method === 'download') {
+          onShowToast(`Condivisione non supportata: immagine scaricata!`, 'success');
+        }
+      }
+    });
+  }
+
   // Listener Esporta Immagine PNG
   const exportImgBtn = container.querySelector('#teacherExportImgBtn');
   if (exportImgBtn) {
@@ -509,7 +540,7 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
           ${act.classeShort ? (() => {
             const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
             return `
-              <span class="class-chip card-mobile-tag" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
+              <span class="class-chip" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
                 ${act.classeShort}
               </span>
             `;
@@ -522,14 +553,6 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
               ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>' : ''}
               ${cleanName}
             </div>
-            ${act.classeShort ? (() => {
-              const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
-              return `
-                <span class="class-chip card-desktop-tag" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
-                  ${act.classeShort}
-                </span>
-              `;
-            })() : ''}
           </div>
         </div>
 

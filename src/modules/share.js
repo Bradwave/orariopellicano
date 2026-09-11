@@ -6,12 +6,7 @@
  * Genera un URL assoluto con parametri di routing nativo per l'entità specificata.
  */
 export function generateDeepLink(type, id) {
-  const url = new URL(window.location.href);
-  // Pulisci vecchi parametri di navigazione
-  url.searchParams.delete('classe');
-  url.searchParams.delete('docente');
-  url.searchParams.delete('materia');
-  url.searchParams.delete('radar');
+  const url = new URL(window.location.origin + window.location.pathname);
 
   if (type === 'class') {
     url.searchParams.set('classe', id);

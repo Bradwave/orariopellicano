@@ -4,7 +4,7 @@
  * 2. Immagine PNG ad alta risoluzione (Canvas 2D Retina) scaricabile
  */
 
-import { cleanSubjectName, getSubjectColor } from './colors.js';
+import { cleanSubjectName, getSubjectColor, getGridSubjectName } from './colors.js';
 import { getTheme } from './storage.js';
 
 /**
@@ -97,11 +97,11 @@ export async function copyScheduleAsText({ title, type, scheduleData, timeSlots,
 }
 
 /**
- * Genera un'immagine PNG ad alta definizione (2x Retina) dell'orario settimanale e la scarica.
+ * Genera il Blob PNG dell'orario settimanale ad alta definizione (2x Retina).
  * @param {object} params - { title, type, scheduleData, timeSlots, days }
- * @returns {Promise<string>} Nome del file scaricato
+ * @returns {Promise<Blob|null>}
  */
-export async function exportScheduleAsImage({ title, type, scheduleData, timeSlots, days }) {
+export async function renderScheduleBlob({ title, type, scheduleData, timeSlots, days }) {
   if (!scheduleData || !timeSlots || !days) return null;
 
   const currentTheme = getTheme();
@@ -217,7 +217,7 @@ export async function exportScheduleAsImage({ title, type, scheduleData, timeSlo
         const act = dayActs[0];
         const isDisp = act.isDisposizione;
         const colorObj = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
-        const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+        const cleanName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
 
         // Box Lezione
         ctx.fillStyle = bgCard;
@@ -269,25 +269,83 @@ export async function exportScheduleAsImage({ title, type, scheduleData, timeSlo
   ctx.font = '10px system-ui, -apple-system, sans-serif';
   ctx.fillText('Orario Pellicano • PWA', width - paddingX, height - 10);
 
-  // Scarica immagine PNG
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        resolve(null);
-        return;
-      }
-      const filename = `Orario_${title.replace(/\s+/g, '_')}.png`;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      resolve(filename);
-    }, 'image/png');
+    canvas.toBlob(resolve, 'image/png');
   });
+}
+
+/**
+ * Genera un'immagine PNG ad alta definizione (2x Retina) dell'orario settimanale e la scarica.
+ * @param {object} params - { title, type, scheduleData, timeSlots, days }
+ * @returns {Promise<string>} Nome del file scaricato
+ */
+export async function exportScheduleAsImage({ title, type, scheduleData, timeSlots, days }) {
+  const blob = await renderScheduleBlob({ title, type, scheduleData, timeSlots, days });
+  if (!blob) return null;
+
+  const filename = `Orario_${title.replace(/\s+/g, '_')}.png`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return filename;
+}
+
+/**
+ * Condivide direttamente l'immagine dell'orario tramite Web Share API, clipboard o download.
+ * @param {object} params - { title, type, scheduleData, timeSlots, days }
+ * @returns {Promise<object>} { success, method: 'share' | 'clipboard' | 'download', filename? }
+ */
+export async function shareScheduleImage({ title, type, scheduleData, timeSlots, days }) {
+  const blob = await renderScheduleBlob({ title, type, scheduleData, timeSlots, days });
+  if (!blob) return { success: false };
+
+  const filename = `Orario_${title.replace(/\s+/g, '_')}.png`;
+
+  // 1. Prova Web Share API con invio diretto del file immagine (Android, iOS Safari, macOS Chrome)
+  try {
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: `Orario ${title}`,
+        text: `Orario scolastico per ${title}`,
+        files: [file]
+      });
+      return { success: true, method: 'share' };
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      return { success: false, aborted: true };
+    }
+    console.warn('Condivisione file immagine non completata, provo fallback:', err);
+  }
+
+  // 2. Fallback: copia file immagine negli appunti
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      return { success: true, method: 'clipboard' };
+    } catch (clipErr) {
+      console.warn('Copia immagine negli appunti non riuscita:', clipErr);
+    }
+  }
+
+  // 3. Fallback finale: download diretto
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { success: true, method: 'download', filename };
 }
 
 /**
