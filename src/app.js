@@ -436,56 +436,40 @@ function renderNextUpCard() {
 
   const now = new Date();
   const holidayCheck = getHolidayOrVacation(now);
-  const realDay = getCurrentDayName(now);
-  const timeState = getCurrentScheduleState(state.dataset.timeSlots, now);
+  if (holidayCheck.isHoliday) return;
 
+  const realDay = getCurrentDayName(now);
+  if (realDay === 'domenica') return;
+
+  const timeState = getCurrentScheduleState(state.dataset.timeSlots, now);
+  if (timeState.status === 'after_school' || timeState.status === 'outside') return;
+
+  const daySchedule = targetSchedule[realDay] || {};
   let activeAct = null;
   let label = '';
   let countdownText = '';
 
-  // 1. Controllo in tempo reale durante le ore scolastiche attive
-  if (!holidayCheck.isHoliday && realDay !== 'domenica' && timeState.status !== 'after_school' && timeState.status !== 'outside') {
-    const daySchedule = targetSchedule[realDay] || {};
-    if (timeState.status === 'in_progress' && timeState.currentSlot) {
-      const currentActs = daySchedule[timeState.currentSlot.index] || [];
-      if (currentActs.length > 0) {
-        activeAct = currentActs[0];
-        label = 'In corso';
-        countdownText = `-${timeState.remainingMinutes} min`;
-      }
-    } else if (timeState.status === 'break' && timeState.nextSlot) {
-      const nextActs = daySchedule[timeState.nextSlot.index] || [];
-      if (nextActs.length > 0) {
-        activeAct = nextActs[0];
-        label = timeState.breakName || 'Intervallo';
-        countdownText = `tra ${timeState.remainingMinutes} min`;
-      }
-    } else if (timeState.status === 'before_school') {
-      const firstSlot = state.dataset.timeSlots[0];
-      const firstActs = daySchedule[firstSlot.index] || [];
-      if (firstActs.length > 0) {
-        activeAct = firstActs[0];
-        label = '1ª Ora';
-        countdownText = `alle ${firstSlot.startTimeFormatted}`;
-      }
+  if (timeState.status === 'in_progress' && timeState.currentSlot) {
+    const currentActs = daySchedule[timeState.currentSlot.index] || [];
+    if (currentActs.length > 0) {
+      activeAct = currentActs[0];
+      label = 'In corso';
+      countdownText = `-${timeState.remainingMinutes} min • ${timeState.currentSlot.endTimeFormatted}`;
     }
-  }
-
-  // 2. Anteprima temporanea (quando fuori orario scolastico, weekend o vacanza)
-  if (!activeAct) {
-    const currentViewDay = state.currentDay || 'lunedi';
-    const daysToCheck = [currentViewDay, 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
-    for (const d of daysToCheck) {
-      const daySlots = targetSchedule[d] || {};
-      for (const slot of state.dataset.timeSlots) {
-        if (daySlots[slot.index] && daySlots[slot.index].length > 0) {
-          activeAct = daySlots[slot.index][0];
-          label = 'Prossima';
-          countdownText = `tra 10 min • ${slot.startTimeFormatted}`;
-          break;
-        }
-      }
-      if (activeAct) break;
+  } else if (timeState.status === 'break' && timeState.nextSlot) {
+    const nextActs = daySchedule[timeState.nextSlot.index] || [];
+    if (nextActs.length > 0) {
+      activeAct = nextActs[0];
+      label = timeState.breakName || 'Intervallo';
+      countdownText = `tra ${timeState.remainingMinutes} min • ${timeState.nextSlot.startTimeFormatted}`;
+    }
+  } else if (timeState.status === 'before_school') {
+    const firstSlot = state.dataset.timeSlots[0];
+    const firstActs = daySchedule[firstSlot.index] || [];
+    if (firstActs.length > 0) {
+      activeAct = firstActs[0];
+      label = '1ª Ora';
+      countdownText = `tra ${timeState.remainingMinutes} min • ${firstSlot.startTimeFormatted}`;
     }
   }
 
@@ -497,26 +481,11 @@ function renderNextUpCard() {
 
   const classLabel = activeAct.classeShort || (targetType === 'class' ? targetId : '');
 
-  const where = [
-    activeAct.aula ? (activeAct.aula.includes('<') ? activeAct.aula.replace(/[<>]/g, '') : `Aula ${activeAct.aula}`) : '',
-    (activeAct.sede && activeAct.sede !== 'DISPOSIZIONE') ? activeAct.sede : ''
-  ].filter(Boolean).join(' • ');
-
-  const who = targetType === 'class'
-    ? (activeAct.teacherDisplayName ? activeAct.teacherDisplayName : '')
-    : (activeAct.isCoDocenza && activeAct.coDocenti ? `Co-docenza: ${activeAct.coDocenti}` : '');
-
-  const detailsText = [who, where].filter(Boolean).join(' • ');
-
   let classHtml = '';
   if (classLabel) {
     const cInfo = getClassColorInfo(classLabel, activeAct.classeFull || '');
     classHtml = `<span class="class-chip next-up-class-chip" data-class-name="${classLabel}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700; font-size: 0.78rem; padding: 2px 7px; border-radius: 4px;" title="Classe ${classLabel}">${classLabel}</span>`;
   }
-
-  const subjectColor = activeAct.isDisposizione
-    ? { color: 'var(--badge-disposizione-text, #b58900)' }
-    : getSubjectColor(activeAct.matNome || '', activeAct.matCod || '');
 
   const card = document.createElement('div');
   card.className = 'next-up-card';
