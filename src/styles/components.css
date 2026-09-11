@@ -1837,9 +1837,9 @@
 }
 
 [data-theme="light"] .break-pill {
-  background: #f8fafc;
-  color: #0f766e;
-  border-color: var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--accent-primary);
+  border-color: rgba(101, 123, 131, 0.22);
 }
 
 /* Griglia Settimanale: Riga Intervallo Compatta con Bordo Solido */
@@ -1918,70 +1918,111 @@
 }
 
 /* ==========================================================================
-   Widget Next-Up (Prossima Lezione)
+   Widget Next-Up (Prossima Lezione - Ticker Bar Compatto)
    ========================================================================== */
 .next-up-card {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(99, 102, 241, 0.12));
-  border: 1px solid var(--border-focus);
-  border-radius: var(--radius-lg);
-  padding: 12px 16px;
-  margin-bottom: 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 6px);
+  padding: 8px 14px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  min-height: 42px;
+}
+
+[data-theme="light"] .next-up-card {
+  background: #eae0ca;
+  border-color: rgba(101, 123, 131, 0.25);
+}
+
+[data-theme="dark"] .next-up-card {
+  background: #0a1619;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .next-up-card:hover {
-  transform: translateY(-1px);
-  border-color: var(--accent-primary);
+  border-color: var(--border-focus);
 }
 
-.next-up-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+[data-theme="light"] .next-up-card:hover {
+  background: #e4d8bf;
 }
 
-.next-up-badge-row {
+[data-theme="dark"] .next-up-card:hover {
+  background: #0e1e22;
+}
+
+.next-up-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .next-up-tag {
+  font-family: var(--font-mono, monospace);
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
-  background: var(--accent-primary);
-  color: white;
+  background: rgba(32, 124, 116, 0.12);
+  color: var(--accent-primary);
+  border: 1px solid rgba(32, 124, 116, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .next-up-tag {
+  color: #1a7c73;
+  border-color: rgba(26, 124, 115, 0.4);
+  background: rgba(26, 124, 115, 0.1);
 }
 
 .next-up-countdown {
-  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--accent-primary);
+  white-space: nowrap;
 }
 
 [data-theme="light"] .next-up-countdown {
-  color: #0f766e;
+  color: #1a7c73;
 }
 
-.next-up-title {
-  font-size: 1rem;
-  font-weight: 800;
+.next-up-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.next-up-subject {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
-.next-up-sub {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+@media (max-width: 540px) {
+  .next-up-card {
+    padding: 7px 10px;
+    gap: 8px;
+  }
+  .next-up-subject {
+    font-size: 0.88rem;
+  }
+  .next-up-countdown {
+    font-size: 0.74rem;
+  }
 }
 
 /* ==========================================================================

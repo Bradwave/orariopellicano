@@ -205,9 +205,10 @@ export function setViewModePreference(mode) {
  */
 export function getNextUpPreference() {
   try {
-    return localStorage.getItem('orario_pellicano_next_up') === 'true';
+    const val = localStorage.getItem('orario_pellicano_next_up');
+    return val === null ? true : val === 'true';
   } catch (e) {
-    return false;
+    return true;
   }
 }
 

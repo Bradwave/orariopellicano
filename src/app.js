@@ -24,6 +24,7 @@ import { fetchScheduleXml, checkBackgroundUpdate } from './modules/api.js';
 import { startTimeWatcher, getCurrentScheduleState, getCurrentDayName } from './modules/time.js';
 import { getHolidayOrVacation } from './modules/calendar.js';
 import { getIcon } from './modules/icons.js';
+import { getGridSubjectName, getClassColorInfo, getSubjectColor } from './modules/colors.js';
 
 import { setupUnifiedSearch } from './modules/views/search.js';
 import { renderClassView } from './modules/views/classView.js';
@@ -424,84 +425,134 @@ function renderCurrentView() {
  */
 function renderNextUpCard() {
   if (!getNextUpPreference() || !state.dataset) return;
-  const listContainer = DOM.mainContainer.querySelector('.schedule-list');
-  if (!listContainer) return;
-
-  const now = new Date();
-  const holidayCheck = getHolidayOrVacation(now);
-  if (holidayCheck.isHoliday) return;
-
-  const realDay = getCurrentDayName(now);
-  if (realDay === 'domenica') return;
 
   const targetType = state.activeView === 'class' ? 'class' : (state.activeView === 'teacher' ? 'teacher' : null);
   if (!targetType) return;
 
   const targetId = state.activeId;
-  const daySchedule = targetType === 'class' 
-    ? (state.dataset.byClass[targetId] && state.dataset.byClass[targetId][realDay]) || {}
-    : (state.dataset.byTeacher[targetId] && state.dataset.byTeacher[targetId][realDay]) || {};
+  const targetSchedule = targetType === 'class' 
+    ? (state.dataset.byClass[targetId] || {})
+    : (state.dataset.byTeacher[targetId] || {});
 
+  const now = new Date();
+  const holidayCheck = getHolidayOrVacation(now);
+  const realDay = getCurrentDayName(now);
   const timeState = getCurrentScheduleState(state.dataset.timeSlots, now);
-  if (timeState.status === 'after_school' || timeState.status === 'outside') return;
 
   let activeAct = null;
   let label = '';
   let countdownText = '';
 
-  if (timeState.status === 'in_progress' && timeState.currentSlot) {
-    const currentActs = daySchedule[timeState.currentSlot.index] || [];
-    if (currentActs.length > 0) {
-      activeAct = currentActs[0];
-      label = 'Ora in corso';
-      countdownText = `Termina tra ${timeState.remainingMinutes} min`;
+  // 1. Controllo in tempo reale durante le ore scolastiche attive
+  if (!holidayCheck.isHoliday && realDay !== 'domenica' && timeState.status !== 'after_school' && timeState.status !== 'outside') {
+    const daySchedule = targetSchedule[realDay] || {};
+    if (timeState.status === 'in_progress' && timeState.currentSlot) {
+      const currentActs = daySchedule[timeState.currentSlot.index] || [];
+      if (currentActs.length > 0) {
+        activeAct = currentActs[0];
+        label = 'In corso';
+        countdownText = `-${timeState.remainingMinutes} min`;
+      }
+    } else if (timeState.status === 'break' && timeState.nextSlot) {
+      const nextActs = daySchedule[timeState.nextSlot.index] || [];
+      if (nextActs.length > 0) {
+        activeAct = nextActs[0];
+        label = timeState.breakName || 'Intervallo';
+        countdownText = `tra ${timeState.remainingMinutes} min`;
+      }
+    } else if (timeState.status === 'before_school') {
+      const firstSlot = state.dataset.timeSlots[0];
+      const firstActs = daySchedule[firstSlot.index] || [];
+      if (firstActs.length > 0) {
+        activeAct = firstActs[0];
+        label = '1ª Ora';
+        countdownText = `alle ${firstSlot.startTimeFormatted}`;
+      }
     }
-  } else if (timeState.status === 'break' && timeState.nextSlot) {
-    const nextActs = daySchedule[timeState.nextSlot.index] || [];
-    if (nextActs.length > 0) {
-      activeAct = nextActs[0];
-      label = timeState.breakName || 'Intervallo';
-      countdownText = `Inizia tra ${timeState.remainingMinutes} min`;
-    }
-  } else if (timeState.status === 'before_school') {
-    const firstSlot = state.dataset.timeSlots[0];
-    const firstActs = daySchedule[firstSlot.index] || [];
-    if (firstActs.length > 0) {
-      activeAct = firstActs[0];
-      label = '1ª Lezione';
-      countdownText = `Inizio alle ${firstSlot.startTimeFormatted}`;
+  }
+
+  // 2. Anteprima temporanea (quando fuori orario scolastico, weekend o vacanza)
+  if (!activeAct) {
+    const currentViewDay = state.currentDay || 'lunedi';
+    const daysToCheck = [currentViewDay, 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
+    for (const d of daysToCheck) {
+      const daySlots = targetSchedule[d] || {};
+      for (const slot of state.dataset.timeSlots) {
+        if (daySlots[slot.index] && daySlots[slot.index].length > 0) {
+          activeAct = daySlots[slot.index][0];
+          label = 'Prossima';
+          countdownText = `tra 10 min • ${slot.startTimeFormatted}`;
+          break;
+        }
+      }
+      if (activeAct) break;
     }
   }
 
   if (!activeAct) return;
 
-  const cleanSubject = activeAct.isDisposizione ? 'Disposizione per sostituzioni' : (activeAct.matNome || activeAct.matCod);
+  const shortSubject = activeAct.isDisposizione 
+    ? 'Disposizione' 
+    : getGridSubjectName(activeAct.matNome || '', activeAct.matCod || '');
+
+  const classLabel = activeAct.classeShort || (targetType === 'class' ? targetId : '');
+
   const where = [
-    activeAct.aula ? `Aula ${activeAct.aula}` : '',
+    activeAct.aula ? (activeAct.aula.includes('<') ? activeAct.aula.replace(/[<>]/g, '') : `Aula ${activeAct.aula}`) : '',
     (activeAct.sede && activeAct.sede !== 'DISPOSIZIONE') ? activeAct.sede : ''
   ].filter(Boolean).join(' • ');
 
   const who = targetType === 'class'
     ? (activeAct.teacherDisplayName ? activeAct.teacherDisplayName : '')
-    : (activeAct.classeShort ? `Classe ${activeAct.classeShort}` : '');
+    : (activeAct.isCoDocenza && activeAct.coDocenti ? `Co-docenza: ${activeAct.coDocenti}` : '');
+
+  const detailsText = [who, where].filter(Boolean).join(' • ');
+
+  let classHtml = '';
+  if (classLabel) {
+    const cInfo = getClassColorInfo(classLabel, activeAct.classeFull || '');
+    classHtml = `<span class="class-chip next-up-class-chip" data-class-name="${classLabel}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700; font-size: 0.78rem; padding: 2px 7px; border-radius: 4px;" title="Classe ${classLabel}">${classLabel}</span>`;
+  }
+
+  const subjectColor = activeAct.isDisposizione
+    ? { color: 'var(--badge-disposizione-text, #b58900)' }
+    : getSubjectColor(activeAct.matNome || '', activeAct.matCod || '');
 
   const card = document.createElement('div');
   card.className = 'next-up-card';
   card.innerHTML = `
-    <div class="next-up-info">
-      <div class="next-up-badge-row">
-        <span class="next-up-tag">${label}</span>
-        <span class="next-up-countdown">${countdownText}</span>
-      </div>
-      <div class="next-up-title">${cleanSubject}</div>
-      <div class="next-up-sub">${[who, where].filter(Boolean).join(' • ')}</div>
+    <div class="next-up-left">
+      <span class="next-up-tag">${label}</span>
+      <span class="next-up-countdown">${countdownText}</span>
     </div>
-    <div style="color: var(--accent-primary);">
-      ${getIcon('schedule', { size: 24 })}
+    <div class="next-up-right">
+      <span class="next-up-subject">${shortSubject}</span>
+      ${classHtml}
     </div>
   `;
 
-  listContainer.prepend(card);
+  if (targetType === 'teacher' && classLabel) {
+    const chip = card.querySelector('.next-up-class-chip');
+    if (chip) {
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateTo('class', classLabel);
+      });
+    }
+  }
+
+  const listContainer = DOM.mainContainer.querySelector('.schedule-list');
+  const gridScroll = DOM.mainContainer.querySelector('.grid-scrollbar-top');
+  const gridContainer = DOM.mainContainer.querySelector('.schedule-grid-container');
+
+  if (listContainer) {
+    listContainer.prepend(card);
+  } else if (gridScroll) {
+    gridScroll.parentNode.insertBefore(card, gridScroll);
+  } else if (gridContainer) {
+    gridContainer.parentNode.insertBefore(card, gridContainer);
+  }
 }
 
 /**
