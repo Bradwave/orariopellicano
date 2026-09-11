@@ -183,6 +183,7 @@ export function parseEDTXml(xmlString) {
       teacherDisplayName,
       rawClasse,
       classeShort: classInfo.short,
+      classeDisplayShort: classInfo.displayShort || classInfo.short,
       classeFull: classInfo.full,
       aula,
       isCoDocenza: coDoc.toUpperCase() === 'S',

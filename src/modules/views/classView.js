@@ -15,6 +15,7 @@ import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '.
 import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel, getGridSubjectName, getUltraCompactSubjectName } from '../colors.js';
 import { getIcon } from '../icons.js';
 import { openLessonDetailSheet } from './lessonDetailSheet.js';
+import { getClassroomInfo } from '../classrooms.js';
 
 const DAY_SHORT_MAP = {
   lunedi: 'Lun',
@@ -57,6 +58,7 @@ export function renderClassView({
   const timeState = getCurrentScheduleState(dataset.timeSlots);
   const isTodayActive = currentDay === realCurrentDay;
   const classColorInfo = getClassColorInfo(classObj.short, classObj.full);
+  const classroom = getClassroomInfo(classObj.short || classObj.full || classId);
 
   // Calcola totale ore settimanali della classe
   let totalHours = 0;
@@ -79,6 +81,7 @@ export function renderClassView({
       <div class="print-school-title">Liceo Statale • Orario delle Lezioni</div>
       <div class="print-meta">
         <span><strong>ORARIO CLASSE: ${classObj.full} (${displayTitle})</strong></span>
+        ${classroom ? `<span>Aula: ${classroom.fullText}</span>` : ''}
         <span>Generato il: ${new Date().toLocaleDateString('it-IT')} ore ${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
     </div>
@@ -91,6 +94,12 @@ export function renderClassView({
         <span class="banner-meta-chip" style="color: ${classColorInfo.color}; border-color: ${classColorInfo.border}; background: ${classColorInfo.bg}; font-weight: 600;">
           ${classColorInfo.trackName}
         </span>
+        ${classroom ? `
+          <span class="banner-meta-chip badge-classroom ${classroom.wingClass}" title="${classroom.fullText}">
+            ${getIcon('meeting_room', { size: 14 })}
+            Aula ${classroom.aula} • ${classroom.piano} p.
+          </span>
+        ` : ''}
       </div>
       
       <div class="banner-actions">
@@ -107,10 +116,21 @@ export function renderClassView({
           <div class="actions-dropdown-menu" id="actionsDropdownMenu" hidden>
             <div class="actions-dropdown-header">
               <div class="dropdown-header-stat">
-                ${getIcon('schedule', { size: 15, style: 'color: var(--accent-primary);' })}
+                ${getIcon('schedule', { size: 16, style: 'color: var(--accent-primary);' })}
                 <span><strong>${totalHours}</strong> ore</span>
               </div>
             </div>
+            ${classroom ? `
+              <div class="actions-dropdown-divider"></div>
+              <div class="dropdown-room-section ${classroom.wingClass}">
+                <div class="dropdown-room-title">
+                  ${getIcon('meeting_room', { size: 16 })}
+                  <span>Aula <strong>${classroom.aula}</strong></span>
+                </div>
+                <div class="dropdown-room-subline">${classroom.piano} Piano</div>
+                <div class="dropdown-room-subline">${classroom.ala}</div>
+              </div>
+            ` : ''}
             <div class="actions-dropdown-divider"></div>
             <div class="dropdown-section-label">Condividi</div>
             <button class="dropdown-item-btn" id="classShareImgBtn">
@@ -149,15 +169,15 @@ export function renderClassView({
       <div class="day-selector-container">
         <div class="day-pills-row" id="dayPillsRow">
           ${dataset.days.map(day => {
-            const isActive = day === currentDay;
-            const isToday = day === realCurrentDay;
-            const dayShort = day.substring(0, 3);
-            return `
+    const isActive = day === currentDay;
+    const isToday = day === realCurrentDay;
+    const dayShort = day.substring(0, 3);
+    return `
               <button class="day-pill-btn ${isActive ? 'active' : ''} ${isToday ? 'is-today' : ''}" data-day="${day}">
                 <span class="day-short">${dayShort}</span>
               </button>
             `;
-          }).join('')}
+  }).join('')}
         </div>
       </div>
     ` : ''}
@@ -166,13 +186,13 @@ export function renderClassView({
     ${viewMode === 'list' ? `
       <div class="schedule-list" id="classScheduleList">
         ${renderDayCards({
-          currentDay,
-          timeSlots: dataset.timeSlots,
-          daySchedule: scheduleForClass[currentDay] || {},
-          isTodayActive,
-          currentSlotIndex: timeState.currentSlotIndex,
-          remainingMinutes: timeState.remainingMinutes
-        })}
+    currentDay,
+    timeSlots: dataset.timeSlots,
+    daySchedule: scheduleForClass[currentDay] || {},
+    isTodayActive,
+    currentSlotIndex: timeState.currentSlotIndex,
+    remainingMinutes: timeState.remainingMinutes
+  })}
       </div>
     ` : ''}
 
@@ -190,50 +210,50 @@ export function renderClassView({
         `).join('')}
 
         ${(() => {
-          const mergedGridSlots = new Set();
-          return dataset.timeSlots.map(slot => {
-            let rowHtml = `
+      const mergedGridSlots = new Set();
+      return dataset.timeSlots.map(slot => {
+        let rowHtml = `
               <div class="grid-time-cell">
                 <strong>${slot.index}ª ora</strong>
                 <span>${slot.oInizio.replace('h', ':')}</span>
               </div>
             `;
-            dataset.days.forEach(d => {
-              // Se questa cella è già stata assorbita dall'ora precedente, non emettere nulla
-              if (mergedGridSlots.has(`${d}-${slot.index}`)) {
-                return;
+        dataset.days.forEach(d => {
+          // Se questa cella è già stata assorbita dall'ora precedente, non emettere nulla
+          if (mergedGridSlots.has(`${d}-${slot.index}`)) {
+            return;
+          }
+
+          const dayActs = (scheduleForClass[d] && scheduleForClass[d][slot.index]) || [];
+          const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
+          if (dayActs.length === 0) {
+            rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
+          } else {
+            const act = dayActs[0];
+            const isDisp = act.isDisposizione;
+            const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
+            const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+            const gridSubName = isDisp
+              ? (isWeeklyFit ? 'Disp' : 'Disposizione')
+              : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
+            const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
+
+            // Controlla fusione con ora successiva se NON c'è intervallo intermedio
+            let canMergeWithNext = false;
+            if (!getBreakAfterSlot(d, slot.index)) {
+              const nextSlotActs = (scheduleForClass[d] && scheduleForClass[d][slot.index + 1]) || [];
+              const nextAct = nextSlotActs[0];
+              if (nextAct &&
+                !isDisp && !nextAct.isDisposizione &&
+                nextAct.matCod === act.matCod &&
+                nextAct.teacherId === act.teacherId &&
+                nextAct.aula === act.aula) {
+                canMergeWithNext = true;
+                mergedGridSlots.add(`${d}-${slot.index + 1}`);
               }
+            }
 
-              const dayActs = (scheduleForClass[d] && scheduleForClass[d][slot.index]) || [];
-              const isCurrentCell = (d === realCurrentDay && slot.index === timeState.currentSlotIndex);
-              if (dayActs.length === 0) {
-                rowHtml += `<div class="grid-content-cell empty-cell"></div>`;
-              } else {
-                const act = dayActs[0];
-                const isDisp = act.isDisposizione;
-                const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
-                const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
-                const gridSubName = isDisp 
-                  ? (isWeeklyFit ? 'Disp' : 'Disposizione') 
-                  : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
-                const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
-
-                // Controlla fusione con ora successiva se NON c'è intervallo intermedio
-                let canMergeWithNext = false;
-                if (!getBreakAfterSlot(d, slot.index)) {
-                  const nextSlotActs = (scheduleForClass[d] && scheduleForClass[d][slot.index + 1]) || [];
-                  const nextAct = nextSlotActs[0];
-                  if (nextAct && 
-                      !isDisp && !nextAct.isDisposizione &&
-                      nextAct.matCod === act.matCod && 
-                      nextAct.teacherId === act.teacherId && 
-                      nextAct.aula === act.aula) {
-                    canMergeWithNext = true;
-                    mergedGridSlots.add(`${d}-${slot.index + 1}`);
-                  }
-                }
-
-                rowHtml += `
+            rowHtml += `
                   <div class="grid-content-cell ${canMergeWithNext ? 'span-double-hour' : ''} ${isCurrentCell ? 'current-cell' : ''}" 
                        style="border-left: 3px solid ${colorObj.color}; ${canMergeWithNext ? 'grid-row: span 2;' : ''}"
                        data-day="${d}" data-slot="${slot.index}" data-span="${canMergeWithNext ? 2 : 1}">
@@ -249,19 +269,19 @@ export function renderClassView({
                     </div>
                   </div>
                 `;
-              }
-            });
+          }
+        });
 
-          // Inserimento 1° Intervallo (dopo 2ª ora, valido per tutti i giorni)
-          if (slot.index === 2) {
-            if (isWeeklyFit) {
-              rowHtml += `
+        // Inserimento 1° Intervallo (dopo 2ª ora, valido per tutti i giorni)
+        if (slot.index === 2) {
+          if (isWeeklyFit) {
+            rowHtml += `
                 <div class="grid-break-banner-cell is-fit-full" style="grid-column: 1 / span ${dataset.days.length + 1};">
                   ${getIcon('coffee', { size: 14 })} 1° intervallo
                 </div>
               `;
-            } else {
-              rowHtml += `
+          } else {
+            rowHtml += `
                 <div class="grid-break-time-cell">
                   <strong>09:50</strong>
                   <span>10:00</span>
@@ -270,15 +290,15 @@ export function renderClassView({
                   ${getIcon('coffee', { size: 14 })} 1° intervallo
                 </div>
               `;
-            }
           }
+        }
 
-          // Inserimento 2° Intervallo (dopo 4ª ora, valido Lunedì–Venerdì; vuoto di Sabato)
-          if (slot.index === 4) {
-            const hasSaturday = dataset.days.includes('sabato');
-            const weekdaysCount = hasSaturday ? dataset.days.length - 1 : dataset.days.length;
-            if (isWeeklyFit) {
-              rowHtml += `
+        // Inserimento 2° Intervallo (dopo 4ª ora, valido Lunedì–Venerdì; vuoto di Sabato)
+        if (slot.index === 4) {
+          const hasSaturday = dataset.days.includes('sabato');
+          const weekdaysCount = hasSaturday ? dataset.days.length - 1 : dataset.days.length;
+          if (isWeeklyFit) {
+            rowHtml += `
                 <div class="grid-break-banner-cell is-fit-full" style="grid-column: 1 / span ${weekdaysCount + 1};">
                   ${getIcon('coffee', { size: 14 })} 2° intervallo
                 </div>
@@ -288,8 +308,8 @@ export function renderClassView({
                   </div>
                 ` : ''}
               `;
-            } else {
-              rowHtml += `
+          } else {
+            rowHtml += `
                 <div class="grid-break-time-cell">
                   <strong>11:50</strong>
                   <span>12:00</span>
@@ -303,12 +323,12 @@ export function renderClassView({
                   </div>
                 ` : ''}
               `;
-            }
           }
+        }
 
-          return rowHtml;
-        }).join('');
-      })()}
+        return rowHtml;
+      }).join('');
+    })()}
       </div>
     </div>
 
@@ -437,6 +457,30 @@ export function renderClassView({
     document.addEventListener('click', handleOutsideClick);
   }
 
+  // Listener click su card lista per dettaglio lezione (bottom sheet)
+  const listCards = container.querySelectorAll('.schedule-list .hour-card:not(.empty-hour)');
+  listCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Se cliccato su chip docente, lascia agire il suo listener
+      if (e.target.closest('.teacher-chip')) return;
+      const cardDay = card.getAttribute('data-day') || currentDay;
+      const cardSlotIdx = parseInt(card.getAttribute('data-slot'), 10);
+      const cardSpan = parseInt(card.getAttribute('data-span'), 10) || 1;
+      const dayActs = (scheduleForClass[cardDay] && scheduleForClass[cardDay][cardSlotIdx]) || [];
+      const targetAct = dayActs[0];
+      const targetSlot = dataset.timeSlots.find(s => s.index === cardSlotIdx) || { index: cardSlotIdx, oInizio: '', timeFormatted: '' };
+      if (targetAct) {
+        openLessonDetailSheet({
+          act: targetAct,
+          slot: targetSlot,
+          day: cardDay,
+          totalSpan: cardSpan,
+          onTeacherClick
+        });
+      }
+    });
+  });
+
   // Listener cambio giorno
   const dayPills = container.querySelectorAll('.day-pill-btn');
   dayPills.forEach(pill => {
@@ -449,7 +493,8 @@ export function renderClassView({
   // Listener click su chip docente
   const teacherChips = container.querySelectorAll('.teacher-chip');
   teacherChips.forEach(chip => {
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
       const tId = chip.getAttribute('data-teacher-id');
       if (onTeacherClick) onTeacherClick(tId);
     });
@@ -653,11 +698,11 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
       if (span === 1 && !mainAct.isDisposizione) {
         const nextActs = daySchedule[slot.index + 1] || [];
         const nextMain = nextActs.find(a => !a.isContinuation) || nextActs[0];
-        if (nextMain && 
-            !nextMain.isDisposizione &&
-            nextMain.matCod === mainAct.matCod && 
-            nextMain.teacherId === mainAct.teacherId &&
-            nextMain.aula === mainAct.aula) {
+        if (nextMain &&
+          !nextMain.isDisposizione &&
+          nextMain.matCod === mainAct.matCod &&
+          nextMain.teacherId === mainAct.teacherId &&
+          nextMain.aula === mainAct.aula) {
           span = 2;
         }
       }
@@ -689,7 +734,11 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
     const hasFooter = Boolean(locationBadges || coDocenzaBadges);
 
     renderedHtml.push(`
-      <div class="hour-card ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
+      <div class="hour-card is-interactive ${isCurrent ? 'current-hour' : ''}" 
+           data-day="${currentDay}" 
+           data-slot="${slot.index}" 
+           data-span="${span}" 
+           style="border-left: 3px solid ${subjectColor.color}; cursor: pointer;">
         ${isCurrent ? `
           <div class="current-hour-pill">
             <span class="pulse-dot-live"></span>
@@ -720,7 +769,7 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
 
         ${hasFooter ? `
           <div class="hour-card-footer">
-            <div class="badges-group" style="margin-left: auto;">
+            <div class="badges-group" style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
               ${coDocenzaBadges}
               ${locationBadges}
             </div>

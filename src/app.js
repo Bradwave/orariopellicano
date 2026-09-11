@@ -4,7 +4,7 @@
  * e gestione intelligente degli aggiornamenti con snackbar "Applica modifiche".
  */
 
-import { parseEDTXml } from './modules/parser.js';
+import { parseEDTXml, formatClassDisplayName } from './modules/parser.js';
 import {
   getCachedXml,
   saveXmlCache,
@@ -499,7 +499,8 @@ function renderNextUpCard() {
   let classHtml = '';
   if (classLabel) {
     const cInfo = getClassColorInfo(classLabel, activeAct.classeFull || '');
-    classHtml = `<span class="class-chip next-up-class-chip" data-class-name="${classLabel}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700; font-size: 0.78rem; padding: 2px 7px; border-radius: 4px;" title="Classe ${classLabel}">${classLabel}</span>`;
+    const displayClass = activeAct.classeDisplayShort || formatClassDisplayName(classLabel) || classLabel;
+    classHtml = `<span class="class-chip next-up-class-chip" data-class-name="${classLabel}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700; font-size: 0.78rem; padding: 2px 7px; border-radius: 4px;" title="Classe ${displayClass}">${displayClass}</span>`;
   }
 
   const card = document.createElement('div');

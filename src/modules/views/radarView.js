@@ -7,6 +7,7 @@
 import { getTeacherLiveStatus } from '../radar.js';
 import { renderLocationBadge } from './badges.js';
 import { shareSchedule } from '../share.js';
+import { formatClassDisplayName } from '../parser.js';
 
 export function renderRadarView({
   container,
@@ -80,25 +81,25 @@ export function renderRadarView({
               <div class="radar-detail-box">
                 <span class="radar-detail-label">Classe</span>
                 <span class="radar-detail-value" style="color: var(--accent-primary);">
-                  ${status.classe || 'N/D'}
+                  ${status.classe ? formatClassDisplayName(status.classe) : 'N/D'}
                 </span>
               </div>
-              <div class="radar-detail-box">
-                <span class="radar-detail-label">Aula / luogo</span>
-                <span class="radar-detail-value">
+              <div class="radar-detail-box ${status.classroom ? status.classroom.wingClass : ''}">
+                <span class="radar-detail-label">Aula</span>
+                <span class="radar-detail-value" style="color: var(--wing-color, var(--accent-primary)); font-weight: 800;">
                   ${status.aula ? 'Aula ' + status.aula : 'Sede'}
                 </span>
               </div>
               <div class="radar-detail-box">
-                <span class="radar-detail-label">Materia</span>
-                <span class="radar-detail-value" style="font-size: 0.82rem;">
-                  ${status.materia}
+                <span class="radar-detail-label">Ubicazione</span>
+                <span class="radar-detail-value" style="font-size: 0.85rem;" title="${status.locationDesc || ''}">
+                  ${status.locationDesc || (status.sede || 'Centrale')}
                 </span>
               </div>
               <div class="radar-detail-box">
-                <span class="radar-detail-label">Sede</span>
-                <span class="radar-detail-value" style="font-size: 0.82rem;">
-                  ${status.sede || 'Centrale'}
+                <span class="radar-detail-label">Materia</span>
+                <span class="radar-detail-value" style="font-size: 0.85rem;">
+                  ${status.materia}
                 </span>
               </div>
             </div>

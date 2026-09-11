@@ -4,6 +4,7 @@
 
 import { renderLocationBadge } from './badges.js';
 import { getSubjectColor, cleanSubjectName } from '../colors.js';
+import { formatClassDisplayName } from '../parser.js';
 
 export function renderSubjectView({
   container,
@@ -77,7 +78,7 @@ export function renderSubjectView({
           ${sortedClasses.map(cls => `
             <span class="class-chip" data-class-name="${cls}" title="Vedi orario classe">
               <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
-              ${cls}
+              ${formatClassDisplayName(cls)}
             </span>
           `).join('')}
         </div>
@@ -109,7 +110,7 @@ export function renderSubjectView({
                     </div>
                     <span class="class-chip" data-class-name="${act.classeShort}">
                       <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
-                      Classe ${act.classeShort}
+                      Classe ${act.classeDisplayShort || formatClassDisplayName(act.classeShort)}
                     </span>
                   </div>
                   <div class="hour-card-footer" style="padding-top: 6px; border: none;">

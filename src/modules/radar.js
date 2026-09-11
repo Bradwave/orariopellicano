@@ -6,6 +6,7 @@
 
 import { getCurrentDayName, getMinutesFromMidnight, getCurrentBreakInfo } from './time.js';
 import { getHolidayOrVacation } from './calendar.js';
+import { getClassroomInfo } from './classrooms.js';
 
 /**
  * Calcola la posizione e lo stato attuale in tempo reale di un docente.
@@ -149,6 +150,10 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
             remainingMinutes
           };
         } else {
+          const roomInfo = getClassroomInfo(currentAct.classeShort || currentAct.classeFull);
+          const effectiveAula = (currentAct.aula && !currentAct.aula.includes('DISPOSIZIONE')) ? currentAct.aula.replace(/[<>]/g, '') : (roomInfo ? roomInfo.aula : null);
+          const locationDesc = roomInfo ? `${roomInfo.piano} Piano (${roomInfo.ala})` : (currentAct.sede || 'Sede Centrale');
+
           return {
             teacher,
             currentDay,
@@ -156,12 +161,14 @@ export function getTeacherLiveStatus(dataset, teacherId, customDate = null) {
             statusCode: 'in_service',
             badgeClass: 'status-active',
             title: 'In servizio (lezione in corso)',
-            description: `Attualmente in servizio nella classe ${currentAct.classeShort || currentAct.classeFull}${currentAct.aula ? ', aula ' + currentAct.aula : ''}`,
+            description: `Attualmente in servizio nella classe ${currentAct.classeShort || currentAct.classeFull}${effectiveAula ? ', aula ' + effectiveAula : ''}`,
             subtext: `Materia: ${currentAct.matNome || currentAct.matCod} • Termina tra ${remainingMinutes} minuti (alle ${slot.endTimeFormatted})`,
             classe: currentAct.classeShort,
             classeFull: currentAct.classeFull,
             materia: currentAct.matNome || currentAct.matCod,
-            aula: currentAct.aula,
+            aula: effectiveAula,
+            classroom: roomInfo,
+            locationDesc,
             sede: currentAct.sede,
             isCoDocenza: currentAct.isCoDocenza,
             remainingMinutes

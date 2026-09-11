@@ -44,7 +44,8 @@ const ICONS = {
   bolt: '<path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66l4.28-7.34H13l-1 7h3.5c.58 0 .57.32.38.66L11 21z"/>',
   fit_screen: '<path d="M17 4h3c1.1 0 2 .9 2 2v3h-2V6h-3V4zM4 9V6c0-1.1.9-2 2-2h3v2H6v3H4zm16 6v3c0 1.1-.9 2-2 2h-3v-2h3v-3h2zM9 20H6c-1.1 0-2-.9-2-2v-3h2v3h3v2zM15 9h-6v6h6V9z"/>',
   fullscreen: '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>',
-  fullscreen_exit: '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>'
+  fullscreen_exit: '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>',
+  meeting_room: '<path d="M19 19V4h-4V2H5v17H3v2h14v-2h2v-2h-2zm-6 0H7V4h6v15zm-2-9c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>'
 };
 
 /**

@@ -7,6 +7,8 @@
 import { getIcon } from '../icons.js';
 import { getSubjectColor, cleanSubjectName, getClassColorInfo } from '../colors.js';
 import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
+import { getClassroomInfo } from '../classrooms.js';
+import { formatClassDisplayName } from '../parser.js';
 
 /**
  * Apre il bottom sheet con i dettagli completi della lezione selezionata.
@@ -35,8 +37,9 @@ export function openLessonDetailSheet({
   const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
   const subjectName = isDisp ? 'Disposizione per sostituzioni' : cleanSubjectName(act.matNome || act.matCod || 'Lezione');
   const teacherName = act.docCogn ? `${act.docCogn}${act.docNome ? ' ' + act.docNome : ''}` : (act.docente || '');
-  const classLabel = act.classeFull || act.classeShort || '';
+  const classLabel = act.classeDisplayShort || formatClassDisplayName(act.classeShort) || act.classeFull || act.classeShort || '';
   const dayCapitalized = day ? day.charAt(0).toUpperCase() + day.slice(1) : '';
+  const classroom = getClassroomInfo(act.classeShort || act.classeFull || classLabel);
 
   const overlay = document.createElement('div');
   overlay.className = 'bottom-sheet-overlay';
@@ -119,8 +122,28 @@ export function openLessonDetailSheet({
           </div>
         ` : ''}
 
-        <!-- Aula e Sede -->
-        ${(act.aula || (act.sede && act.sede !== 'DISPOSIZIONE')) ? `
+        <!-- Aula e Sede / Dislocazione Aule -->
+        ${classroom ? `
+          <div class="sheet-detail-row">
+            <div class="sheet-detail-icon">
+              ${getIcon('meeting_room', { size: 18, style: 'color: var(--accent-primary);' })}
+            </div>
+            <div class="sheet-detail-info">
+              <span class="sheet-detail-label">Aula e Ubicazione</span>
+              <div class="sheet-actionable-value" style="flex-wrap: wrap; gap: 6px; align-items: baseline;">
+                <span class="badge badge-classroom ${classroom.wingClass}">Aula ${classroom.aula}</span>
+                <span class="sheet-detail-value" style="color: var(--text-secondary); font-size: 0.9rem;">
+                  ${classroom.fullLocation}
+                </span>
+              </div>
+              ${(act.sede && act.sede !== 'DISPOSIZIONE') ? `
+                <div style="margin-top: 6px;">
+                  ${renderLocationBadge(act.sede, '')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : (act.aula || (act.sede && act.sede !== 'DISPOSIZIONE')) ? `
           <div class="sheet-detail-row">
             <div class="sheet-detail-icon">
               ${getIcon('home', { size: 18, style: 'color: var(--accent-primary);' })}

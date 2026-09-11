@@ -46,7 +46,9 @@ export function setupUnifiedSearch({
         matchedClasses.push({
           type: 'class',
           id: cls.short,
-          title: cls.displayShort ? `${cls.displayShort} (${cls.short})` : cls.short,
+          title: (cls.displayShort && cls.displayShort !== cls.short)
+            ? `${cls.displayShort} (${cls.short})`
+            : (cls.displayShort || cls.short),
           subtitle: cls.full,
           badgeText: 'Classe',
           badgeClass: 'badge-class'

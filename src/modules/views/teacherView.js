@@ -15,6 +15,8 @@ import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '.
 import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor, getClassColorInfo, getGridSubjectName, getUltraCompactSubjectName } from '../colors.js';
 import { getIcon } from '../icons.js';
 import { openLessonDetailSheet } from './lessonDetailSheet.js';
+import { getClassroomInfo } from '../classrooms.js';
+import { formatClassDisplayName } from '../parser.js';
 
 const DAY_SHORT_MAP = {
   lunedi: 'Lun',
@@ -103,12 +105,12 @@ export function renderTeacherView({
           <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
             <div class="actions-dropdown-header">
               <div class="dropdown-header-stat">
-                ${getIcon('schedule', { size: 15, style: 'color: var(--accent-primary);' })}
+                ${getIcon('schedule', { size: 16, style: 'color: var(--accent-primary);' })}
                 <span><strong>${totalHours}</strong> ore</span>
               </div>
               ${disposizioniCount > 0 ? `
                 <div class="dropdown-header-stat" style="color: var(--badge-disposizione-text);">
-                  ${getIcon('bolt', { size: 15 })}
+                  ${getIcon('bolt', { size: 16 })}
                   <span><strong>${disposizioniCount}</strong> a disposizione</span>
                 </div>
               ` : ''}
@@ -224,7 +226,7 @@ export function renderTeacherView({
                   ? (isWeeklyFit ? 'Disp' : 'Disposizione') 
                   : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
                 const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
-                const classLabel = isDisp ? '' : (act.classeShort || '');
+                const classLabel = isDisp ? '' : (act.classeDisplayShort || formatClassDisplayName(act.classeShort) || act.classeShort || '');
                 const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
 
                 // Controlla fusione con ora successiva se NON c'è intervallo intermedio
@@ -242,6 +244,9 @@ export function renderTeacherView({
                   }
                 }
 
+                const roomInfo = !isDisp ? getClassroomInfo(act.classeShort) : null;
+                const roomDisplay = roomInfo ? `<span class="badge badge-classroom-grid ${roomInfo.wingClass}" title="${roomInfo.fullText}">A.${roomInfo.aula}</span>` : '';
+
                 rowHtml += `
                   <div class="grid-content-cell ${canMergeWithNext ? 'span-double-hour' : ''} ${isCurrentCell ? 'current-cell' : ''}" 
                        style="border-left: 3px solid ${colorObj.color}; ${canMergeWithNext ? 'grid-row: span 2;' : ''}"
@@ -253,7 +258,8 @@ export function renderTeacherView({
                       ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
                     </div>
                     <div class="grid-cell-bottom">
-                      ${(!isDisp && act.aula) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
+                      ${roomDisplay}
+                      ${(!isDisp && act.aula && (!roomInfo || act.aula !== roomInfo.aula)) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
                       ${(!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : ''}
                     </div>
                   </div>
@@ -445,6 +451,30 @@ export function renderTeacherView({
     document.addEventListener('click', handleOutsideClick);
   }
 
+  // Listener click su card lista per dettaglio lezione (bottom sheet)
+  const listCards = container.querySelectorAll('.schedule-list .hour-card:not(.empty-hour)');
+  listCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Se cliccato su chip classe, lascia agire il suo listener
+      if (e.target.closest('.class-chip')) return;
+      const cardDay = card.getAttribute('data-day') || currentDay;
+      const cardSlotIdx = parseInt(card.getAttribute('data-slot'), 10);
+      const cardSpan = parseInt(card.getAttribute('data-span'), 10) || 1;
+      const dayActs = (scheduleForTeacher[cardDay] && scheduleForTeacher[cardDay][cardSlotIdx]) || [];
+      const targetAct = dayActs[0];
+      const targetSlot = dataset.timeSlots.find(s => s.index === cardSlotIdx) || { index: cardSlotIdx, oInizio: '', timeFormatted: '' };
+      if (targetAct) {
+        openLessonDetailSheet({
+          act: targetAct,
+          slot: targetSlot,
+          day: cardDay,
+          totalSpan: cardSpan,
+          onClassClick
+        });
+      }
+    });
+  });
+
   // Listener cambio giorno
   const dayPills = container.querySelectorAll('.day-pill-btn');
   dayPills.forEach(pill => {
@@ -457,7 +487,8 @@ export function renderTeacherView({
   // Listener click su chip classe
   const classChips = container.querySelectorAll('.class-chip');
   classChips.forEach(chip => {
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
       const cls = chip.getAttribute('data-class-name');
       if (onClassClick) onClassClick(cls);
     });
@@ -693,13 +724,19 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
 
     const subjectColor = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
     const cleanName = isDisp ? 'Disposizione per sostituzioni' : cleanSubjectName(act.matNome || act.matCod);
+    const roomInfo = (!isDisp && act.classeShort) ? getClassroomInfo(act.classeShort) : null;
+    const classroomBadge = roomInfo ? `<span class="badge badge-classroom ${roomInfo.wingClass}" title="${roomInfo.fullLocation}">${getIcon('meeting_room', { size: 12, style: 'margin-right: 3px;' })}Aula ${roomInfo.aula} • ${roomInfo.piano} p.</span>` : '';
     const hasLocation = Boolean(act.aula || (act.sede && act.sede !== 'DISPOSIZIONE'));
-    const locationBadges = (!isDisp && hasLocation) ? renderLocationBadge(act.sede, act.aula) : '';
+    const locationBadges = (!isDisp && hasLocation && (!roomInfo || act.aula !== roomInfo.aula)) ? renderLocationBadge(act.sede, act.aula) : ((!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : '');
     const coDocenzaBadges = act.isCoDocenza ? renderCoDocenzaBadge(['Co-docente']) : '';
-    const hasFooter = Boolean(locationBadges || coDocenzaBadges);
+    const hasFooter = Boolean(classroomBadge || locationBadges || coDocenzaBadges);
 
     renderedHtml.push(`
-      <div class="hour-card ${isDisp ? 'is-disposizione' : ''} ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
+      <div class="hour-card is-interactive ${isDisp ? 'is-disposizione' : ''} ${isCurrent ? 'current-hour' : ''}" 
+           data-day="${currentDay}" 
+           data-slot="${slot.index}" 
+           data-span="${span}" 
+           style="border-left: 3px solid ${subjectColor.color}; cursor: pointer;">
         ${isCurrent ? `
           <div class="current-hour-pill">
             <span class="pulse-dot-live"></span>
@@ -714,9 +751,10 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
           </div>
           ${act.classeShort ? (() => {
             const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
+            const displayCls = act.classeDisplayShort || formatClassDisplayName(act.classeShort) || act.classeShort;
             return `
-              <span class="class-chip" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${act.classeShort}">
-                ${act.classeShort}
+              <span class="class-chip" data-class-name="${act.classeShort}" style="color: ${cInfo.color}; border: 1px solid ${cInfo.color}; background: ${cInfo.bg}; font-weight: 700;" title="Vedi orario classe ${displayCls}">
+                ${displayCls}
               </span>
             `;
           })() : ''}
@@ -733,7 +771,8 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
 
         ${hasFooter ? `
           <div class="hour-card-footer">
-            <div class="badges-group" style="margin-left: auto;">
+            <div class="badges-group" style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+              ${classroomBadge}
               ${coDocenzaBadges}
               ${locationBadges}
             </div>

@@ -460,6 +460,15 @@
   border-radius: var(--radius-sm);
 }
 
+.banner-meta-chip.badge-classroom {
+  color: var(--wing-color, var(--accent-primary));
+  background: var(--wing-bg, rgba(99, 102, 241, 0.12));
+  border-color: var(--wing-border, rgba(99, 102, 241, 0.28));
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .banner-actions {
   display: flex;
   align-items: center;
@@ -672,29 +681,29 @@
 }
 
 .slot-number {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-primary);
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-xs);
 }
 
 .slot-time {
-  font-size: 0.85rem;
+  font-size: 0.80rem;
   font-family: var(--font-mono);
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .slot-duration {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
-  padding: 2px 8px;
+  padding: 2px 7px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -713,14 +722,14 @@
 }
 
 .subject-name {
-  font-size: 1.15rem;
+  font-size: 1.04rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
 .subject-code {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -740,7 +749,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
@@ -805,6 +814,114 @@
   border: 1px solid var(--badge-codocenza-border);
 }
 
+/* Color Coding Ali Edificio per Aule */
+.wing-zovetto {
+  --wing-color: #38bdf8;
+  --wing-bg: rgba(14, 165, 233, 0.14);
+  --wing-border: rgba(14, 165, 233, 0.35);
+}
+
+.wing-xx-settembre {
+  --wing-color: #94a3b8;
+  --wing-bg: rgba(148, 163, 184, 0.14);
+  --wing-border: rgba(148, 163, 184, 0.32);
+}
+
+.wing-giolitti {
+  --wing-color: #fb923c;
+  --wing-bg: rgba(249, 115, 22, 0.15);
+  --wing-border: rgba(249, 115, 22, 0.35);
+}
+
+.wing-sella {
+  --wing-color: #e879f9;
+  --wing-bg: rgba(217, 70, 239, 0.14);
+  --wing-border: rgba(217, 70, 239, 0.35);
+}
+
+.wing-centrale {
+  --wing-color: #2dd4bf;
+  --wing-bg: rgba(45, 212, 191, 0.14);
+  --wing-border: rgba(45, 212, 191, 0.32);
+}
+
+[data-theme="light"] .wing-zovetto {
+  --wing-color: #0369a1;
+  --wing-bg: rgba(3, 105, 161, 0.10);
+  --wing-border: rgba(3, 105, 161, 0.28);
+}
+
+[data-theme="light"] .wing-xx-settembre {
+  --wing-color: #475569;
+  --wing-bg: rgba(71, 85, 105, 0.10);
+  --wing-border: rgba(71, 85, 105, 0.25);
+}
+
+[data-theme="light"] .wing-giolitti {
+  --wing-color: #c2410c;
+  --wing-bg: rgba(194, 65, 12, 0.10);
+  --wing-border: rgba(194, 65, 12, 0.28);
+}
+
+[data-theme="light"] .wing-sella {
+  --wing-color: #a21caf;
+  --wing-bg: rgba(162, 28, 175, 0.10);
+  --wing-border: rgba(162, 28, 175, 0.28);
+}
+
+[data-theme="light"] .wing-centrale {
+  --wing-color: #0f766e;
+  --wing-bg: rgba(15, 118, 110, 0.10);
+  --wing-border: rgba(15, 118, 110, 0.28);
+}
+
+.badge-classroom {
+  background: var(--wing-bg, rgba(99, 102, 241, 0.12));
+  color: var(--wing-color, var(--accent-primary, #6366f1));
+  border: 1px solid var(--wing-border, rgba(99, 102, 241, 0.28));
+}
+
+.badge-classroom-grid {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--wing-bg, rgba(99, 102, 241, 0.14));
+  color: var(--wing-color, var(--accent-primary, #6366f1));
+  border: 1px solid var(--wing-border, rgba(99, 102, 241, 0.28));
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.dropdown-room-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 12px;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown-room-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--wing-color, var(--accent-primary));
+  white-space: nowrap;
+}
+
+.dropdown-room-subline {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding-left: 24px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
 /* Free / Empty Hour Card */
 .hour-card.empty-hour {
   opacity: 0.6;
@@ -813,7 +930,7 @@
 }
 
 .empty-hour-text {
-  font-size: 0.85rem;
+  font-size: 0.80rem;
   color: var(--text-muted);
   font-style: italic;
 }
@@ -1945,7 +2062,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  min-width: 185px;
+  min-width: 195px;
   z-index: 80;
   display: flex;
   flex-direction: column;
@@ -1954,7 +2071,7 @@
 }
 
 .actions-dropdown-header {
-  padding: 8px 10px;
+  padding: 8px 12px 6px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1965,7 +2082,8 @@
 .dropdown-header-stat {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .actions-dropdown-divider {
