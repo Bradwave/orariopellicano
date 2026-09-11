@@ -1,30 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <!-- Background Gradient: Rich Dark Slate/Teal (Theme color) -->
+    <linearGradient id="bgMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#071b1e"/>
+      <stop offset="100%" stop-color="#02090a"/>
+    </linearGradient>
+
     <!-- Teal Accent Gradient (Clock + Pelican Crown) -->
-    <linearGradient id="tealFav" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="tealMask" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#2dd4bf"/>
       <stop offset="100%" stop-color="#0f766e"/>
     </linearGradient>
 
     <!-- Warm Amber Gradient (Pelican Gular Pouch) -->
-    <linearGradient id="amberFav" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="amberMask" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#fbbf24"/>
       <stop offset="100%" stop-color="#d97706"/>
     </linearGradient>
 
-    <!-- High-Contrast Shadow Filter for Clock Hands -->
-    <filter id="handShadow" x="-20%" y="-20%" width="140%" height="140%">
+    <!-- Hand Drop Shadow -->
+    <filter id="handShadowMask" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
     </filter>
   </defs>
 
-  <!-- Perfectly Centered Emblem (x: 68..444, y: 68..444) -->
-  <g transform="translate(-12, 0)">
+  <!-- Full bleed background for Android adaptive maskable icon -->
+  <rect width="512" height="512" fill="url(#bgMask)"/>
+
+  <!-- Centered Emblem scaled to 82% to sit comfortably in Android safe zone (inner 80% circle) -->
+  <g transform="translate(256, 256) scale(0.85) translate(-268, -256)">
     <!-- LEFT HALF: CLOCK FACE -->
-    <!-- Semicircular Clock Face Fill & Rim -->
     <path d="M 256 80 A 176 176 0 0 0 256 432 Z" 
           fill="rgba(45, 212, 191, 0.16)" 
-          stroke="url(#tealFav)" 
+          stroke="url(#tealMask)" 
           stroke-width="24" 
           stroke-linejoin="round"/>
 
@@ -34,7 +42,6 @@
     <line x1="118" y1="336" x2="150" y2="317" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round"/>
 
     <!-- RIGHT HALF: PELICAN HEAD & POUCH -->
-    <!-- Pelican Crown, Nape & Upper Bill (Teal) -->
     <path d="M 256 80 
              C 310 80, 350 110, 370 145 
              L 456 186 
@@ -42,19 +49,18 @@
              L 340 216 
              C 300 216, 270 230, 256 248 
              Z" 
-          fill="url(#tealFav)" 
+          fill="url(#tealMask)" 
           stroke="#2dd4bf" 
           stroke-width="6" 
           stroke-linejoin="round"/>
 
-    <!-- Pelican Signature Gular Pouch (Amber/Gold) -->
     <path d="M 448 206 
              C 458 260, 420 360, 345 408 
              C 305 432, 275 432, 256 432 
              L 256 248 
              C 275 235, 310 220, 350 216 
              Z" 
-          fill="url(#amberFav)" 
+          fill="url(#amberMask)" 
           stroke="#f59e0b" 
           stroke-width="6" 
           stroke-linejoin="round"/>
@@ -62,17 +68,13 @@
     <!-- Bill Ridge Accent -->
     <path d="M 320 155 L 452 190" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.65"/>
 
-    <!-- Center Vertical Dividing Spine -->
+    <!-- Center Spine & Pivot -->
     <line x1="256" y1="80" x2="256" y2="432" stroke="#041416" stroke-width="10"/>
-
-    <!-- Clock Center Pivot -->
     <circle cx="256" cy="256" r="22" fill="#041416" stroke="#2dd4bf" stroke-width="8"/>
 
-    <!-- Clock Hands (with shadow for readability on light/dark tabs) -->
-    <g filter="url(#handShadow)">
-      <!-- Minute hand pointing up to 12 -->
+    <!-- Clock Hands -->
+    <g filter="url(#handShadowMask)">
       <line x1="256" y1="256" x2="256" y2="124" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
-      <!-- Hour hand pointing to 9:40 / 10 o'clock -->
       <line x1="256" y1="256" x2="160" y2="210" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
     </g>
 

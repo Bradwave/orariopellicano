@@ -4,12 +4,13 @@
  * Adozione di Stale-While-Revalidate per auto-aggiornamento silenzioso delle risorse.
  */
 
-const CACHE_NAME = 'orario-pellicano-v1.9';
+const CACHE_NAME = 'orario-pellicano-v2.0';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './favicon.svg',
+  './public/favicon.svg',
   './public/default-schedule.xml',
   './public/themes.json',
   './src/config/themes.json',
@@ -18,6 +19,8 @@ const STATIC_ASSETS = [
   './public/fonts/SpaceMono-Bold.woff2',
   './public/icon-192.png',
   './public/icon-512.png',
+  './public/icon-maskable-192.png',
+  './public/icon-maskable-512.png',
   './src/styles/variables.css',
   './src/styles/reset.css',
   './src/styles/components.css',

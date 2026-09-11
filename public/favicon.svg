@@ -1,5 +1,87 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <!-- Sfondo trasparente per Safari e tutti i browser (zero riquadri, zero bordi bianchi) -->
-  <circle cx="256" cy="256" r="204" stroke="#0d9488" stroke-width="46"/>
-  <path d="M256 132V256H360" stroke="#0d9488" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <!-- Teal Accent Gradient (Clock + Pelican Crown) -->
+    <linearGradient id="tealFav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+
+    <!-- Warm Amber Gradient (Pelican Gular Pouch) -->
+    <linearGradient id="amberFav" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- High-Contrast Shadow Filter for Clock Hands -->
+    <filter id="handShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Perfectly Centered Emblem (x: 68..444, y: 68..444) -->
+  <g transform="translate(-12, 0)">
+    <!-- LEFT HALF: CLOCK FACE -->
+    <!-- Semicircular Clock Face Fill & Rim -->
+    <path d="M 256 80 A 176 176 0 0 0 256 432 Z" 
+          fill="rgba(45, 212, 191, 0.16)" 
+          stroke="url(#tealFav)" 
+          stroke-width="24" 
+          stroke-linejoin="round"/>
+
+    <!-- Clock Hour Ticks -->
+    <line x1="96" y1="256" x2="134" y2="256" stroke="#2dd4bf" stroke-width="14" stroke-linecap="round"/>
+    <line x1="118" y1="176" x2="150" y2="195" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round"/>
+    <line x1="118" y1="336" x2="150" y2="317" stroke="#2dd4bf" stroke-width="12" stroke-linecap="round"/>
+
+    <!-- RIGHT HALF: PELICAN HEAD & POUCH -->
+    <!-- Pelican Crown, Nape & Upper Bill (Teal) -->
+    <path d="M 256 80 
+             C 310 80, 350 110, 370 145 
+             L 456 186 
+             C 468 192, 464 204, 448 206 
+             L 340 216 
+             C 300 216, 270 230, 256 248 
+             Z" 
+          fill="url(#tealFav)" 
+          stroke="#2dd4bf" 
+          stroke-width="6" 
+          stroke-linejoin="round"/>
+
+    <!-- Pelican Signature Gular Pouch (Amber/Gold) -->
+    <path d="M 448 206 
+             C 458 260, 420 360, 345 408 
+             C 305 432, 275 432, 256 432 
+             L 256 248 
+             C 275 235, 310 220, 350 216 
+             Z" 
+          fill="url(#amberFav)" 
+          stroke="#f59e0b" 
+          stroke-width="6" 
+          stroke-linejoin="round"/>
+
+    <!-- Bill Ridge Accent -->
+    <path d="M 320 155 L 452 190" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.65"/>
+
+    <!-- Center Vertical Dividing Spine -->
+    <line x1="256" y1="80" x2="256" y2="432" stroke="#041416" stroke-width="10"/>
+
+    <!-- Clock Center Pivot -->
+    <circle cx="256" cy="256" r="22" fill="#041416" stroke="#2dd4bf" stroke-width="8"/>
+
+    <!-- Clock Hands (with shadow for readability on light/dark tabs) -->
+    <g filter="url(#handShadow)">
+      <!-- Minute hand pointing up to 12 -->
+      <line x1="256" y1="256" x2="256" y2="124" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+      <!-- Hour hand pointing to 9:40 / 10 o'clock -->
+      <line x1="256" y1="256" x2="160" y2="210" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+    </g>
+
+    <!-- Center Pin -->
+    <circle cx="256" cy="256" r="6" fill="#2dd4bf"/>
+
+    <!-- Pelican Eye -->
+    <circle cx="316" cy="156" r="14" fill="#ffffff"/>
+    <circle cx="319" cy="154" r="7" fill="#041416"/>
+    <circle cx="321" cy="152" r="2.5" fill="#ffffff"/>
+  </g>
 </svg>
