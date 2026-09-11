@@ -86,7 +86,11 @@ html {
   }
 
   .active-view-banner {
-    padding: 16px 24px;
+    padding: 16px 24px 4px 24px;
+  }
+
+  .view-toggle-bar {
+    padding: 4px 24px 14px 24px;
   }
 
   .day-selector-container {

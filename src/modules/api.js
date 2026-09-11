@@ -14,7 +14,7 @@ import {
 } from './storage.js';
 
 export const PRIMARY_PROXY_URL = 'https://proxy-orario-pellicano.bradwave-mb.workers.dev';
-export const FALLBACK_XML_PATH = './default-schedule.xml';
+export const FALLBACK_XML_PATH = './public/default-schedule.xml';
 
 /**
  * Recupera l'XML direttamente dal proxy Cloudflare.
@@ -60,8 +60,7 @@ export async function fetchScheduleXml() {
 
     // 2. Prova il file statico di default (solo al primo avvio in assoluto offline)
     const localEndpoints = [
-      FALLBACK_XML_PATH,
-      './public/default-schedule.xml'
+      FALLBACK_XML_PATH
     ];
 
     for (const url of localEndpoints) {

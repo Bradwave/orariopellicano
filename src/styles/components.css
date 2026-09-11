@@ -98,40 +98,42 @@
 }
 
 .sync-status-badge.syncing {
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
+  border-color: rgba(181, 137, 0, 0.4);
+  color: #b58900;
 }
 
 .sync-status-badge.online {
-  border-color: rgba(16, 185, 129, 0.35);
-  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.25);
+  color: var(--text-primary);
 }
 
 .sync-status-badge.error {
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(220, 50, 47, 0.45);
+  color: #dc322f;
+  background: rgba(220, 50, 47, 0.08);
 }
 
 .sync-status-badge.offline {
-  border-color: rgba(148, 163, 184, 0.3);
-  color: #94a3b8;
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
 }
 
 .sync-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #10b981; /* Green */
+  background-color: #10b981;
   flex-shrink: 0;
+  transition: all var(--transition-fast);
 }
 
 .sync-dot.online {
   background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 .sync-dot.syncing {
-  background-color: #f59e0b;
+  background-color: #b58900;
   animation: pulse 1s infinite;
 }
 
@@ -340,14 +342,14 @@
   border-radius: var(--radius-full);
   font-size: 0.82rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   transition: all var(--transition-fast);
 }
 
 .quick-pill:hover, .quick-pill:active {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
 }
 
@@ -358,15 +360,15 @@
   border-color: var(--accent-primary);
 }
 
-/* Active Entity Banner Compatto */
+/* Active Entity Banner Compatto (Integrato con il selettore vista) */
 .active-view-banner {
-  padding: 8px 16px;
-  min-height: 48px;
+  padding: 12px 16px 4px 16px;
+  min-height: unset;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: none;
   gap: 12px;
 }
 
@@ -417,40 +419,29 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .icon-action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
+  border-color: var(--border-highlight);
 }
 
 .icon-action-btn.favorited {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
-}
-
-[data-theme="light"] .icon-action-btn.favorited {
-  background: rgba(217, 119, 6, 0.12);
-  border-color: rgba(180, 83, 9, 0.4);
-  color: #b45309;
+  background: rgba(181, 137, 0, 0.12);
+  border-color: rgba(181, 137, 0, 0.4);
+  color: #b58900;
 }
 
 .icon-action-btn.default-active {
-  background: rgba(20, 184, 166, 0.15);
-  border-color: rgba(20, 184, 166, 0.4);
+  background: rgba(42, 161, 152, 0.12);
+  border-color: rgba(42, 161, 152, 0.4);
   color: var(--accent-primary);
-}
-
-[data-theme="light"] .icon-action-btn.default-active {
-  background: rgba(15, 118, 110, 0.12);
-  border-color: rgba(15, 118, 110, 0.4);
-  color: #0f766e;
 }
 
 .star-fav-btn {
@@ -617,10 +608,11 @@
 }
 
 .slot-number {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--accent-primary);
-  background: rgba(20, 184, 166, 0.12);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
   padding: 3px 8px;
   border-radius: var(--radius-xs);
 }
@@ -1253,19 +1245,19 @@
 
 /* View Mode Toggle (Lista vs Settimana) */
 .view-toggle-bar {
-  padding: 8px 16px;
+  padding: 4px 16px 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .view-mode-selector {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-input);
   padding: 3px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
@@ -1464,23 +1456,23 @@
 }
 
 .radar-status-card.status-active .radar-live-badge {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background: var(--badge-palestra-bg);
+  color: var(--badge-palestra-text);
 }
 
 .radar-status-card.status-disposizione .radar-live-badge {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  background: var(--badge-disposizione-bg);
+  color: var(--badge-disposizione-text);
 }
 
 .radar-status-card.status-break .radar-live-badge {
-  background: rgba(139, 92, 246, 0.2);
-  color: #c084fc;
+  background: var(--badge-codocenza-bg);
+  color: var(--badge-codocenza-text);
 }
 
 .radar-status-card.status-offline .radar-live-badge {
-  background: rgba(100, 116, 139, 0.2);
-  color: #94a3b8;
+  background: rgba(100, 116, 139, 0.15);
+  color: var(--text-muted);
 }
 
 .radar-details-grid {

@@ -139,15 +139,15 @@ const TRACK_PALETTES = {
       '5': '#5b21b6'
     }
   },
-  // Freddo: Scienze Applicate (Verde freddo / Smeraldo)
+  // Freddo: Scienze Applicate (Verde foresta / Smeraldo ad alto contrasto)
   applicate: {
     name: 'Scienze Applicate',
     shades: {
-      '1': '#34d399',
-      '2': '#10b981',
-      '3': '#059669',
-      '4': '#047857',
-      '5': '#065f46'
+      '1': '#10b981', // 1ª smeraldo vivo
+      '2': '#059669', // 2ª verde bosco
+      '3': '#047857', // 3ª pino intenso
+      '4': '#065f46', // 4ª verde profondo
+      '5': '#166534'  // 5ª foresta scuro
     }
   },
   // Freddo: Sportivo (Slate tecnico con sfumatura indaco freddo ad alto contrasto)

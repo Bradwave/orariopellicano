@@ -101,8 +101,8 @@ export function renderTeacherView({
           Azioni
         </button>
         <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
-          <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: #34d399;">
-            <span class="material-symbols-outlined" style="color: #34d399;">radar</span>
+          <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: var(--accent-primary);">
+            <span class="material-symbols-outlined" style="color: var(--accent-primary);">radar</span>
             <span>Radar Colleghi</span>
           </button>
           <button class="dropdown-item-btn" id="teacherShareBtn">
@@ -175,16 +175,16 @@ export function renderTeacherView({
             } else {
               const act = dayActs[0];
               const isDisp = act.isDisposizione;
-              const colorObj = isDisp ? { color: '#d97706' } : getSubjectColor(act.matNome, act.matCod);
+              const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
               const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
               const classInfo = act.classeShort ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
-              const classLabel = act.classeShort || (isDisp ? 'A Disposizione' : '');
-              const classColor = classInfo ? classInfo.color : 'var(--text-secondary)';
+              const classLabel = act.classeShort || (isDisp ? '(Supplenze)' : '');
+              const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
               rowHtml += `
                 <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
                   <div class="grid-cell-top">
                     <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
-                    <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 700;">${classLabel}</div>
+                    <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>
                   </div>
                   <div class="grid-cell-bottom">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
@@ -428,7 +428,7 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
                   Classe ${act.classeShort}
                 </span>
               `;
-            })() : (isDisp ? '<span class="badge badge-disposizione">A Disposizione</span>' : '')}
+            })() : ''}
           </div>
 
           <div class="badges-group">
