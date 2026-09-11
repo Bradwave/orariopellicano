@@ -4,7 +4,7 @@
  * Adozione di Stale-While-Revalidate per auto-aggiornamento silenzioso delle risorse.
  */
 
-const CACHE_NAME = 'orario-pellicano-v1.4';
+const CACHE_NAME = 'orario-pellicano-v1.8';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -38,6 +38,7 @@ const STATIC_ASSETS = [
   './src/modules/time.js',
   './src/modules/views/badges.js',
   './src/modules/views/classView.js',
+  './src/modules/views/lessonDetailSheet.js',
   './src/modules/views/radarView.js',
   './src/modules/views/search.js',
   './src/modules/views/settingsModal.js',

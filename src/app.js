@@ -18,7 +18,9 @@ import {
   setTheme,
   getViewModePreference,
   setViewModePreference,
-  getNextUpPreference
+  getNextUpPreference,
+  getWeeklyFitPreference,
+  setWeeklyFitPreference
 } from './modules/storage.js';
 import { fetchScheduleXml, checkBackgroundUpdate } from './modules/api.js';
 import { startTimeWatcher, getCurrentScheduleState, getCurrentDayName } from './modules/time.js';
@@ -42,6 +44,7 @@ const state = {
   activeId: null,
   activeDay: null,
   viewMode: getViewModePreference(),    // 'list' | 'weekly' persistito
+  weeklyFit: getWeeklyFitPreference(),  // modalità compatto per settimana su mobile
   subsDay: null,
   subsSlot: 1,
   radarTeacherId: null,
@@ -291,6 +294,7 @@ function renderCurrentView() {
         className: state.activeId,
         activeDay: state.activeDay,
         viewMode: state.viewMode,
+        isWeeklyFit: state.weeklyFit,
         isFavorite: isFavorite('class', state.activeId),
         isDefault: isDefaultClass,
         onDayChange: (day) => {
@@ -300,6 +304,11 @@ function renderCurrentView() {
         onViewModeChange: (mode) => {
           setViewModePreference(mode);
           state.viewMode = mode;
+          renderCurrentView();
+        },
+        onWeeklyFitToggle: () => {
+          state.weeklyFit = !state.weeklyFit;
+          setWeeklyFitPreference(state.weeklyFit);
           renderCurrentView();
         },
         onTeacherClick: (teacherId) => navigateTo('teacher', teacherId),
@@ -330,6 +339,7 @@ function renderCurrentView() {
         teacherId: state.activeId,
         activeDay: state.activeDay,
         viewMode: state.viewMode,
+        isWeeklyFit: state.weeklyFit,
         isFavorite: isFavorite('teacher', state.activeId),
         isDefault: isDefaultTeacher,
         onDayChange: (day) => {
@@ -339,6 +349,11 @@ function renderCurrentView() {
         onViewModeChange: (mode) => {
           setViewModePreference(mode);
           state.viewMode = mode;
+          renderCurrentView();
+        },
+        onWeeklyFitToggle: () => {
+          state.weeklyFit = !state.weeklyFit;
+          setWeeklyFitPreference(state.weeklyFit);
           renderCurrentView();
         },
         onClassClick: (className) => navigateTo('class', className),

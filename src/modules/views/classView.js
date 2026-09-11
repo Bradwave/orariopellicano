@@ -12,8 +12,24 @@ import { getCurrentScheduleState, getCurrentDayName, getBreakAfterSlot } from '.
 import { openIcsExportModal } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
 import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '../exportManager.js';
-import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel, getGridSubjectName } from '../colors.js';
+import { getSubjectColor, getClassColorInfo, cleanSubjectName, formatDurationLabel, getGridSubjectName, getUltraCompactSubjectName } from '../colors.js';
 import { getIcon } from '../icons.js';
+import { openLessonDetailSheet } from './lessonDetailSheet.js';
+
+const DAY_SHORT_MAP = {
+  lunedi: 'Lun',
+  lunedì: 'Lun',
+  martedi: 'Mar',
+  martedì: 'Mar',
+  mercoledi: 'Mer',
+  mercoledì: 'Mer',
+  giovedi: 'Gio',
+  giovedì: 'Gio',
+  venerdi: 'Ven',
+  venerdì: 'Ven',
+  sabato: 'Sab',
+  domenica: 'Dom'
+};
 
 export function renderClassView({
   container,
@@ -21,10 +37,12 @@ export function renderClassView({
   className,
   activeDay,
   viewMode = 'list', // 'list' | 'weekly'
+  isWeeklyFit = false,
   isFavorite = false,
   isDefault = false,
   onDayChange,
   onViewModeChange,
+  onWeeklyFitToggle,
   onTeacherClick,
   onToggleFavorite,
   onSetDefault,
@@ -159,16 +177,16 @@ export function renderClassView({
     ` : ''}
 
     <!-- Top Horizontal Scrollbar per Griglia Settimanale -->
-    <div class="grid-scrollbar-top ${viewMode === 'weekly' ? 'visible' : ''}" id="classGridScrollTop">
+    <div class="grid-scrollbar-top ${viewMode === 'weekly' ? 'visible' : ''} ${isWeeklyFit ? 'hidden-fit' : ''}" id="classGridScrollTop">
       <div class="grid-scrollbar-track"></div>
     </div>
 
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
-    <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''}" id="classWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
-      <div class="weekly-grid">
+    <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''} ${isWeeklyFit ? 'fit-screen' : ''}" id="classWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
+      <div class="weekly-grid ${isWeeklyFit ? 'fit-screen' : ''}">
         <div class="grid-header-cell empty-corner" aria-hidden="true"></div>
         ${dataset.days.map(d => `
-          <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${d}</div>
+          <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${DAY_SHORT_MAP[d.toLowerCase()] || d.substring(0, 3)}</div>
         `).join('')}
 
         ${(() => {
@@ -195,7 +213,9 @@ export function renderClassView({
                 const isDisp = act.isDisposizione;
                 const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
                 const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
-                const gridSubName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
+                const gridSubName = isDisp 
+                  ? (isWeeklyFit ? 'Disp' : 'Disposizione') 
+                  : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
                 const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
 
                 // Controlla fusione con ora successiva se NON c'è intervallo intermedio
@@ -214,13 +234,14 @@ export function renderClassView({
                 }
 
                 rowHtml += `
-                  <div class="grid-content-cell ${canMergeWithNext ? 'span-double-hour' : ''} ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color}; ${canMergeWithNext ? 'grid-row: span 2;' : ''}">
+                  <div class="grid-content-cell ${canMergeWithNext ? 'span-double-hour' : ''} ${isCurrentCell ? 'current-cell' : ''}" 
+                       style="border-left: 3px solid ${colorObj.color}; ${canMergeWithNext ? 'grid-row: span 2;' : ''}"
+                       data-day="${d}" data-slot="${slot.index}" data-span="${canMergeWithNext ? 2 : 1}">
                     <div class="grid-cell-top">
                       <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                         ${gridSubName}
-                        ${canMergeWithNext ? '<span class="grid-double-badge">2h</span>' : ''}
                       </div>
-                      <div class="grid-subtext" title="${teacherName}">${teacherName}</div>
+                      ${(!isWeeklyFit && teacherName) ? `<div class="grid-subtext" title="${teacherName}">${teacherName}</div>` : ''}
                     </div>
                     <div class="grid-cell-bottom">
                       ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
@@ -233,35 +254,56 @@ export function renderClassView({
 
           // Inserimento 1° Intervallo (dopo 2ª ora, valido per tutti i giorni)
           if (slot.index === 2) {
-            rowHtml += `
-              <div class="grid-break-time-cell">
-                <strong>09:50</strong>
-                <span>10:00</span>
-              </div>
-              <div class="grid-break-banner-cell" style="grid-column: 2 / span ${dataset.days.length};">
-                ${getIcon('coffee', { size: 14 })} 1° intervallo
-              </div>
-            `;
+            if (isWeeklyFit) {
+              rowHtml += `
+                <div class="grid-break-banner-cell is-fit-full" style="grid-column: 1 / span ${dataset.days.length + 1};">
+                  ${getIcon('coffee', { size: 14 })} 1° intervallo
+                </div>
+              `;
+            } else {
+              rowHtml += `
+                <div class="grid-break-time-cell">
+                  <strong>09:50</strong>
+                  <span>10:00</span>
+                </div>
+                <div class="grid-break-banner-cell" style="grid-column: 2 / span ${dataset.days.length};">
+                  ${getIcon('coffee', { size: 14 })} 1° intervallo
+                </div>
+              `;
+            }
           }
 
           // Inserimento 2° Intervallo (dopo 4ª ora, valido Lunedì–Venerdì; vuoto di Sabato)
           if (slot.index === 4) {
             const hasSaturday = dataset.days.includes('sabato');
             const weekdaysCount = hasSaturday ? dataset.days.length - 1 : dataset.days.length;
-            rowHtml += `
-              <div class="grid-break-time-cell">
-                <strong>11:50</strong>
-                <span>12:00</span>
-              </div>
-              <div class="grid-break-banner-cell" style="grid-column: 2 / span ${weekdaysCount};">
-                ${getIcon('coffee', { size: 14 })} 2° intervallo
-              </div>
-              ${hasSaturday ? `
-                <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
-                  —
+            if (isWeeklyFit) {
+              rowHtml += `
+                <div class="grid-break-banner-cell is-fit-full" style="grid-column: 1 / span ${weekdaysCount + 1};">
+                  ${getIcon('coffee', { size: 14 })} 2° intervallo
                 </div>
-              ` : ''}
-            `;
+                ${hasSaturday ? `
+                  <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
+                    —
+                  </div>
+                ` : ''}
+              `;
+            } else {
+              rowHtml += `
+                <div class="grid-break-time-cell">
+                  <strong>11:50</strong>
+                  <span>12:00</span>
+                </div>
+                <div class="grid-break-banner-cell" style="grid-column: 2 / span ${weekdaysCount};">
+                  ${getIcon('coffee', { size: 14 })} 2° intervallo
+                </div>
+                ${hasSaturday ? `
+                  <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
+                    —
+                  </div>
+                ` : ''}
+              `;
+            }
           }
 
           return rowHtml;
@@ -280,6 +322,10 @@ export function renderClassView({
         <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
           ${getIcon('calendar_month', { size: 16 })}
           Settimana
+        </button>
+        <div class="view-mode-divider"></div>
+        <button class="view-mode-btn icon-only-btn ${isWeeklyFit && viewMode === 'weekly' ? 'active' : ''}" id="classWeeklyFitBtn" ${viewMode === 'list' ? 'disabled' : ''} title="${isWeeklyFit ? 'Ripristina larghezza standard' : 'Adatta allo schermo'}" aria-label="${isWeeklyFit ? 'Ripristina larghezza standard' : 'Adatta allo schermo'}">
+          ${getIcon(isWeeklyFit && viewMode === 'weekly' ? 'fullscreen_exit' : 'fullscreen', { size: 18 })}
         </button>
       </div>
     </div>
@@ -334,6 +380,36 @@ export function renderClassView({
       if (onViewModeChange) onViewModeChange('weekly');
     });
   }
+
+  // Listener Toggle Adatta allo Schermo (Fit to Screen)
+  const weeklyFitBtn = container.querySelector('#classWeeklyFitBtn');
+  if (weeklyFitBtn) {
+    weeklyFitBtn.addEventListener('click', () => {
+      if (onWeeklyFitToggle) onWeeklyFitToggle();
+    });
+  }
+
+  // Listener click su cella griglia per dettaglio lezione (bottom sheet)
+  const gridCells = container.querySelectorAll('.weekly-grid .grid-content-cell:not(.empty-cell)');
+  gridCells.forEach(cell => {
+    cell.addEventListener('click', () => {
+      const cellDay = cell.getAttribute('data-day');
+      const cellSlotIdx = parseInt(cell.getAttribute('data-slot'), 10);
+      const cellSpan = parseInt(cell.getAttribute('data-span'), 10) || 1;
+      const dayActs = (scheduleForClass[cellDay] && scheduleForClass[cellDay][cellSlotIdx]) || [];
+      const targetAct = dayActs[0];
+      const targetSlot = dataset.timeSlots.find(s => s.index === cellSlotIdx) || { index: cellSlotIdx, oInizio: '', timeFormatted: '' };
+      if (targetAct) {
+        openLessonDetailSheet({
+          act: targetAct,
+          slot: targetSlot,
+          day: cellDay,
+          totalSpan: cellSpan,
+          onTeacherClick
+        });
+      }
+    });
+  });
 
   // Listener Dropdown Azioni Popover
   const actionsTrigger = container.querySelector('#actionsDropdownTrigger');

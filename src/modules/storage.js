@@ -220,3 +220,24 @@ export function setNextUpPreference(enabled) {
     localStorage.setItem('orario_pellicano_next_up', enabled ? 'true' : 'false');
   } catch (e) {}
 }
+
+/**
+ * Recupera la preferenza per la modalità compatta/Fit to Screen della griglia settimanale.
+ */
+export function getWeeklyFitPreference() {
+  try {
+    return localStorage.getItem('orario_pellicano_weekly_fit') === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Salva la preferenza per la modalità compatta/Fit to Screen della griglia settimanale.
+ */
+export function setWeeklyFitPreference(enabled) {
+  try {
+    localStorage.setItem('orario_pellicano_weekly_fit', enabled ? 'true' : 'false');
+  } catch (e) {}
+}
+

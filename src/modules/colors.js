@@ -231,3 +231,37 @@ export function getGridSubjectName(rawName = '', matCod = '') {
   return cleanSubjectName(rawName || matCod);
 }
 
+/**
+ * Restituisce la sigla ultra-sintetica a 3-4 lettere per la modalità compatta (Fit to Screen) su mobile.
+ * Es: Italiano -> Ita, Matematica -> Mat, Fisica -> Fis, Scienze -> Sci, Disposizione -> Disp.
+ */
+export function getUltraCompactSubjectName(rawName = '', matCod = '') {
+  if (!rawName && !matCod) return '';
+  const upper = `${rawName} ${matCod || ''}`.toUpperCase();
+
+  if (upper.includes('DISPOSIZIONE')) return 'Disp';
+  if (upper.includes('LETTERATURA ITALIANA') || upper.includes('LINGUA ITALIANA') || matCod === 'ITA') return 'Ita';
+  if (upper.includes('MATEMATICA') || matCod === 'MAT') return 'Mat';
+  if (upper.includes('FISICA') || matCod === 'FIS') return 'Fis';
+  if (upper.includes('INFORMATICA') || matCod === 'INF') return 'Inf';
+  if (upper.includes('FILOSOFIA') || matCod === 'FIL') return 'Fil';
+  if (upper.includes('STORIA E GEOGRAFIA') || matCod === 'GEOSTORIA') return 'Geo';
+  if (upper.includes('STORIA') || matCod === 'STO') return 'Sto';
+  if (upper.includes('GEOGRAFIA') || matCod === 'GEO') return 'Geo';
+  if (upper.includes('SCIENZE MOTORIE') || matCod === 'SC.MOT' || matCod === 'SCIENZE MOT') return 'Mot';
+  if (upper.includes('SCIENZE') || matCod === 'SCIENZE' || upper.includes('CHIMICA') || upper.includes('BIOLOGIA')) return 'Sci';
+  if (upper.includes('RELIGIONE') || upper.includes('ATTIVIT') || upper.includes('IRC') || matCod === 'REL') return 'Rel';
+  if (upper.includes('DISEGNO') || upper.includes('ARTE') || matCod === 'ARTE' || matCod === 'DIS/ARTE') return 'Arte';
+  if (upper.includes('CULTURA LATINA') || matCod === 'LATINO' || matCod === 'LAT') return 'Lat';
+  if (upper.includes('CULTURA GRECA') || matCod === 'GRECO') return 'Gre';
+  if (upper.includes('INGLESE') || matCod === 'ING') return 'Ing';
+  if (upper.includes('FRANCESE') || matCod === 'FRA') return 'Fra';
+  if (upper.includes('SPAGNOLO') || matCod === 'SPA') return 'Spa';
+  if (upper.includes('TEDESCO') || matCod === 'TED') return 'Ted';
+  if (upper.includes('DISCIPLINE SPORTIVE')) return 'Sport';
+
+  const base = cleanSubjectName(rawName || matCod);
+  return base.length > 4 ? base.substring(0, 4) : base;
+}
+
+
