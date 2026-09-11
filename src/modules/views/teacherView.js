@@ -1,16 +1,17 @@
 /**
  * Vista Orario per Docente:
  * - Toggle fluido tra List View giornaliera e Weekly Grid View
- * - Gestione co-docenze, ore di lezione e ore a DISPOSIZIONE
- * - Esportazione iCalendar (.ics)
- * - Condivisione nativa (Web Share API)
- * - Layout di Stampa A4 tipografico
+ * - Fusione compatta delle lezioni di 2 ore (o pluriorarie) in singola scheda
+ * - Gestione ore a DISPOSIZIONE e co-docenze
+ * - Color coding universale per materia / classe
+ * - Menu azioni compatto [ ⋯ Azioni ] con Radar colleghi, .ICS, condivisione e stampa
  */
 
 import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
+import { getSubjectColor, cleanSubjectName, formatDurationLabel, getClassColor } from '../colors.js';
 
 export function renderTeacherView({
   container,
@@ -74,46 +75,52 @@ export function renderTeacherView({
       
       <div class="banner-actions">
         <button id="teacherFavBtn" class="star-fav-btn ${isFavorite ? 'favorited' : ''}" title="Salva nei preferiti">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
           ${isFavorite ? 'Salvato' : 'Salva'}
         </button>
         <button id="teacherDefaultBtn" class="star-fav-btn ${isDefault ? 'favorited' : ''}" title="Imposta come vista predefinita all'avvio">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isDefault ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="material-symbols-outlined" style="font-size: 16px;">push_pin</span>
           ${isDefault ? 'Predefinito' : 'Predefinisci'}
         </button>
       </div>
     </div>
 
-    <!-- View Mode Toggle Bar (Lista vs Settimana) & Azioni Esportazione/Stampa/Radar -->
+    <!-- View Mode Toggle Bar (Lista vs Settimana) & Menu Azioni Compatto -->
     <div class="view-toggle-bar">
       <div class="view-mode-selector">
-        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione a schede per giorno (mobile)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
+          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
           Lista
         </button>
-        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione a griglia settimanale completa">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
+          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
           Settimana
         </button>
       </div>
 
-      <div class="view-actions-right">
-        <button class="action-chip-btn" id="teacherRadarBtn" title="Controlla la posizione in tempo reale nel Radar" style="color: #34d399;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
-          Radar
+      <div class="actions-dropdown-container">
+        <button class="action-chip-btn" id="teacherActionsTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false">
+          <span class="material-symbols-outlined" style="font-size: 16px;">more_horiz</span>
+          Azioni
         </button>
-        <button class="action-chip-btn" id="teacherShareBtn" title="Condividi orario docente">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-          Condividi
-        </button>
-        <button class="action-chip-btn" id="teacherExportIcsBtn" title="Esporta orario docente in formato .ics">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          .ICS
-        </button>
-        <button class="action-chip-btn" id="teacherPrintBtn" title="Stampa orario su foglio A4 o salva come PDF">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-          Stampa
-        </button>
+        <div class="actions-dropdown-menu" id="teacherActionsMenu" hidden>
+          <button class="dropdown-item-btn" id="teacherRadarBtn" style="color: #34d399;">
+            <span class="material-symbols-outlined" style="color: #34d399;">radar</span>
+            <span>Radar Colleghi</span>
+          </button>
+          <button class="dropdown-item-btn" id="teacherShareBtn">
+            <span class="material-symbols-outlined">share</span>
+            <span>Condividi link</span>
+          </button>
+          <button class="dropdown-item-btn" id="teacherExportIcsBtn">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span>Esporta .ICS</span>
+          </button>
+          <button class="dropdown-item-btn" id="teacherPrintBtn">
+            <span class="material-symbols-outlined">print</span>
+            <span>Stampa / PDF</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -171,13 +178,13 @@ export function renderTeacherView({
             } else {
               const act = dayActs[0];
               const isDisp = act.isDisposizione;
+              const colorObj = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
+              const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
               rowHtml += `
-                <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''} ${isDisp ? 'is-disposizione' : ''}">
-                  <div class="grid-subject" style="${isDisp ? 'color: #fbbf24; display: flex; align-items: center; gap: 2px;' : ''}">
-                    ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 14px;">bolt</span> Disposizione' : (act.matNome || act.matCod)}
-                  </div>
+                <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
+                  <div class="grid-subject" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">${cleanName}</div>
                   <div class="grid-subtext">
-                    ${act.classeShort ? 'Classe ' + act.classeShort : (isDisp ? 'Sede' : '')}
+                    ${act.classeShort ? `<span style="color: ${getClassColor(act.classeShort)}; font-weight: 700;">${act.classeShort}</span>` : (isDisp ? 'A Disposizione' : '')}
                   </div>
                   <div class="badges-group" style="margin-top: 4px;">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
@@ -205,6 +212,31 @@ export function renderTeacherView({
     });
   }
 
+  // Listener Dropdown Azioni Popover
+  const actionsTrigger = container.querySelector('#teacherActionsTrigger');
+  const actionsMenu = container.querySelector('#teacherActionsMenu');
+  if (actionsTrigger && actionsMenu) {
+    actionsTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = actionsMenu.hasAttribute('hidden');
+      if (isHidden) {
+        actionsMenu.removeAttribute('hidden');
+        actionsTrigger.setAttribute('aria-expanded', 'true');
+      } else {
+        actionsMenu.setAttribute('hidden', '');
+        actionsTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    const handleOutsideClick = (e) => {
+      if (!actionsTrigger.contains(e.target) && !actionsMenu.contains(e.target)) {
+        actionsMenu.setAttribute('hidden', '');
+        actionsTrigger.setAttribute('aria-expanded', 'false');
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+  }
+
   // Listener cambio giorno
   const dayPills = container.querySelectorAll('.day-pill-btn');
   dayPills.forEach(pill => {
@@ -218,8 +250,8 @@ export function renderTeacherView({
   const classChips = container.querySelectorAll('.class-chip');
   classChips.forEach(chip => {
     chip.addEventListener('click', () => {
-      const cName = chip.getAttribute('data-class-name');
-      if (onClassClick) onClassClick(cName);
+      const cls = chip.getAttribute('data-class-name');
+      if (onClassClick) onClassClick(cls);
     });
   });
 
@@ -227,6 +259,7 @@ export function renderTeacherView({
   const radarBtn = container.querySelector('#teacherRadarBtn');
   if (radarBtn) {
     radarBtn.addEventListener('click', () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       if (onRadarClick) onRadarClick(teacher.id);
     });
   }
@@ -235,14 +268,15 @@ export function renderTeacherView({
   const shareBtn = container.querySelector('#teacherShareBtn');
   if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       const res = await shareSchedule({
         title: `Orario Docente ${teacher.displayName}`,
-        text: `Consulta l'orario scolastico per il docente ${teacher.displayName}`,
+        text: `Consulta l'orario scolastico del docente ${teacher.displayName}`,
         type: 'teacher',
         id: teacher.id
       });
       if (res.success && res.method === 'clipboard' && onShowToast) {
-        onShowToast(`Link per ${teacher.displayName} copiato negli appunti!`, 'success');
+        onShowToast(`Link docente ${teacher.displayName} copiato!`, 'success');
       }
     });
   }
@@ -251,8 +285,9 @@ export function renderTeacherView({
   const icsBtn = container.querySelector('#teacherExportIcsBtn');
   if (icsBtn) {
     icsBtn.addEventListener('click', () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       const filename = exportScheduleToIcs({
-        title: `Docente_${teacher.displayName}`,
+        title: `Docente_${teacher.displayName.replace(/\s+/g, '_')}`,
         type: 'teacher',
         scheduleData: scheduleForTeacher,
         timeSlots: dataset.timeSlots,
@@ -268,6 +303,7 @@ export function renderTeacherView({
   const printBtn = container.querySelector('#teacherPrintBtn');
   if (printBtn) {
     printBtn.addEventListener('click', () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       window.print();
     });
   }
@@ -289,22 +325,34 @@ export function renderTeacherView({
   }
 }
 
+/**
+ * Renderizza le schede giornaliere per il docente con fusione delle ore consecutive,
+ * rimozione ridondanze, durata formattata ("1 ora", "2 ore") e color-coding.
+ */
 function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes }) {
   if (!timeSlots || timeSlots.length === 0) {
     return `<div class="state-container"><div class="state-title">Nessuna fascia oraria</div></div>`;
   }
 
-  return timeSlots.map(slot => {
+  const renderedHtml = [];
+  const skippedSlotIndices = new Set();
+
+  for (let i = 0; i < timeSlots.length; i++) {
+    const slot = timeSlots[i];
+    if (skippedSlotIndices.has(slot.index)) {
+      continue;
+    }
+
     const acts = daySchedule[slot.index] || [];
-    const isCurrent = isTodayActive && (slot.index === currentSlotIndex);
+    const isCurrentDirect = isTodayActive && (slot.index === currentSlotIndex);
 
     if (acts.length === 0) {
-      return `
-        <div class="hour-card empty-hour ${isCurrent ? 'current-hour' : ''}">
-          ${isCurrent ? `
+      renderedHtml.push(`
+        <div class="hour-card empty-hour ${isCurrentDirect ? 'current-hour' : ''}">
+          ${isCurrentDirect ? `
             <div class="current-hour-pill">
               <span class="pulse-dot-live"></span>
-              ORA LIBERA ORA ${remainingMinutes ? `(-${remainingMinutes} min)` : ''}
+              ORA LIBERA ATTUALE ${remainingMinutes ? `(-${remainingMinutes} min)` : ''}
             </div>
           ` : ''}
           <div class="hour-card-header">
@@ -315,14 +363,39 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
           </div>
           <div class="empty-hour-text">Nessun impegno scolastico (Ora Libera)</div>
         </div>
-      `;
+      `);
+      continue;
     }
 
-    const act = acts[0];
+    // Identifica l'attività principale
+    const nonContinuationActs = acts.filter(a => !a.isContinuation);
+    const act = nonContinuationActs[0] || acts[0];
     const isDisp = act.isDisposizione;
+    const span = Math.max(1, act.durataHours || 1);
 
-    return `
-      <div class="hour-card ${isDisp ? 'is-disposizione' : ''} ${isCurrent ? 'current-hour' : ''}">
+    // Calcola l'ora finale in caso di lezione plurioraria
+    let endSlot = slot;
+    if (span > 1) {
+      const targetEndIndex = slot.index + span - 1;
+      const foundEnd = timeSlots.find(s => s.index === targetEndIndex);
+      if (foundEnd) {
+        endSlot = foundEnd;
+      }
+      for (let s = 1; s < span; s++) {
+        skippedSlotIndices.add(slot.index + s);
+      }
+    }
+
+    const slotLabel = span > 1 ? `${slot.index}ª - ${endSlot.index}ª ora` : `${slot.index}ª ora`;
+    const timeLabel = `${slot.startTimeFormatted} - ${endSlot.endTimeFormatted}`;
+    const isCurrent = isTodayActive && (currentSlotIndex >= slot.index && currentSlotIndex <= endSlot.index);
+
+    const subjectColor = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
+    const cleanName = isDisp ? 'Disposizione per Sostituzioni' : cleanSubjectName(act.matNome || act.matCod);
+    const durationLabel = formatDurationLabel(act.durata, span);
+
+    renderedHtml.push(`
+      <div class="hour-card ${isDisp ? 'is-disposizione' : ''} ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
         ${isCurrent ? `
           <div class="current-hour-pill">
             <span class="pulse-dot-live"></span>
@@ -332,24 +405,24 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
 
         <div class="hour-card-header">
           <div class="hour-slot-badge">
-            <span class="slot-number">${slot.index}ª ora</span>
-            <span class="slot-time">${slot.timeFormatted}</span>
+            <span class="slot-number">${slotLabel}</span>
+            <span class="slot-time">${timeLabel}</span>
           </div>
-          <div class="slot-duration">${act.durata}</div>
+          <div class="slot-duration">${durationLabel}</div>
         </div>
 
         <div class="hour-card-body">
-          <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 4px;' : ''}">
-            ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span> Disposizione per Sostituzioni' : (act.matNome || act.matCod)}
+          <div class="subject-name" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 6px;' : ''}">
+            ${isDisp ? '<span class="material-symbols-outlined" style="font-size: 18px;">bolt</span>' : ''}
+            ${cleanName}
           </div>
-          <div class="subject-code">${isDisp ? 'Disponibile per supplenze' : act.matCod}</div>
         </div>
 
         <div class="hour-card-footer">
           <div>
             ${act.classeShort ? `
               <span class="class-chip" data-class-name="${act.classeShort}" title="Vedi orario classe ${act.classeShort}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+                <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
                 Classe ${act.classeShort}
               </span>
             ` : (isDisp ? '<span class="badge badge-disposizione">A Disposizione</span>' : '')}
@@ -361,6 +434,8 @@ function renderTeacherDayCards({ timeSlots, daySchedule, isTodayActive, currentS
           </div>
         </div>
       </div>
-    `;
-  }).join('');
+    `);
+  }
+
+  return renderedHtml.join('');
 }

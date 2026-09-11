@@ -1,15 +1,12 @@
 /**
- * Modal Impostazioni e configurazione Proxy Cloudflare Worker.
+ * Modal Impostazioni e Gestione Dati.
  */
 
 import {
-  getProxyUrl,
-  setProxyUrl,
   getLastSyncTime,
   getCachedXmlHash,
   getTheme,
-  setTheme,
-  DEFAULT_PROXY_URL
+  setTheme
 } from '../storage.js';
 
 export function setupSettingsModal({
@@ -18,9 +15,6 @@ export function setupSettingsModal({
   onSyncRequest,
   onResetCache
 }) {
-  const proxyInput = modalOverlay.querySelector('#proxyUrlInput');
-  const saveBtn = modalOverlay.querySelector('#saveProxyBtn');
-  const resetProxyBtn = modalOverlay.querySelector('#resetProxyBtn');
   const syncNowBtn = modalOverlay.querySelector('#modalSyncBtn');
   const clearCacheBtn = modalOverlay.querySelector('#modalClearCacheBtn');
   const themeToggleBtn = modalOverlay.querySelector('#modalThemeToggleBtn');
@@ -28,7 +22,6 @@ export function setupSettingsModal({
   const statsContainer = modalOverlay.querySelector('#modalStatsContainer');
 
   function openModal() {
-    proxyInput.value = getProxyUrl();
     updateStats();
     modalOverlay.classList.add('open');
   }
@@ -44,13 +37,13 @@ export function setupSettingsModal({
 
     if (statsContainer && dataset) {
       statsContainer.innerHTML = `
-        <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-md); padding: 12px; font-size: 0.82rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px;">
+        <div style="background: rgba(20, 184, 166, 0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px;">
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">school</span> Classi caricate: <strong style="color: var(--text-primary);">${dataset.classes.length}</strong></div>
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">person</span> Docenti caricati: <strong style="color: var(--text-primary);">${dataset.teachers.length}</strong></div>
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Materie registrate: <strong style="color: var(--text-primary);">${dataset.subjects.length}</strong></div>
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">schedule</span> Fasce orarie: <strong style="color: var(--text-primary);">${dataset.timeSlots.length}</strong></div>
           <div style="display: flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 16px;">inventory_2</span> Attività totali indicizzate: <strong style="color: var(--text-primary);">${dataset.totalActivities || 0}</strong></div>
-          <div style="margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-muted);">
+          <div style="margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border-subtle); font-size: 0.72rem; color: var(--text-muted);">
             Ultimo Sync: <strong>${lastSync ? lastSync.toLocaleString('it-IT') : 'Dataset locale iniziale'}</strong>
             <br>Versione Hash: <code>${hash || 'locale'}</code>
           </div>
@@ -70,24 +63,6 @@ export function setupSettingsModal({
   modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
   });
-
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      const newUrl = proxyInput.value.trim();
-      setProxyUrl(newUrl);
-      alert('URL Proxy salvato con successo!');
-      closeModal();
-      if (onSyncRequest) onSyncRequest();
-    });
-  }
-
-  if (resetProxyBtn) {
-    resetProxyBtn.addEventListener('click', () => {
-      proxyInput.value = DEFAULT_PROXY_URL;
-      setProxyUrl('');
-      alert('URL Proxy reimpostato al valore predefinito.');
-    });
-  }
 
   if (syncNowBtn) {
     syncNowBtn.addEventListener('click', () => {

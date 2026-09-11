@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0b0f19">
-  <title>Orario Pellicano • Consultazione Orario Scolastico</title>
+  <meta name="theme-color" content="#041718">
+  <title>Orario Pellicano • Consultazione Orario</title>
   <meta name="description" content="Single Page Application mobile-first per la consultazione rapida dell'orario scolastico EDT: classi, docenti, radar colleghi, sostituzioni e stampa.">
 
   <!-- PWA Manifest & Favicon -->
@@ -14,10 +14,10 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="apple-touch-icon" href="./public/icon-192.png">
 
-  <!-- Google Fonts: Outfit & Inter + Material Symbols Outlined -->
+  <!-- Google Fonts: Space Mono & Material Symbols Outlined -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
   <!-- Styles: Main & Print -->
@@ -26,50 +26,30 @@
 </head>
 <body>
   <div id="app">
-    <!-- Header Applicazione -->
-    <header class="app-header">
-      <a href="#" class="brand" onclick="window.location.reload(); return false;">
-        <img src="./favicon.svg" alt="Pellicano Logo" class="brand-icon">
-        <div class="brand-info">
-          <span class="brand-title">
-            Orario Pellicano
-          </span>
-          <span class="brand-subtitle">
-            Liceo • Consultazione Orari
-          </span>
-        </div>
-      </a>
-
-      <div class="header-actions">
-        <!-- Sync Status Badge -->
-        <div class="sync-status-badge" id="syncStatusBadge" title="Stato connessione e aggiornamento">
-          <span class="sync-dot" id="syncDot"></span>
-          <span id="syncStatusText">Connesso</span>
-        </div>
-
-        <!-- Settings Button -->
-        <button class="icon-btn" id="settingsBtn" title="Impostazioni e Proxy Worker">
-          <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Search Bar Unificata (Spotlight UI) -->
+    <!-- Search Bar Unificata con Sync Badge Integrato (Header rimosso per massima compattezza) -->
     <div class="search-container" id="searchContainer">
-      <div class="unified-search-box">
-        <span class="material-symbols-outlined search-icon-left" style="font-size: 20px;">search</span>
-        <input 
-          type="text" 
-          id="unifiedSearchInput" 
-          class="search-input" 
-          placeholder="Cerca classe (es. 1A), docente (es. Rossi) o materia..." 
-          autocomplete="off" 
-          autocorrect="off" 
-          autocapitalize="none" 
-          spellcheck="false"
-        >
-        <button id="searchClearBtn" class="search-clear-btn" title="Cancella ricerca">
-          <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+      <div class="search-bar-row">
+        <div class="unified-search-box">
+          <span class="material-symbols-outlined search-icon-left" style="font-size: 18px;">search</span>
+          <input 
+            type="text" 
+            id="unifiedSearchInput" 
+            class="search-input" 
+            placeholder="Cerca classe, docente o materia..." 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="none" 
+            spellcheck="false"
+          >
+          <button id="searchClearBtn" class="search-clear-btn" title="Cancella ricerca">
+            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+          </button>
+        </div>
+
+        <!-- Sync Status Badge (Inizializzato in stato di verifica giallo) -->
+        <button class="sync-status-badge syncing" id="syncStatusBadge" title="Tocca per verificare aggiornamenti">
+          <span class="sync-dot syncing" id="syncDot"></span>
+          <span id="syncStatusText">Verifica...</span>
         </button>
       </div>
 
@@ -119,46 +99,23 @@
     <!-- Container Toast Notifiche -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Modal Impostazioni & Proxy Worker -->
+    <!-- Modal Impostazioni & Informazioni -->
     <div class="modal-overlay" id="settingsModalOverlay">
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
             <span class="material-symbols-outlined" style="color: var(--accent-primary);">settings</span>
-            Impostazioni Proxy & Dati
+            Impostazioni
           </h2>
           <button class="icon-btn" id="modalCloseBtn">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="proxyUrlInput">Endpoint Cloudflare Worker Proxy (GET)</label>
-          <input 
-            type="url" 
-            id="proxyUrlInput" 
-            class="form-input" 
-            placeholder="https://proxy-orario-pellicano.[tuo-account].workers.dev"
-          >
-          <div class="form-help">
-            Inserisci l'URL del tuo Cloudflare Worker che fa da reverse proxy all'orario XML con intestazioni CORS.
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-          <button class="btn-primary" id="saveProxyBtn" style="flex: 2;">
-            <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
-            Salva Endpoint
-          </button>
-          <button class="btn-secondary" id="resetProxyBtn" style="flex: 1;" title="Ripristina URL di default">
-            Predefinito
-          </button>
-        </div>
-
         <div style="margin-bottom: 20px;">
-          <label class="form-label">Sincronizzazione Manuale & Cache</label>
+          <label class="form-label">Sincronizzazione & Cache</label>
           <div style="display: flex; gap: 8px; margin-top: 6px;">
-            <button class="btn-secondary" id="modalSyncBtn" style="flex: 1;">
+            <button class="btn-primary" id="modalSyncBtn" style="flex: 1;">
               <span class="material-symbols-outlined" style="font-size: 18px;">sync</span>
               Sincronizza Ora
             </button>
@@ -178,7 +135,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Statistiche Dataset Attivo</label>
+          <label class="form-label">Statistiche Dataset</label>
           <div id="modalStatsContainer"></div>
         </div>
       </div>

@@ -153,33 +153,7 @@ export function isFavorite(type, id) {
   return favs.some(f => f.type === type && f.id === id);
 }
 
-/**
- * Recupera l'URL configurato per il proxy Cloudflare Worker.
- */
-export function getProxyUrl() {
-  try {
-    return localStorage.getItem(STORAGE_KEYS.PROXY_URL) || DEFAULT_PROXY_URL;
-  } catch (e) {
-    return DEFAULT_PROXY_URL;
-  }
-}
 
-/**
- * Salva un URL personalizzato per il proxy Cloudflare Worker.
- */
-export function setProxyUrl(url) {
-  try {
-    const cleanUrl = (url || '').trim();
-    if (!cleanUrl) {
-      localStorage.removeItem(STORAGE_KEYS.PROXY_URL);
-      return DEFAULT_PROXY_URL;
-    }
-    localStorage.setItem(STORAGE_KEYS.PROXY_URL, cleanUrl);
-    return cleanUrl;
-  } catch (e) {
-    return DEFAULT_PROXY_URL;
-  }
-}
 
 /**
  * Recupera il tema salvato (dark / light).

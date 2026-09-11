@@ -170,11 +170,20 @@ function updateSyncStatus(status, text) {
   if (!DOM.syncStatusBadge) return;
   DOM.syncStatusText.textContent = text;
   DOM.syncDot.className = 'sync-dot';
+  DOM.syncStatusBadge.className = 'sync-status-badge';
 
   if (status === 'syncing') {
     DOM.syncDot.classList.add('syncing');
+    DOM.syncStatusBadge.classList.add('syncing');
+  } else if (status === 'error') {
+    DOM.syncDot.classList.add('error');
+    DOM.syncStatusBadge.classList.add('error');
   } else if (status === 'offline') {
     DOM.syncDot.classList.add('offline');
+    DOM.syncStatusBadge.classList.add('offline');
+  } else if (status === 'online') {
+    DOM.syncDot.classList.add('online');
+    DOM.syncStatusBadge.classList.add('online');
   }
 }
 
@@ -550,7 +559,7 @@ async function bootstrap() {
     try {
       console.log('⚡ [Bootstrap] Caricamento istantaneo da cache locale...');
       state.dataset = parseEDTXml(cachedXml);
-      updateSyncStatus('online', 'Dati in cache');
+      updateSyncStatus('syncing', 'Verifica...');
       initializeUI();
     } catch (parseErr) {
       console.warn('Errore parsing XML in cache, recupero nuovo XML:', parseErr);
@@ -631,6 +640,15 @@ function initializeUI() {
     });
   }
 
+  // Tocco sul badge di sincronizzazione per forzare un controllo manuale
+  if (DOM.syncStatusBadge) {
+    DOM.syncStatusBadge.addEventListener('click', () => {
+      updateSyncStatus('syncing', 'Verifica...');
+      showToast('Controllo aggiornamenti orario in corso...', 'info', 2000);
+      runBackgroundSync(true);
+    });
+  }
+
   setupBottomNav();
 
   // Controlla se c'è un deep link nella URL (es. ?classe=1A o ?docente=Rossi)
@@ -650,18 +668,38 @@ function initializeUI() {
 /**
  * Esegue il silent background sync con notifica non distruttiva tramite snackbar.
  */
-function runBackgroundSync() {
+function runBackgroundSync(isManual = false) {
   checkBackgroundUpdate({
     onUpdateAvailable: ({ newXml, newHash }) => {
-      // NON cancella lo schermo! Mostra la snackbar con pulsante 'Applica modifiche'
       showUpdateSnackbar({ newXml, newHash });
+      updateSyncStatus('syncing', 'Nuova versione');
     },
     onNoChange: () => {
       updateSyncStatus('online', 'Orario sincronizzato');
+      if (DOM.syncStatusBadge) {
+        DOM.syncStatusBadge.title = 'Orario sincronizzato con il server remoto. Tocca per verificare.';
+      }
+      if (isManual) {
+        showToast('Orario verificato: versione sincronizzata!', 'success', 2500);
+      }
     },
     onError: (err) => {
-      console.warn('Sync background non completato, uso dati locali:', err);
-      updateSyncStatus('online', 'Offline / Cache');
+      console.warn('Sync background non completato:', err.message);
+      let label = 'Errore sync';
+      if (err.message && err.message.includes('503')) {
+        label = 'Server 503 (Offline)';
+      } else if (!navigator.onLine) {
+        label = 'Dispositivo offline';
+      }
+      updateSyncStatus('error', label);
+
+      if (DOM.syncStatusBadge) {
+        DOM.syncStatusBadge.title = `Sincronizzazione non riuscita: ${err.message}. Mostrati dati in cache. Tocca per riprovare.`;
+      }
+
+      if (isManual) {
+        showToast(`Impossibile sincronizzare: ${err.message}`, 'warning', 4000);
+      }
     }
   });
 }

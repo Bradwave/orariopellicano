@@ -1,15 +1,17 @@
 /**
  * Vista Orario per Classe:
  * - Toggle fluido tra List View giornaliera e Weekly Grid View
- * - Esportazione iCalendar (.ics)
- * - Condivisione nativa (Web Share API)
- * - Layout di Stampa A4 tipografico
+ * - Fusione compatta delle lezioni di 2 ore (o pluriorarie) in singola scheda
+ * - Color coding universale delle materie (Matematica = Blu, Fisica = Verde, ecc.)
+ * - Menu azioni compatto [ ⋯ Azioni ] per mobile e desktop
+ * - Esportazione iCalendar (.ics), condivisione nativa e stampa A4
  */
 
 import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
 import { getCurrentScheduleState, getCurrentDayName } from '../time.js';
 import { exportScheduleToIcs } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
+import { getSubjectColor, cleanSubjectName, formatDurationLabel } from '../colors.js';
 
 export function renderClassView({
   container,
@@ -55,42 +57,48 @@ export function renderClassView({
       
       <div class="banner-actions">
         <button id="classFavBtn" class="star-fav-btn ${isFavorite ? 'favorited' : ''}" title="Salva nei preferiti">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
           ${isFavorite ? 'Salvato' : 'Salva'}
         </button>
         <button id="classDefaultBtn" class="star-fav-btn ${isDefault ? 'favorited' : ''}" title="Imposta come vista predefinita all'avvio">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isDefault ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="material-symbols-outlined" style="font-size: 16px;">push_pin</span>
           ${isDefault ? 'Predefinito' : 'Predefinisci'}
         </button>
       </div>
     </div>
 
-    <!-- View Mode Toggle Bar (Lista vs Settimana) & Azioni Esportazione/Stampa -->
+    <!-- View Mode Toggle Bar (Lista vs Settimana) & Menu Azioni Compatto -->
     <div class="view-toggle-bar">
       <div class="view-mode-selector">
-        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione a schede per giorno (mobile)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+        <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
+          <span class="material-symbols-outlined" style="font-size: 16px;">view_agenda</span>
           Lista
         </button>
-        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione a griglia settimanale completa">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
+          <span class="material-symbols-outlined" style="font-size: 16px;">calendar_view_week</span>
           Settimana
         </button>
       </div>
 
-      <div class="view-actions-right">
-        <button class="action-chip-btn" id="classShareBtn" title="Condividi orario con link diretto">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-          Condividi
+      <div class="actions-dropdown-container">
+        <button class="action-chip-btn" id="actionsDropdownTrigger" title="Altre azioni" aria-haspopup="true" aria-expanded="false">
+          <span class="material-symbols-outlined" style="font-size: 16px;">more_horiz</span>
+          Azioni
         </button>
-        <button class="action-chip-btn" id="classExportIcsBtn" title="Esporta calendario in formato .ics (Apple Calendar, Google, Outlook)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          .ICS
-        </button>
-        <button class="action-chip-btn" id="classPrintBtn" title="Stampa orario su foglio A4 o salva come PDF">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-          Stampa
-        </button>
+        <div class="actions-dropdown-menu" id="actionsDropdownMenu" hidden>
+          <button class="dropdown-item-btn" id="classShareBtn">
+            <span class="material-symbols-outlined">share</span>
+            <span>Condividi link</span>
+          </button>
+          <button class="dropdown-item-btn" id="classExportIcsBtn">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span>Esporta .ICS</span>
+          </button>
+          <button class="dropdown-item-btn" id="classPrintBtn">
+            <span class="material-symbols-outlined">print</span>
+            <span>Stampa / PDF</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -148,9 +156,11 @@ export function renderClassView({
               rowHtml += `<div class="grid-content-cell" style="opacity: 0.35; justify-content: center; align-items: center;"><span style="font-size: 0.72rem; color: var(--text-muted);">-</span></div>`;
             } else {
               const act = dayActs[0];
+              const colorObj = getSubjectColor(act.matNome, act.matCod);
+              const cleanName = cleanSubjectName(act.matNome || act.matCod);
               rowHtml += `
-                <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}">
-                  <div class="grid-subject">${act.matNome || act.matCod}</div>
+                <div class="grid-content-cell ${isCurrentCell ? 'current-cell' : ''}" style="border-left: 3px solid ${colorObj.color};">
+                  <div class="grid-subject">${cleanName}</div>
                   <div class="grid-subtext">${act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : ''}</div>
                   <div class="badges-group" style="margin-top: 4px;">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
@@ -178,6 +188,32 @@ export function renderClassView({
     });
   }
 
+  // Listener Dropdown Azioni Popover
+  const actionsTrigger = container.querySelector('#actionsDropdownTrigger');
+  const actionsMenu = container.querySelector('#actionsDropdownMenu');
+  if (actionsTrigger && actionsMenu) {
+    actionsTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = actionsMenu.hasAttribute('hidden');
+      if (isHidden) {
+        actionsMenu.removeAttribute('hidden');
+        actionsTrigger.setAttribute('aria-expanded', 'true');
+      } else {
+        actionsMenu.setAttribute('hidden', '');
+        actionsTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Chiusura al click esterno
+    const handleOutsideClick = (e) => {
+      if (!actionsTrigger.contains(e.target) && !actionsMenu.contains(e.target)) {
+        actionsMenu.setAttribute('hidden', '');
+        actionsTrigger.setAttribute('aria-expanded', 'false');
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+  }
+
   // Listener cambio giorno
   const dayPills = container.querySelectorAll('.day-pill-btn');
   dayPills.forEach(pill => {
@@ -200,6 +236,7 @@ export function renderClassView({
   const shareBtn = container.querySelector('#classShareBtn');
   if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       const res = await shareSchedule({
         title: `Orario Classe ${classObj.short}`,
         text: `Consulta l'orario scolastico per la classe ${classObj.full}`,
@@ -216,6 +253,7 @@ export function renderClassView({
   const icsBtn = container.querySelector('#classExportIcsBtn');
   if (icsBtn) {
     icsBtn.addEventListener('click', () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       const filename = exportScheduleToIcs({
         title: `Classe_${classObj.short}`,
         type: 'class',
@@ -233,6 +271,7 @@ export function renderClassView({
   const printBtn = container.querySelector('#classPrintBtn');
   if (printBtn) {
     printBtn.addEventListener('click', () => {
+      if (actionsMenu) actionsMenu.setAttribute('hidden', '');
       window.print();
     });
   }
@@ -254,19 +293,31 @@ export function renderClassView({
   }
 }
 
+/**
+ * Renderizza le schede giornaliere con fusione compatta delle lezioni di 2 ore (o pluriorarie),
+ * color coding per materia e rimozione del codice materia ridondante.
+ */
 function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes }) {
   if (!timeSlots || timeSlots.length === 0) {
     return `<div class="state-container"><div class="state-title">Nessuna fascia oraria disponibile</div></div>`;
   }
 
-  return timeSlots.map(slot => {
+  const renderedHtml = [];
+  const skippedSlotIndices = new Set();
+
+  for (let i = 0; i < timeSlots.length; i++) {
+    const slot = timeSlots[i];
+    if (skippedSlotIndices.has(slot.index)) {
+      continue;
+    }
+
     const acts = daySchedule[slot.index] || [];
-    const isCurrent = isTodayActive && (slot.index === currentSlotIndex);
+    const isCurrentDirect = isTodayActive && (slot.index === currentSlotIndex);
 
     if (acts.length === 0) {
-      return `
-        <div class="hour-card empty-hour ${isCurrent ? 'current-hour' : ''}">
-          ${isCurrent ? `
+      renderedHtml.push(`
+        <div class="hour-card empty-hour ${isCurrentDirect ? 'current-hour' : ''}">
+          ${isCurrentDirect ? `
             <div class="current-hour-pill">
               <span class="pulse-dot-live"></span>
               ORA ATTUALE ${remainingMinutes ? `(-${remainingMinutes} min)` : ''}
@@ -280,15 +331,47 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
           </div>
           <div class="empty-hour-text">Nessuna lezione in programma</div>
         </div>
-      `;
+      `);
+      continue;
     }
 
-    const mainAct = acts[0];
+    // Identifica l'attività principale della lezione
+    const nonContinuationActs = acts.filter(a => !a.isContinuation);
+    const mainAct = nonContinuationActs[0] || acts[0];
+    const span = Math.max(1, mainAct.durataHours || 1);
+
+    // Calcola l'ora finale in caso di lezione plurioraria (es. 2 ore)
+    let endSlot = slot;
+    if (span > 1) {
+      const targetEndIndex = slot.index + span - 1;
+      const foundEnd = timeSlots.find(s => s.index === targetEndIndex);
+      if (foundEnd) {
+        endSlot = foundEnd;
+      }
+      // Registra gli slot successivi da non ri-renderizzare singolarmente
+      for (let s = 1; s < span; s++) {
+        skippedSlotIndices.add(slot.index + s);
+      }
+    }
+
+    // Slot badge label ed orario esteso
+    const slotLabel = span > 1 ? `${slot.index}ª - ${endSlot.index}ª ora` : `${slot.index}ª ora`;
+    const timeLabel = `${slot.startTimeFormatted} - ${endSlot.endTimeFormatted}`;
+
+    // La lezione è in corso se l'ora attuale cade all'interno dell'intervallo fuso
+    const isCurrent = isTodayActive && (currentSlotIndex >= slot.index && currentSlotIndex <= endSlot.index);
+
+    // Color coding e pulizia nome materia
+    const subjectColor = getSubjectColor(mainAct.matNome, mainAct.matCod);
+    const cleanName = cleanSubjectName(mainAct.matNome || mainAct.matCod);
+    const durationLabel = formatDurationLabel(mainAct.durata, span);
+
+    // Docenti (inclusi eventuali colleghi in co-docenza)
     const teachersList = acts.map(a => a.teacherDisplayName).filter(Boolean);
     const isMultipleTeachers = teachersList.length > 1;
 
-    return `
-      <div class="hour-card ${isCurrent ? 'current-hour' : ''}">
+    renderedHtml.push(`
+      <div class="hour-card ${isCurrent ? 'current-hour' : ''}" style="border-left: 3px solid ${subjectColor.color};">
         ${isCurrent ? `
           <div class="current-hour-pill">
             <span class="pulse-dot-live"></span>
@@ -298,22 +381,21 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
         
         <div class="hour-card-header">
           <div class="hour-slot-badge">
-            <span class="slot-number">${slot.index}ª ora</span>
-            <span class="slot-time">${slot.timeFormatted}</span>
+            <span class="slot-number">${slotLabel}</span>
+            <span class="slot-time">${timeLabel}</span>
           </div>
-          <div class="slot-duration">${mainAct.durata}</div>
+          <div class="slot-duration">${durationLabel}</div>
         </div>
 
         <div class="hour-card-body">
-          <div class="subject-name">${mainAct.matNome || mainAct.matCod}</div>
-          <div class="subject-code">${mainAct.matCod}</div>
+          <div class="subject-name">${cleanName}</div>
         </div>
 
         <div class="hour-card-footer">
           <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
             ${acts.map(a => a.teacherId ? `
               <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
                 ${a.teacherDisplayName}
               </span>
             ` : '').join('')}
@@ -325,6 +407,8 @@ function renderDayCards({ timeSlots, daySchedule, isTodayActive, currentSlotInde
           </div>
         </div>
       </div>
-    `;
-  }).join('');
+    `);
+  }
+
+  return renderedHtml.join('');
 }

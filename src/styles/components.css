@@ -54,17 +54,58 @@
   gap: 4px;
 }
 
+.search-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-bar-row .unified-search-box {
+  flex: 1;
+}
+
 .sync-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  font-size: 0.68rem;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-family: var(--font-family);
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.sync-status-badge:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-medium);
+}
+
+.sync-status-badge.syncing {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.sync-status-badge.online {
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.sync-status-badge.error {
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.sync-status-badge.offline {
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
 }
 
 .sync-dot {
@@ -72,11 +113,20 @@
   height: 7px;
   border-radius: 50%;
   background-color: #10b981; /* Green */
+  flex-shrink: 0;
+}
+
+.sync-dot.online {
+  background-color: #10b981;
 }
 
 .sync-dot.syncing {
   background-color: #f59e0b;
   animation: pulse 1s infinite;
+}
+
+.sync-dot.error {
+  background-color: #ef4444;
 }
 
 .sync-dot.offline {
@@ -292,10 +342,10 @@
 }
 
 .quick-pill.active {
-  background: var(--accent-gradient);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: var(--shadow-accent);
+  background: var(--accent-primary);
+  color: #041718;
+  font-weight: 700;
+  border-color: var(--accent-primary);
 }
 
 /* Active Entity Banner */
@@ -304,7 +354,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, transparent 100%);
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -449,36 +499,23 @@
 
 /* Current Hour Highlighting */
 .hour-card.current-hour {
-  border-color: #8b5cf6;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.22) 100%);
-  box-shadow: 0 0 24px rgba(139, 92, 246, 0.35);
-  animation: glowPulse 3s infinite alternate ease-in-out;
-}
-
-@keyframes glowPulse {
-  0% {
-    box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
-    border-color: rgba(99, 102, 241, 0.6);
-  }
-  100% {
-    box-shadow: 0 0 28px rgba(139, 92, 246, 0.45);
-    border-color: rgba(168, 85, 247, 0.9);
-  }
+  border-color: var(--accent-primary);
+  background: rgba(20, 184, 166, 0.06);
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.15);
 }
 
 .current-hour-pill {
   position: absolute;
   top: -10px;
   right: 14px;
-  background: var(--accent-gradient);
-  color: #ffffff;
+  background: var(--accent-primary);
+  color: #041718;
   font-size: 0.68rem;
   font-weight: 700;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -488,7 +525,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ffffff;
+  background: #041718;
   animation: livePing 1.2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
@@ -512,11 +549,11 @@
 
 .slot-number {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(20, 184, 166, 0.12);
   padding: 3px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
 }
 
 .slot-time {
@@ -528,8 +565,13 @@
 
 .slot-duration {
   font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 2px 8px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .hour-card-body {
@@ -1131,9 +1173,9 @@
 }
 
 .view-mode-btn.active {
-  background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: var(--shadow-accent);
+  background: var(--accent-primary);
+  color: #041718;
+  font-weight: 700;
 }
 
 .view-actions-right {
@@ -1148,19 +1190,76 @@
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
 .action-chip-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--bg-card-hover);
   color: var(--text-primary);
-  transform: translateY(-1px);
+}
+
+/* Actions Overflow Popover Menu */
+.actions-dropdown-container {
+  position: relative;
+}
+
+.actions-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  min-width: 175px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.actions-dropdown-menu[hidden] {
+  display: none;
+}
+
+.dropdown-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.dropdown-item-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-primary);
+}
+
+.dropdown-item-btn .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.dropdown-item-btn:hover .material-symbols-outlined {
+  color: var(--accent-primary);
 }
 
 /* Radar Colleghi (Live Tracker) */

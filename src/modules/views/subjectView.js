@@ -3,6 +3,7 @@
  */
 
 import { renderLocationBadge } from './badges.js';
+import { getSubjectColor, cleanSubjectName } from '../colors.js';
 
 export function renderSubjectView({
   container,
@@ -13,6 +14,8 @@ export function renderSubjectView({
 }) {
   const subject = dataset.subjects.find(s => s.code === subjectCode) || { code: subjectCode, name: subjectCode };
   const activities = dataset.bySubject[subjectCode] || [];
+  const subjectColor = getSubjectColor(subject.name, subject.code);
+  const cleanName = cleanSubjectName(subject.name || subject.code);
 
   // Raccogli docenti e classi coinvolte
   const teachersSet = new Map();
@@ -37,10 +40,10 @@ export function renderSubjectView({
 
   container.innerHTML = `
     <!-- Active Entity Banner -->
-    <div class="active-view-banner">
+    <div class="active-view-banner" style="border-left: 4px solid ${subjectColor.color};">
       <div class="banner-entity-info">
-        <span class="banner-type-badge">Vista Materia</span>
-        <h1 class="banner-entity-name">${subject.name}</h1>
+        <span class="banner-type-badge">Materia</span>
+        <h1 class="banner-entity-name">${cleanName}</h1>
         <span style="font-size: 0.8rem; color: var(--text-muted);">
           Codice: <strong>${subject.code}</strong> • Insegnata in ${sortedClasses.length} classi da ${sortedTeachers.length} docenti
         </span>
@@ -50,7 +53,7 @@ export function renderSubjectView({
     <!-- Quick Stats Cards -->
     <div style="padding: 16px 16px 8px 16px; display: flex; flex-direction: column; gap: 12px;">
       <!-- Docenti che insegnano la materia -->
-      <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 14px 16px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px;">
         <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
           <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
           Docenti del dipartimento (${sortedTeachers.length})
@@ -58,6 +61,7 @@ export function renderSubjectView({
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
           ${sortedTeachers.map(([tId, tName]) => `
             <span class="teacher-chip" data-teacher-id="${tId}" title="Vedi orario docente">
+              <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
               ${tName}
             </span>
           `).join('')}
@@ -65,7 +69,7 @@ export function renderSubjectView({
       </div>
 
       <!-- Classi coinvolte -->
-      <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 14px 16px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px;">
         <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
           <span class="material-symbols-outlined" style="font-size: 16px;">school</span>
           Classi (${sortedClasses.length})
@@ -73,6 +77,7 @@ export function renderSubjectView({
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
           ${sortedClasses.map(cls => `
             <span class="class-chip" data-class-name="${cls}" title="Vedi orario classe">
+              <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
               ${cls}
             </span>
           `).join('')}
@@ -88,7 +93,6 @@ export function renderSubjectView({
       ${dataset.days.map(day => {
         const dayActs = byDay[day] || [];
         if (dayActs.length === 0) return '';
-        // Ordina per orario
         dayActs.sort((a, b) => a.startMinutes - b.startMinutes);
 
         return `
@@ -98,18 +102,20 @@ export function renderSubjectView({
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
               ${dayActs.map(act => `
-                <div class="hour-card" style="padding: 12px 14px;">
+                <div class="hour-card" style="padding: 12px 14px; border-left: 3px solid ${subjectColor.color};">
                   <div class="hour-card-header">
                     <div class="hour-slot-badge">
                       <span class="slot-number">${act.slotIndex}ª ora</span>
                       <span class="slot-time">${act.slot ? act.slot.timeFormatted : act.oInizio}</span>
                     </div>
                     <span class="class-chip" data-class-name="${act.classeShort}">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">school</span>
                       Classe ${act.classeShort}
                     </span>
                   </div>
                   <div class="hour-card-footer" style="padding-top: 6px; border: none;">
                     <span class="teacher-chip" data-teacher-id="${act.teacherId}">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
                       ${act.teacherDisplayName}
                     </span>
                     <div class="badges-group">
