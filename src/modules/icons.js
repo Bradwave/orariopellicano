@@ -45,7 +45,8 @@ const ICONS = {
   fit_screen: '<path d="M17 4h3c1.1 0 2 .9 2 2v3h-2V6h-3V4zM4 9V6c0-1.1.9-2 2-2h3v2H6v3H4zm16 6v3c0 1.1-.9 2-2 2h-3v-2h3v-3h2zM9 20H6c-1.1 0-2-.9-2-2v-3h2v3h3v2zM15 9h-6v6h6V9z"/>',
   fullscreen: '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>',
   fullscreen_exit: '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>',
-  meeting_room: '<path d="M19 19V4h-4V2H5v17H3v2h14v-2h2v-2h-2zm-6 0H7V4h6v15zm-2-9c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>'
+  meeting_room: '<path d="M19 19V4h-4V2H5v17H3v2h14v-2h2v-2h-2zm-6 0H7V4h6v15zm-2-9c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>',
+  fitness_center: '<path d="M20.57 14.86 22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>'
 };
 
 /**
