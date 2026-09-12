@@ -186,13 +186,14 @@ export function renderClassView({
     ${viewMode === 'list' ? `
       <div class="schedule-list" id="classScheduleList">
         ${renderDayCards({
-    currentDay,
-    timeSlots: dataset.timeSlots,
-    daySchedule: scheduleForClass[currentDay] || {},
-    isTodayActive,
-    currentSlotIndex: timeState.currentSlotIndex,
-    remainingMinutes: timeState.remainingMinutes
-  })}
+          currentDay,
+          timeSlots: dataset.timeSlots,
+          daySchedule: scheduleForClass[currentDay] || {},
+          isTodayActive,
+          currentSlotIndex: timeState.currentSlotIndex,
+          remainingMinutes: timeState.remainingMinutes,
+          timeState
+        })}
       </div>
     ` : ''}
 
@@ -460,7 +461,7 @@ export function renderClassView({
   // Listener click su card lista per dettaglio lezione (bottom sheet)
   const listCards = container.querySelectorAll('.schedule-list .hour-card:not(.empty-hour)');
   listCards.forEach(card => {
-    card.addEventListener('click', (e) => {
+    const handleCardClick = (e) => {
       // Se cliccato su chip docente, lascia agire il suo listener
       if (e.target.closest('.teacher-chip')) return;
       const cardDay = card.getAttribute('data-day') || currentDay;
@@ -478,7 +479,16 @@ export function renderClassView({
           onTeacherClick
         });
       }
-    });
+    };
+    card.addEventListener('click', handleCardClick);
+    const row = card.closest('.timeline-row');
+    if (row) {
+      const timeCol = row.querySelector('.timeline-time-col');
+      if (timeCol) {
+        timeCol.style.cursor = 'pointer';
+        timeCol.addEventListener('click', handleCardClick);
+      }
+    }
   });
 
   // Listener cambio giorno
@@ -621,7 +631,7 @@ export function renderClassView({
  * Renderizza le schede giornaliere con fusione compatta delle lezioni di 2 ore (o pluriorarie),
  * color coding per materia e divisori per gli intervalli (con regola del sabato).
  */
-function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes }) {
+function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, currentSlotIndex, remainingMinutes, timeState }) {
   if (!timeSlots || timeSlots.length === 0) {
     return `<div class="state-container"><div class="state-title">Nessuna fascia oraria disponibile</div></div>`;
   }
@@ -640,31 +650,43 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
 
     if (acts.length === 0) {
       renderedHtml.push(`
-        <div class="hour-card empty-hour ${isCurrentDirect ? 'current-hour' : ''}">
-          ${isCurrentDirect ? `
-            <div class="current-hour-pill">
-              <span class="pulse-dot-live"></span>
-              ORA ATTUALE ${remainingMinutes ? `(-${remainingMinutes} min)` : ''}
-            </div>
-          ` : ''}
-          <div class="hour-card-header">
-            <div class="hour-slot-badge">
-              <span class="slot-number">${slot.index}ª ora</span>
-              <span class="slot-time">${slot.timeFormatted}</span>
+        <div class="timeline-row">
+          <div class="timeline-time-col ${isCurrentDirect ? 'is-current' : ''}">
+            <div class="timeline-slot-num">${slot.index}ª ora</div>
+            <div class="timeline-slot-hours">${slot.startTimeFormatted}<br>${slot.endTimeFormatted}</div>
+            ${isCurrentDirect && remainingMinutes ? `
+              <div class="timeline-live-tag-col" title="Tempo rimanente">
+                -${remainingMinutes} min
+              </div>
+            ` : ''}
+          </div>
+          <div class="hour-card timeline-card empty-hour ${isCurrentDirect ? 'current-hour' : ''}">
+            <div class="empty-hour-text" style="${isCurrentDirect ? 'color: var(--accent-primary); font-weight: 600;' : ''}">
+              ${isCurrentDirect ? 'Ora buca attuale' : 'Nessuna lezione in programma'}
             </div>
           </div>
-          <div class="empty-hour-text">Nessuna lezione in programma</div>
         </div>
       `);
 
       // Divisore intervallo anche dopo ore buche
       const breakObj = getBreakAfterSlot(currentDay, slot.index);
       if (breakObj) {
+        const isBreakCurrent = isTodayActive && timeState && timeState.status === 'break' && (timeState.breakName === breakObj.name || (timeState.breakObj && timeState.breakObj.id === breakObj.id));
+        const breakRemainingMinutes = isBreakCurrent ? timeState.remainingMinutes : null;
+
         renderedHtml.push(`
-          <div class="schedule-break-divider">
-            <div class="break-pill">
+          <div class="timeline-break ${isBreakCurrent ? 'is-current' : ''}">
+            <div class="timeline-break-time">
+              <span>${breakObj.startTimeFormatted}<br>${breakObj.endTimeFormatted}</span>
+              ${isBreakCurrent && breakRemainingMinutes ? `
+                <div class="timeline-live-tag-col" style="margin-top: 3px;" title="Tempo rimanente all'intervallo">
+                  -${breakRemainingMinutes} min
+                </div>
+              ` : ''}
+            </div>
+            <div class="timeline-break-body">
               ${getIcon('coffee', { size: 15 })}
-              <span><strong>${breakObj.label}</strong> • ${breakObj.name} (Ricreazione)</span>
+              <span>${breakObj.name}</span>
             </div>
           </div>
         `);
@@ -718,7 +740,7 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
 
     // Slot badge label ed orario esteso
     const slotLabel = span > 1 ? `${slot.index}ª - ${endSlot.index}ª ora` : `${slot.index}ª ora`;
-    const timeLabel = `${slot.startTimeFormatted} - ${endSlot.endTimeFormatted}`;
+    const slotTimeFormatted = `${slot.startTimeFormatted}<br>${endSlot.endTimeFormatted}`;
 
     // La lezione è in corso se l'ora attuale cade all'interno dell'intervallo fuso
     const isCurrent = isTodayActive && (currentSlotIndex >= slot.index && currentSlotIndex <= endSlot.index);
@@ -731,61 +753,62 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
     const isMultipleTeachers = teachersList.length > 1;
     const locationBadges = renderLocationBadge(mainAct.sede, mainAct.aula);
     const coDocenzaBadges = (isMultipleTeachers || mainAct.isCoDocenza) ? renderCoDocenzaBadge(teachersList) : '';
-    const hasFooter = Boolean(locationBadges || coDocenzaBadges);
 
     renderedHtml.push(`
-      <div class="hour-card is-interactive ${isCurrent ? 'current-hour' : ''}" 
-           data-day="${currentDay}" 
-           data-slot="${slot.index}" 
-           data-span="${span}" 
-           style="border-left: 3px solid ${subjectColor.color}; cursor: pointer;">
-        ${isCurrent ? `
-          <div class="current-hour-pill">
-            <span class="pulse-dot-live"></span>
-            IN CORSO ${remainingMinutes ? `(-${remainingMinutes} min)` : ''}
+      <div class="timeline-row">
+        <div class="timeline-time-col ${isCurrent ? 'is-current' : ''}">
+          <div class="timeline-slot-num">${slotLabel}</div>
+          <div class="timeline-slot-hours">${slotTimeFormatted}</div>
+          ${isCurrent && remainingMinutes ? `
+            <div class="timeline-live-tag-col" title="Tempo rimanente al termine dell'ora">
+              -${remainingMinutes} min
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="hour-card timeline-card is-interactive ${isCurrent ? 'current-hour' : ''}" 
+             data-day="${currentDay}" 
+             data-slot="${slot.index}" 
+             data-span="${span}" 
+             style="border-left: 3px solid ${subjectColor.color}; cursor: pointer;">
+          
+          <div class="timeline-card-top">
+            <span class="timeline-subject">${cleanName}</span>
           </div>
-        ` : ''}
-        
-        <div class="hour-card-header">
-          <div class="hour-slot-badge">
-            <span class="slot-number">${slotLabel}</span>
-            <span class="slot-time">${timeLabel}</span>
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: flex-end;">
+
+          <div class="timeline-card-bottom">
             ${acts.map(a => a.teacherId ? `
               <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
-                ${getIcon('person', { size: 14 })}
+                ${getIcon('person', { size: 13 })}
                 ${a.teacherDisplayName}
               </span>
             ` : '').join('')}
+            ${coDocenzaBadges}
+            ${locationBadges}
           </div>
         </div>
-
-        <div class="hour-card-body">
-          <div class="subject-row">
-            <div class="subject-name">${cleanName}</div>
-          </div>
-        </div>
-
-        ${hasFooter ? `
-          <div class="hour-card-footer">
-            <div class="badges-group" style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-              ${coDocenzaBadges}
-              ${locationBadges}
-            </div>
-          </div>
-        ` : ''}
       </div>
     `);
 
     // Inserimento divisore intervallo dopo la fine della lezione
     const breakObj = getBreakAfterSlot(currentDay, endSlot.index);
     if (breakObj) {
+      const isBreakCurrent = isTodayActive && timeState && timeState.status === 'break' && (timeState.breakName === breakObj.name || (timeState.breakObj && timeState.breakObj.id === breakObj.id));
+      const breakRemainingMinutes = isBreakCurrent ? timeState.remainingMinutes : null;
+
       renderedHtml.push(`
-        <div class="schedule-break-divider">
-          <div class="break-pill">
+        <div class="timeline-break ${isBreakCurrent ? 'is-current' : ''}">
+          <div class="timeline-break-time">
+            <span>${breakObj.startTimeFormatted}<br>${breakObj.endTimeFormatted}</span>
+            ${isBreakCurrent && breakRemainingMinutes ? `
+              <div class="timeline-live-tag-col" style="margin-top: 3px;" title="Tempo rimanente all'intervallo">
+                -${breakRemainingMinutes} min
+              </div>
+            ` : ''}
+          </div>
+          <div class="timeline-break-body">
             ${getIcon('coffee', { size: 15 })}
-            <span><strong>${breakObj.label}</strong> • ${breakObj.name} (Ricreazione)</span>
+            <span>${breakObj.name}</span>
           </div>
         </div>
       `);
