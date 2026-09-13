@@ -216,7 +216,7 @@ export function renderClassView({
         let rowHtml = `
               <div class="grid-time-cell">
                 <strong>${slot.index}ª ora</strong>
-                <span>${slot.oInizio.replace('h', ':')}</span>
+                <span class="time-range">${slot.startTimeFormatted || slot.oInizio.replace('h', ':')} - ${slot.endTimeFormatted || ''}</span>
               </div>
             `;
         dataset.days.forEach(d => {
@@ -368,11 +368,11 @@ export function renderClassView({
       <div class="view-mode-selector floating">
         <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
           ${getIcon('calendar_today', { size: 16 })}
-          Lista
+          <span class="btn-label">Lista</span>
         </button>
         <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
           ${getIcon('calendar_month', { size: 16 })}
-          Settimana
+          <span class="btn-label">Settimana</span>
         </button>
         <div class="view-mode-divider"></div>
         <button class="view-mode-btn icon-only-btn ${isWeeklyFit && viewMode === 'weekly' ? 'active' : ''}" id="classWeeklyFitBtn" ${viewMode === 'list' ? 'disabled' : ''} title="${isWeeklyFit ? 'Ripristina larghezza standard' : 'Adatta allo schermo'}" aria-label="${isWeeklyFit ? 'Ripristina larghezza standard' : 'Adatta allo schermo'}">

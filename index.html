@@ -127,7 +127,7 @@
           </button>
         </div>
 
-        <!-- Toggle Tema Diretto (senza titolo) -->
+        <!-- Toggle Tema Diretto -->
         <div style="margin-bottom: 14px;">
           <button class="btn-secondary" id="modalThemeToggleBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px;">
             <span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span>
@@ -135,18 +135,36 @@
           </button>
         </div>
 
-        <!-- Widget Next-Up Toggle -->
-        <div style="margin-bottom: 14px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-          <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Widget "Prossima Lezione"</div>
+        <!-- 1. Toggle Dimensione Testo Vista Elenco -->
+        <div style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">format_size</span>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Testo elenco ingrandito</div>
+          </div>
+          <label class="custom-toggle-switch" for="modalFontSizeToggle" aria-label="Attiva testo ingrandito nella vista elenco">
+            <input type="checkbox" id="modalFontSizeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- 2. Widget Next-Up Toggle -->
+        <div style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">schedule</span>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Widget "Prossima Lezione"</div>
+          </div>
           <label class="custom-toggle-switch" for="modalNextUpToggle" aria-label="Attiva widget Prossima Lezione">
             <input type="checkbox" id="modalNextUpToggle">
             <span class="toggle-slider"></span>
           </label>
         </div>
 
-        <!-- Toggle Aula Lista Docenti -->
+        <!-- 3. Toggle Aula Lista Docenti -->
         <div style="margin-bottom: 16px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-          <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Mostra aula nella lista docenti</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">meeting_room</span>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Mostra aula nella lista docenti</div>
+          </div>
           <label class="custom-toggle-switch" for="modalTeacherRoomToggle" aria-label="Mostra aula nella lista docenti">
             <input type="checkbox" id="modalTeacherRoomToggle">
             <span class="toggle-slider"></span>

@@ -775,6 +775,67 @@
   flex-wrap: wrap;
 }
 
+/* ==========================================================================
+   Modalità Font Ingranditi per Vista ad Elenco (+25% Leggibilità)
+   ========================================================================== */
+body.font-enlarged .timeline-time-col {
+  width: 66px !important;
+}
+
+body.font-enlarged .timeline-slot-num {
+  font-size: 0.94rem !important;
+}
+
+body.font-enlarged .timeline-slot-hours {
+  font-size: 0.78rem !important;
+  line-height: 1.3 !important;
+}
+
+body.font-enlarged .timeline-subject {
+  font-size: 1.26rem !important;
+  line-height: 1.3 !important;
+}
+
+body.font-enlarged .hour-card.timeline-card {
+  padding: 13px 16px !important;
+  gap: 7px !important;
+}
+
+body.font-enlarged .teacher-chip,
+body.font-enlarged .class-chip {
+  font-size: 0.88rem !important;
+  padding: 3px 9px !important;
+}
+
+body.font-enlarged .teacher-chip svg,
+body.font-enlarged .class-chip svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+body.font-enlarged .badge-classroom,
+body.font-enlarged .badge-codocenza,
+body.font-enlarged .badge-sede {
+  font-size: 0.84rem !important;
+  padding: 3px 9px !important;
+}
+
+body.font-enlarged .badge-classroom svg,
+body.font-enlarged .badge-codocenza svg,
+body.font-enlarged .badge-sede svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+body.font-enlarged .empty-hour-text {
+  font-size: 0.95rem !important;
+}
+
+body.font-enlarged .timeline-break-body {
+  font-size: 0.86rem !important;
+  padding: 8px 16px !important;
+}
+
 /* Intervallo Timeline (Opzione 2B: compatto, sfondo solido scuro) */
 .timeline-break {
   display: flex;
@@ -1606,9 +1667,9 @@
 
 .weekly-grid {
   display: grid;
-  grid-template-columns: 80px repeat(6, 1fr);
+  grid-template-columns: 88px repeat(6, 1fr);
   gap: 8px;
-  min-width: 820px;
+  min-width: 850px;
   margin-bottom: 32px;
 }
 
@@ -1997,6 +2058,14 @@
   z-index: 10;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.35);
   will-change: transform;
+}
+
+.grid-time-cell .time-range {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 [data-theme="light"] .grid-time-cell {
@@ -3154,4 +3223,136 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   Desktop Bottom Navigation Enhancements (Icone Ravvicinate al Centro)
+   ========================================================================== */
+@media (min-width: 768px) {
+  .bottom-nav {
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .nav-item-btn {
+    flex: none;
+    width: 52px;
+  }
+}
+
+/* ==========================================================================
+   Mobile Landscape (Device Ruotato Orizzontalmente - Dual Rail Laterale)
+   - Navigation Rail a Sinistra con 5 icone centrate verticalmente
+   - Selettore Vista Compatto a Destra centrato verticalmente a mezza altezza
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 540px) {
+  .bottom-nav {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 60px;
+    height: 100vh;
+    border-top: none;
+    border-right: var(--glass-border);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    padding: env(safe-area-inset-top, 8px) 0 env(safe-area-inset-bottom, 8px) 0;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-item-btn {
+    flex: none;
+    width: 44px;
+    height: 44px;
+  }
+
+  .floating-view-toggle {
+    left: auto;
+    right: max(12px, env(safe-area-inset-right, 12px));
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .view-mode-selector.floating {
+    flex-direction: column;
+    width: 38px;
+    height: auto;
+    padding: 4px 3px;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .view-mode-selector.floating .view-mode-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .view-mode-selector.floating .view-mode-btn .btn-label {
+    display: none;
+  }
+
+  .view-mode-divider {
+    width: 18px;
+    height: 1px;
+    margin: 2px 0;
+  }
+
+  /* Padding layout per evitare sovrapposizioni con i due rail laterali */
+  .search-container {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .active-view-banner {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-top: 4px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .active-view-banner .banner-entity-name {
+    font-size: 1.15rem;
+  }
+
+  .day-selector-container {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .schedule-list {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: 24px !important;
+    max-width: 760px;
+  }
+
+  .weekly-grid-container {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: 24px !important;
+  }
+
+  .radar-container {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: 24px !important;
+    max-width: 760px;
+  }
+
+  .subs-dashboard {
+    padding-left: calc(64px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(52px + env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: 24px !important;
+  }
 }

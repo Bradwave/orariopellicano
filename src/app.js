@@ -20,7 +20,8 @@ import {
   setViewModePreference,
   getNextUpPreference,
   getWeeklyFitPreference,
-  setWeeklyFitPreference
+  setWeeklyFitPreference,
+  initFontSize
 } from './modules/storage.js';
 import { fetchScheduleXml, checkBackgroundUpdate } from './modules/api.js';
 import { startTimeWatcher, getCurrentScheduleState, getCurrentDayName } from './modules/time.js';
@@ -942,9 +943,10 @@ async function bootstrap() {
   // 1. Registra Service Worker PWA
   registerServiceWorker();
 
-  // 2. Carica configurazione temi da JSON e applica tema
+  // 2. Carica configurazione temi da JSON e applica tema e font
   await loadThemeConfig();
   setTheme(getTheme());
+  initFontSize();
 
   // 3. Controlla se abbiamo XML in LocalStorage
   const cachedXml = getCachedXml();
@@ -1032,6 +1034,9 @@ function initializeUI() {
       renderCurrentView();
     },
     onTeacherRoomChange: () => {
+      renderCurrentView();
+    },
+    onFontSizeChange: () => {
       renderCurrentView();
     }
   });

@@ -151,7 +151,7 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
   ctx.fillText(title, paddingX, paddingY + 48);
 
   const classroom = type === 'class' ? getClassroomInfo(title) : null;
-  const roomHeader = classroom ? `Aula: ${classroom.fullText || ('Aula ' + classroom.aula)} • ` : '';
+  const roomHeader = classroom ? `Aula: ${classroom.shortBadge} (${classroom.fullLocation}) • ` : '';
 
   ctx.fillStyle = textSecondary;
   ctx.font = '13px system-ui, -apple-system, sans-serif';
@@ -257,8 +257,12 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
           ctx.fillText(truncateText(ctx, subText, colDayWidth - 24), cellX + 12, y + 36);
         }
 
-        // Luogo / Aula: sempre incluso per i docenti; per il sabato 5ª ora mostra orario speciale
-        const loc = act.aula ? (act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : `Aula ${act.aula}`) : (act.sede || '');
+        // Luogo / Aula: per i docenti include sempre l'aula (con fallback su quella della classe)
+        const roomInfo = (!isDisp && act.classeShort) ? getClassroomInfo(act.classeShort) : null;
+        const loc = act.aula 
+          ? (act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : `Aula ${act.aula}`)
+          : (roomInfo ? roomInfo.shortBadge : (act.sede && act.sede !== 'DISPOSIZIONE' ? act.sede : ''));
+
         if (loc && !isDisp && type === 'teacher') {
           ctx.fillStyle = textMuted;
           ctx.font = '9px system-ui, -apple-system, sans-serif';

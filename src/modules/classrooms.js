@@ -106,6 +106,9 @@ export function normalizeClassKey(classInput) {
     .trim()
     .toUpperCase();
 
+  // Rimuovi prefissi comuni come "CLASSE " o "DOCENTE "
+  cleaned = cleaned.replace(/^(CLASSE|DOCENTE)\s+/i, '');
+
   // Estrai prima porzione se stringa complessa (es. "1A ORDINAM." -> "1A")
   const firstWord = cleaned.split(' ')[0] || cleaned;
 

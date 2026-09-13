@@ -27,7 +27,7 @@
   --bg-card-hover: #182c31;
   --bg-card-active: #1f373d;
   --bg-input: #0b171a;
-  --bg-glass: rgba(9, 19, 21, 0.95);
+  --bg-glass: rgba(9, 19, 21, 0.88);
   
   /* Bordi neutri fumo/ardesia per rimuovere la sensazione di verde ovunque */
   --border-subtle: rgba(148, 163, 184, 0.12);
@@ -89,8 +89,8 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
   --shadow-accent: none;
-  --glass-blur: none;
-  --glass-border: 1px solid var(--border-subtle);
+  --glass-blur: blur(24px) saturate(180%);
+  --glass-border: 1px solid rgba(148, 163, 184, 0.2);
 
   /* Transitions */
   --transition-fast: 0.1s ease;
@@ -105,7 +105,7 @@
   --bg-card-hover: #f2e9d2;
   --bg-card-active: #e8dec2;
   --bg-input: #eee8d5;
-  --bg-glass: rgba(253, 246, 227, 0.96);
+  --bg-glass: rgba(253, 246, 227, 0.88);
   --border-subtle: rgba(101, 123, 131, 0.16);
   --border-focus: #207c74;
   --border-highlight: rgba(32, 124, 116, 0.25);

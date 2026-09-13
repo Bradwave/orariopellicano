@@ -13,7 +13,8 @@ const STORAGE_KEYS = {
   FAVORITES: 'orario_pellicano_favorites',
   PROXY_URL: 'orario_pellicano_proxy_url',
   THEME: 'orario_pellicano_theme',
-  VIEW_MODE: 'orario_pellicano_view_mode'
+  VIEW_MODE: 'orario_pellicano_view_mode',
+  FONT_SIZE: 'orario_pellicano_font_size'
 };
 
 export const DEFAULT_PROXY_URL = 'https://proxy-orario-pellicano.[inserisci-qui-il-tuo-account].workers.dev';
@@ -198,6 +199,45 @@ export function setViewModePreference(mode) {
   try {
     localStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode === 'weekly' ? 'weekly' : 'list');
   } catch (e) {}
+}
+
+/**
+ * Recupera la preferenza della dimensione testo per la vista ad elenco ('standard' o 'enlarged').
+ */
+export function getFontSizePreference() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.FONT_SIZE) || 'standard';
+  } catch (e) {
+    return 'standard';
+  }
+}
+
+/**
+ * Salva la preferenza della dimensione testo e aggiorna il body.
+ */
+export function setFontSizePreference(size) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.FONT_SIZE, size);
+    if (size === 'enlarged') {
+      document.body.classList.add('font-enlarged');
+    } else {
+      document.body.classList.remove('font-enlarged');
+    }
+  } catch (e) {
+    console.warn('Impossibile salvare preferenza font size:', e);
+  }
+}
+
+/**
+ * Inizializza la classe font-enlarged al caricamento della pagina.
+ */
+export function initFontSize() {
+  const size = getFontSizePreference();
+  if (size === 'enlarged') {
+    document.body.classList.add('font-enlarged');
+  } else {
+    document.body.classList.remove('font-enlarged');
+  }
 }
 
 /**

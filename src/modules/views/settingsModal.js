@@ -10,7 +10,9 @@ import {
   getNextUpPreference,
   setNextUpPreference,
   getShowTeacherRoomPreference,
-  setShowTeacherRoomPreference
+  setShowTeacherRoomPreference,
+  getFontSizePreference,
+  setFontSizePreference
 } from '../storage.js';
 
 export function setupSettingsModal({
@@ -19,7 +21,8 @@ export function setupSettingsModal({
   onSyncRequest,
   onResetCache,
   onNextUpChange,
-  onTeacherRoomChange
+  onTeacherRoomChange,
+  onFontSizeChange
 }) {
   const syncNowBtn = modalOverlay.querySelector('#modalSyncBadgeBtn') || modalOverlay.querySelector('#modalSyncBtn');
   const syncIcon = modalOverlay.querySelector('#modalSyncIcon');
@@ -27,6 +30,7 @@ export function setupSettingsModal({
   const syncStatusSub = modalOverlay.querySelector('#modalSyncStatusSub');
   const clearCacheBtn = modalOverlay.querySelector('#modalClearCacheBtn');
   const themeToggleBtn = modalOverlay.querySelector('#modalThemeToggleBtn');
+  const fontSizeToggle = modalOverlay.querySelector('#modalFontSizeToggle');
   const nextUpToggle = modalOverlay.querySelector('#modalNextUpToggle');
   const teacherRoomToggle = modalOverlay.querySelector('#modalTeacherRoomToggle');
   const closeBtn = modalOverlay.querySelector('#modalCloseBtn');
@@ -118,8 +122,12 @@ export function setupSettingsModal({
 
     if (themeToggleBtn) {
       themeToggleBtn.innerHTML = currentTheme === 'dark' 
-        ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Attiva tema chiaro</span>' 
-        : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Attiva tema scuro</span>';
+        ? '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span> Tema chiaro</span>' 
+        : '<span style="display: inline-flex; align-items: center; gap: 6px;"><span class="material-symbols-outlined" style="font-size: 18px;">dark_mode</span> Tema scuro</span>';
+    }
+
+    if (fontSizeToggle) {
+      fontSizeToggle.checked = getFontSizePreference() === 'enlarged';
     }
 
     if (nextUpToggle) {
@@ -166,6 +174,14 @@ export function setupSettingsModal({
       const next = current === 'dark' ? 'light' : 'dark';
       setTheme(next);
       updateStats();
+    });
+  }
+
+  if (fontSizeToggle) {
+    fontSizeToggle.addEventListener('change', () => {
+      const next = fontSizeToggle.checked ? 'enlarged' : 'standard';
+      setFontSizePreference(next);
+      if (onFontSizeChange) onFontSizeChange(next);
     });
   }
 
