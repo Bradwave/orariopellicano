@@ -195,46 +195,65 @@ export function openLessonDetailSheet({
     overlay.classList.add('open');
   });
 
-  // Chiusura fluida
+  // Salva stato overlay nella cronologia del browser/Android
+  try {
+    const currentState = window.history.state || {};
+    window.history.pushState({ ...currentState, overlay: 'lesson-sheet' }, document.title);
+  } catch (_) {}
+
+  // Chiusura fluida e sincronizzata con la cronologia
   let isClosing = false;
-  const closeSheet = () => {
+  const closeSheet = (fromPopState = false) => {
     if (isClosing) return;
     isClosing = true;
     overlay.classList.remove('open');
     overlay.classList.add('closing');
+    document.removeEventListener('keydown', handleKeydown);
+
+    // Se la chiusura è manuale (click su X, backdrop, ESC) e c'è ancora lo stato overlay, scarica la voce dalla cronologia
+    if (!fromPopState) {
+      try {
+        if (window.history.state?.overlay === 'lesson-sheet') {
+          window.history.back();
+        }
+      } catch (_) {}
+    }
+
     setTimeout(() => {
       overlay.remove();
     }, 220);
   };
 
-  overlay.querySelector('#sheetCloseBtn')?.addEventListener('click', closeSheet);
+  // Esponi per chiusura esterna da popstate listener
+  overlay._closeSheet = closeSheet;
+
+  overlay.querySelector('#sheetCloseBtn')?.addEventListener('click', () => closeSheet(false));
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeSheet();
+    if (e.target === overlay) closeSheet(false);
   });
 
   const handleKeydown = (e) => {
     if (e.key === 'Escape') {
-      closeSheet();
-      document.removeEventListener('keydown', handleKeydown);
+      closeSheet(false);
     }
   };
   document.addEventListener('keydown', handleKeydown);
 
-  // Navigazione docente
+  // Navigazione docente (sostituisce lo stato dell'overlay con la vista docente)
   const navTeacherBtn = overlay.querySelector('#sheetNavTeacherBtn');
   if (navTeacherBtn && onTeacherClick) {
     navTeacherBtn.addEventListener('click', () => {
-      closeSheet();
-      onTeacherClick(act.teacherId || act.docId);
+      closeSheet(true);
+      onTeacherClick(act.teacherId || act.docId, { replace: true });
     });
   }
 
-  // Navigazione classe
+  // Navigazione classe (sostituisce lo stato dell'overlay con la vista classe)
   const navClassBtn = overlay.querySelector('#sheetNavClassBtn');
   if (navClassBtn && onClassClick) {
     navClassBtn.addEventListener('click', () => {
-      closeSheet();
-      onClassClick(act.classeShort);
+      closeSheet(true);
+      onClassClick(act.classeShort, { replace: true });
     });
   }
 }

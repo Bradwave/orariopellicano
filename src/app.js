@@ -251,9 +251,68 @@ function renderQuickPills() {
 }
 
 /**
+ * Genera l'URL corrispondente allo stato di visualizzazione corrente.
+ */
+function buildUrlForState(viewType, id, day) {
+  const params = new URLSearchParams();
+  if (viewType === 'class' && id) {
+    params.set('classe', id);
+    if (day) params.set('giorno', day);
+  } else if (viewType === 'teacher' && id) {
+    params.set('docente', id);
+    if (day) params.set('giorno', day);
+  } else if (viewType === 'subject' && id) {
+    params.set('materia', id);
+  } else if (viewType === 'radar') {
+    params.set('vista', 'radar');
+    if (state.radarTeacherId) params.set('docente', state.radarTeacherId);
+  } else if (viewType === 'subs') {
+    params.set('vista', 'sostituzioni');
+    if (state.subsDay) params.set('giorno', state.subsDay);
+    if (state.subsSlot) params.set('ora', state.subsSlot);
+  } else if (viewType === 'favorites') {
+    params.set('vista', 'preferiti');
+  }
+  const qs = params.toString();
+  return qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+}
+
+/**
+ * Aggiorna lo stato della cronologia e l'URL del browser.
+ */
+function updateUrlAndHistory({ replace = false } = {}) {
+  try {
+    const targetUrl = buildUrlForState(state.activeView, state.activeId, state.activeDay);
+    const historyState = {
+      view: state.activeView,
+      id: state.activeId,
+      day: state.activeDay,
+      radarTeacherId: state.radarTeacherId,
+      subsDay: state.subsDay,
+      subsSlot: state.subsSlot
+    };
+
+    const currentHist = window.history.state;
+    const isSame = currentHist &&
+      currentHist.view === state.activeView &&
+      currentHist.id === state.activeId &&
+      currentHist.radarTeacherId === state.radarTeacherId;
+
+    if (replace || isSame) {
+      window.history.replaceState(historyState, document.title, targetUrl);
+    } else {
+      window.history.pushState(historyState, document.title, targetUrl);
+    }
+  } catch (err) {
+    console.warn('Errore aggiornamento history:', err);
+  }
+}
+
+/**
  * Naviga verso una vista e aggiorna il rendering.
  */
-export function navigateTo(viewType, id = null, day = null) {
+export function navigateTo(viewType, id = null, day = null, options = {}) {
+  const { replace = false, fromPopState = false } = options;
   let targetView = viewType;
   let targetId = id || state.activeId;
 
@@ -325,6 +384,11 @@ export function navigateTo(viewType, id = null, day = null) {
     if (id) state.activeId = id;
   }
 
+  // Se non stiamo rispondendo a un popstate, aggiorna la cronologia del browser
+  if (!fromPopState) {
+    updateUrlAndHistory({ replace });
+  }
+
   updateBottomNavHighlight();
   renderQuickPills();
   renderCurrentView();
@@ -370,6 +434,7 @@ function renderCurrentView() {
         isDefault: isDefaultClass,
         onDayChange: (day) => {
           state.activeDay = day;
+          updateUrlAndHistory({ replace: true });
           renderCurrentView();
         },
         onViewModeChange: (mode) => {
@@ -382,7 +447,7 @@ function renderCurrentView() {
           setWeeklyFitPreference(state.weeklyFit);
           renderCurrentView();
         },
-        onTeacherClick: (teacherId) => navigateTo('teacher', teacherId),
+        onTeacherClick: (teacherId, navOpts) => navigateTo('teacher', teacherId, null, navOpts),
         onToggleFavorite: (type, id, title) => {
           const res = toggleFavorite(type, id, title);
           showToast(res.added ? `Aggiunto ai preferiti: ${id}` : `Rimosso dai preferiti: ${id}`, 'info');
@@ -415,6 +480,7 @@ function renderCurrentView() {
         isDefault: isDefaultTeacher,
         onDayChange: (day) => {
           state.activeDay = day;
+          updateUrlAndHistory({ replace: true });
           renderCurrentView();
         },
         onViewModeChange: (mode) => {
@@ -427,7 +493,7 @@ function renderCurrentView() {
           setWeeklyFitPreference(state.weeklyFit);
           renderCurrentView();
         },
-        onClassClick: (className) => navigateTo('class', className),
+        onClassClick: (className, navOpts) => navigateTo('class', className, null, navOpts),
         onRadarClick: (teacherId) => {
           state.radarTeacherId = teacherId;
           navigateTo('radar');
@@ -457,8 +523,8 @@ function renderCurrentView() {
         container: DOM.mainContainer,
         dataset: state.dataset,
         subjectCode: state.activeId,
-        onClassClick: (className) => navigateTo('class', className),
-        onTeacherClick: (teacherId) => navigateTo('teacher', teacherId)
+        onClassClick: (className, navOpts) => navigateTo('class', className, null, navOpts),
+        onTeacherClick: (teacherId, navOpts) => navigateTo('teacher', teacherId, null, navOpts)
       });
       break;
 
@@ -470,13 +536,15 @@ function renderCurrentView() {
         selectedSlotIndex: state.subsSlot,
         onDayChange: (day) => {
           state.subsDay = day;
+          updateUrlAndHistory({ replace: true });
           renderCurrentView();
         },
         onSlotChange: (slotIdx) => {
           state.subsSlot = slotIdx;
+          updateUrlAndHistory({ replace: true });
           renderCurrentView();
         },
-        onTeacherClick: (teacherId) => navigateTo('teacher', teacherId)
+        onTeacherClick: (teacherId, navOpts) => navigateTo('teacher', teacherId, null, navOpts)
       });
       break;
 
@@ -487,9 +555,10 @@ function renderCurrentView() {
         selectedTeacherId: state.radarTeacherId,
         onTeacherSelect: (teacherId) => {
           state.radarTeacherId = teacherId;
+          updateUrlAndHistory({ replace: true });
           renderCurrentView();
         },
-        onViewFullSchedule: (teacherId) => navigateTo('teacher', teacherId),
+        onViewFullSchedule: (teacherId, navOpts) => navigateTo('teacher', teacherId, null, navOpts),
         onShowToast: showToast
       });
       break;
@@ -716,7 +785,7 @@ function setupBottomNav() {
  */
 function getDeepLinkParams() {
   let params = new URLSearchParams(window.location.search);
-  if (!params.has('classe') && !params.has('docente') && !params.has('materia') && !params.has('radar')) {
+  if (!params.has('classe') && !params.has('docente') && !params.has('materia') && !params.has('radar') && !params.has('vista')) {
     const hash = window.location.hash || '';
     if (hash.includes('?')) {
       params = new URLSearchParams(hash.substring(hash.indexOf('?')));
@@ -727,16 +796,85 @@ function getDeepLinkParams() {
   return params;
 }
 
+let routerInitialized = false;
+
 /**
- * Gestione deep linking tramite URL Search Params (?classe=, ?docente=, ?materia=, ?radar=).
- * Indirizza alla risorsa richiesta e pulisce l'URL nel browser per mantenere la barra pulita.
+ * Configura il router History API per gestire il tasto "Indietro" di Android e del browser desktop.
  */
-function handleInitialDeepLinking() {
+function setupHistoryRouter() {
+  if (routerInitialized) return;
+  routerInitialized = true;
+
+  window.addEventListener('popstate', (e) => {
+    // 1. Priorità Overlay: Se c'è un Bottom Sheet aperto, chiudilo
+    const openSheet = document.querySelector('.bottom-sheet-overlay');
+    if (openSheet) {
+      if (typeof openSheet._closeSheet === 'function') {
+        openSheet._closeSheet(true);
+      } else {
+        openSheet.classList.remove('open');
+        openSheet.remove();
+      }
+      return;
+    }
+
+    // 2. Priorità Overlay: Se c'è il Modal Impostazioni aperto, chiudilo
+    const openModal = document.querySelector('.modal-overlay.open');
+    if (openModal) {
+      if (typeof openModal._closeModal === 'function') {
+        openModal._closeModal(true);
+      } else {
+        openModal.classList.remove('open');
+      }
+      return;
+    }
+
+    // 3. Se la tendina della ricerca o dei preferiti è aperta, chiudila
+    const searchDropdown = document.querySelector('#searchResultsDropdown');
+    if (searchDropdown && searchDropdown.classList.contains('open')) {
+      searchDropdown.classList.remove('open');
+    }
+    const searchInput = document.querySelector('#unifiedSearchInput');
+    if (document.activeElement === searchInput) {
+      searchInput.blur();
+    }
+
+    // 4. Ripristino stato dalla cronologia
+    const stateObj = e.state;
+    if (stateObj && stateObj.view) {
+      if (stateObj.view === 'radar' && stateObj.radarTeacherId) {
+        state.radarTeacherId = stateObj.radarTeacherId;
+      }
+      if (stateObj.view === 'subs') {
+        if (stateObj.subsDay) state.subsDay = stateObj.subsDay;
+        if (stateObj.subsSlot) state.subsSlot = stateObj.subsSlot;
+      }
+      navigateTo(stateObj.view, stateObj.id, stateObj.day, { fromPopState: true });
+    } else {
+      // Se non abbiamo un stateObj esplicito (es. tornati all'inizio)
+      const handled = handleInitialDeepLinking(true);
+      if (!handled) {
+        const def = getDefaultView();
+        const fallbackType = def?.type || 'class';
+        const fallbackId = def?.id || (state.dataset?.classes?.[0]?.short || '1A');
+        navigateTo(fallbackType, fallbackId, null, { fromPopState: true, replace: true });
+      }
+    }
+  });
+}
+
+/**
+ * Gestione deep linking tramite URL Search Params (?classe=, ?docente=, ?materia=, ?radar=, ?vista=).
+ * Indirizza alla risorsa richiesta preservando l'URL e sincronizzando lo stato della cronologia.
+ */
+function handleInitialDeepLinking(isPopState = false) {
   const urlParams = getDeepLinkParams();
   const classeParam = urlParams.get('classe');
   const docenteParam = urlParams.get('docente');
   const materiaParam = urlParams.get('materia');
   const radarParam = urlParams.get('radar');
+  const vistaParam = urlParams.get('vista');
+  const giornoParam = urlParams.get('giorno');
 
   let handled = false;
 
@@ -747,10 +885,10 @@ function handleInitialDeepLinking() {
       c.full.toLowerCase() === q
     );
     if (found) {
-      navigateTo('class', found.short);
+      navigateTo('class', found.short, giornoParam || null, { replace: !isPopState, fromPopState: isPopState });
       handled = true;
     }
-  } else if (docenteParam && state.dataset?.teachers) {
+  } else if (docenteParam && state.dataset?.teachers && (!vistaParam || vistaParam !== 'radar')) {
     const q = docenteParam.trim().toLowerCase();
     const found = state.dataset.teachers.find(t => 
       t.id.toLowerCase() === q || 
@@ -758,7 +896,7 @@ function handleInitialDeepLinking() {
       t.displayName.toLowerCase() === q
     );
     if (found) {
-      navigateTo('teacher', found.id);
+      navigateTo('teacher', found.id, giornoParam || null, { replace: !isPopState, fromPopState: isPopState });
       handled = true;
     }
   } else if (materiaParam && state.dataset?.subjects) {
@@ -768,33 +906,33 @@ function handleInitialDeepLinking() {
       s.name.toLowerCase() === q
     );
     if (found) {
-      navigateTo('subject', found.code);
+      navigateTo('subject', found.code, null, { replace: !isPopState, fromPopState: isPopState });
       handled = true;
     }
-  } else if (radarParam && state.dataset?.teachers) {
-    const q = radarParam.trim().toLowerCase();
-    const found = state.dataset.teachers.find(t => 
-      t.id.toLowerCase() === q || 
-      t.cognome.toLowerCase() === q || 
-      t.displayName.toLowerCase() === q
-    );
-    if (found) {
-      state.radarTeacherId = found.id;
-      navigateTo('radar');
-      handled = true;
+  } else if (radarParam || vistaParam === 'radar') {
+    const teacherQ = (radarParam || docenteParam || '').trim().toLowerCase();
+    if (teacherQ && state.dataset?.teachers) {
+      const found = state.dataset.teachers.find(t => 
+        t.id.toLowerCase() === teacherQ || 
+        t.cognome.toLowerCase() === teacherQ || 
+        t.displayName.toLowerCase() === teacherQ
+      );
+      if (found) state.radarTeacherId = found.id;
     }
+    navigateTo('radar', null, null, { replace: !isPopState, fromPopState: isPopState });
+    handled = true;
+  } else if (vistaParam === 'sostituzioni' || vistaParam === 'subs') {
+    if (giornoParam) state.subsDay = giornoParam;
+    const oraParam = parseInt(urlParams.get('ora'), 10);
+    if (oraParam) state.subsSlot = oraParam;
+    navigateTo('subs', null, null, { replace: !isPopState, fromPopState: isPopState });
+    handled = true;
+  } else if (vistaParam === 'preferiti' || vistaParam === 'favorites') {
+    navigateTo('favorites', null, null, { replace: !isPopState, fromPopState: isPopState });
+    handled = true;
   }
 
-  if (handled) {
-    // Pulisci l'URL nel browser per eliminare la query string mantenendo attiva la vista
-    try {
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState(null, document.title, cleanUrl);
-    } catch (_) {}
-    return true;
-  }
-
-  return false;
+  return handled;
 }
 
 /**
@@ -934,6 +1072,7 @@ function initializeUI() {
   }
 
   setupBottomNav();
+  setupHistoryRouter();
 
   // Controlla se c'è un deep link nella URL (es. ?classe=1A o ?docente=Rossi)
   const hadDeepLink = handleInitialDeepLinking();
@@ -942,10 +1081,10 @@ function initializeUI() {
   // Altrimenti verifica vista predefinita dell'utente (Default View)
   const defaultPref = getDefaultView();
   if (defaultPref && defaultPref.type && defaultPref.id) {
-    navigateTo(defaultPref.type, defaultPref.id);
+    navigateTo(defaultPref.type, defaultPref.id, null, { replace: true });
   } else {
     // Prima classe dell'elenco
-    navigateTo('class', state.dataset.classes[0]?.short || '1A');
+    navigateTo('class', state.dataset.classes[0]?.short || '1A', null, { replace: true });
   }
 }
 

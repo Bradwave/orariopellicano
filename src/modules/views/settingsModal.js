@@ -35,11 +35,26 @@ export function setupSettingsModal({
   function openModal() {
     updateStats();
     modalOverlay.classList.add('open');
+    try {
+      const current = window.history.state || {};
+      window.history.pushState({ ...current, overlay: 'settings-modal' }, document.title);
+    } catch (_) {}
   }
 
-  function closeModal() {
+  function closeModal(fromPopState = false) {
+    if (!modalOverlay.classList.contains('open')) return;
     modalOverlay.classList.remove('open');
+    if (!fromPopState) {
+      try {
+        if (window.history.state?.overlay === 'settings-modal') {
+          window.history.back();
+        }
+      } catch (_) {}
+    }
   }
+
+  // Esponi per chiusura esterna da popstate listener
+  modalOverlay._closeModal = closeModal;
 
   function setSyncStatus(status = 'online', title = null, sub = null) {
     const lastSync = getLastSyncTime();
@@ -117,10 +132,17 @@ export function setupSettingsModal({
   }
 
   // Event Listeners
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (closeBtn) closeBtn.addEventListener('click', () => closeModal(false));
   modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeModal();
+    if (e.target === modalOverlay) closeModal(false);
   });
+
+  const handleKeydown = (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+      closeModal(false);
+    }
+  };
+  document.addEventListener('keydown', handleKeydown);
 
   if (syncNowBtn) {
     syncNowBtn.addEventListener('click', () => {
