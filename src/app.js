@@ -70,18 +70,89 @@ let searchComponent = null;
 let settingsModal = null;
 
 /**
- * Registrazione del Service Worker PWA per supporto offline completo.
+ * Mostra un toast interattivo per notificare che è pronta una nuova versione dell'app.
+ */
+function showUpdateToast(reg) {
+  if (!DOM.toastContainer) return;
+
+  // Evita duplicazioni se già presente
+  if (document.getElementById('pwaUpdateToast')) return;
+
+  const toast = document.createElement('div');
+  toast.id = 'pwaUpdateToast';
+  toast.className = 'toast toast-info';
+  toast.style.cursor = 'pointer';
+  toast.style.border = '1px solid var(--accent-primary)';
+  toast.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">autorenew</span>
+        <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">Nuova versione pronta!</span>
+      </div>
+      <button class="btn-primary" id="pwaReloadBtn" style="padding: 4px 10px; font-size: 0.78rem; border-radius: var(--radius-sm); border: none; cursor: pointer; background: var(--accent-primary); color: #fff; font-weight: 600;">
+        Ricarica
+      </button>
+    </div>
+  `;
+
+  const reloadApp = () => {
+    if (reg && reg.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
+  };
+
+  toast.addEventListener('click', reloadApp);
+  DOM.toastContainer.appendChild(toast);
+}
+
+/**
+ * Registrazione del Service Worker PWA per supporto offline completo e gestione aggiornamenti.
  */
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
         .then((reg) => {
           console.log('🚀 [PWA] Service Worker registrato con successo:', reg.scope);
+
+          // Controllo aggiornamenti quando l'app torna in primo piano sullo schermo
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              reg.update().catch(() => {});
+            }
+          });
+
+          // Se un nuovo worker è già in attesa (es. installato in una sessione precedente)
+          if (reg.waiting && navigator.serviceWorker.controller) {
+            showUpdateToast(reg);
+          }
+
+          // Rileva quando un nuovo Service Worker viene trovato e installato
+          reg.addEventListener('updatefound', () => {
+            const installingWorker = reg.installing;
+            if (!installingWorker) return;
+
+            installingWorker.addEventListener('statechange', () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdateToast(reg);
+              }
+            });
+          });
         })
         .catch((err) => {
           console.warn('⚠️ [PWA] Registrazione Service Worker fallita:', err);
         });
+
+      // Ricarica la pagina quando il nuovo worker prende il controllo
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     });
   }
 }

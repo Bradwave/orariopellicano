@@ -50,14 +50,23 @@ const STATIC_ASSETS = [
   './src/modules/views/teacherView.js'
 ];
 
-// Installazione Service Worker e pre-caching asset locali
+// Installazione Service Worker e pre-caching asset locali con cache: 'reload'
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 [PWA Service Worker] Pre-caching asset completi shell...');
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('Avviso: alcuni asset statici non sono stati memorizzati in cache:', err);
+      console.log('📦 [PWA Service Worker] Pre-caching asset freschi shell...');
+      const assetFetches = STATIC_ASSETS.map((url) => {
+        return fetch(new Request(url, { cache: 'reload' }))
+          .then((response) => {
+            if (response.ok) {
+              return cache.put(url, response);
+            }
+          })
+          .catch((err) => {
+            console.warn(`Avviso: asset statico non memorizzato in cache (${url}):`, err);
+          });
       });
+      return Promise.all(assetFetches);
     }).then(() => self.skipWaiting())
   );
 });
@@ -74,6 +83,13 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => self.clients.claim())
   );
+});
+
+// Gestione messaggi dal client (es. skip waiting immediato su richiesta)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Intercettazione richieste di rete
@@ -112,9 +128,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Asset locali dell'applicazione: Stale-While-Revalidate
+  // 3. Navigazione / Documento principale HTML: Network First con fallback offline
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('./index.html') || caches.match('./');
+        })
+    );
+    return;
+  }
+
+  // 4. Asset locali dell'applicazione (JS, CSS, immagini): Stale-While-Revalidate con ignoreSearch
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       // Revalidate in background se online
       const fetchPromise = fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
@@ -133,11 +169,6 @@ self.addEventListener('fetch', (event) => {
 
       // Altrimenti attendi la rete
       return fetchPromise;
-    }).catch(() => {
-      // Fallback per navigazione offline
-      if (event.request.headers.get('accept')?.includes('text/html')) {
-        return caches.match('./index.html');
-      }
     })
   );
 });
