@@ -2838,6 +2838,48 @@
   padding: 2px;
 }
 
+/* Cella speciale 5ª ora del Sabato:
+   Inizia sulla riga del 2° intervallo (11:50) e copre la 5ª ora terminando prima (12:45) */
+.grid-cell-saturday-slot5 {
+  align-self: flex-start !important;
+  height: calc(100% - 10px) !important;
+  margin-bottom: 10px !important;
+  position: relative !important;
+}
+
+.weekly-grid.fit-screen .grid-cell-saturday-slot5 {
+  align-self: flex-start !important;
+  height: calc(100% - 6px) !important;
+  margin-bottom: 6px !important;
+}
+
+/* Input date nel modal di esportazione ICS (chiaro e scuro visibili al 100%) */
+.ics-custom-date-row input[type="date"] {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 8px 12px !important;
+  font-size: 0.88rem !important;
+  color-scheme: dark light !important;
+  outline: none !important;
+  transition: border-color var(--transition-fast) !important;
+  font-family: inherit !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="light"] .ics-custom-date-row input[type="date"] {
+  color-scheme: light !important;
+  background: #ffffff !important;
+  color: #073642 !important;
+}
+
+.ics-custom-date-row input[type="date"]:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+}
+
 .grid-double-badge {
   display: inline-block;
   font-size: 0.62rem;

@@ -6,6 +6,7 @@
 
 import { cleanSubjectName, getSubjectColor, getGridSubjectName } from './colors.js';
 import { getTheme } from './storage.js';
+import { getClassroomInfo } from './classrooms.js';
 
 /**
  * Copia l'orario completo formattato come testo leggibile negli appunti.
@@ -143,15 +144,18 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
   // 2. Header Grafico
   ctx.fillStyle = accentCol;
   ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
-  ctx.fillText('ORARIO SCOLASTICO SETTIMANALE', paddingX, paddingY + 18);
+  ctx.fillText(type === 'class' ? 'ORARIO CLASSE' : 'ORARIO DOCENTE', paddingX, paddingY + 18);
 
   ctx.fillStyle = textPrimary;
   ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
   ctx.fillText(title, paddingX, paddingY + 48);
 
+  const classroom = type === 'class' ? getClassroomInfo(title) : null;
+  const roomHeader = classroom ? `Aula: ${classroom.fullText || ('Aula ' + classroom.aula)} • ` : '';
+
   ctx.fillStyle = textSecondary;
   ctx.font = '13px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`Liceo Statale Pellicano • Aggiornato il ${new Date().toLocaleDateString('it-IT')}`, paddingX, paddingY + 70);
+  ctx.fillText(`${roomHeader}Liceo Statale Pellico-Peano • Aggiornato il ${new Date().toLocaleDateString('it-IT')}`, paddingX, paddingY + 70);
 
   // Linea divisoria sotto l'header
   ctx.strokeStyle = borderCol;
@@ -217,7 +221,8 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
         const act = dayActs[0];
         const isDisp = act.isDisposizione;
         const colorObj = isDisp ? { color: '#f59e0b' } : getSubjectColor(act.matNome, act.matCod);
-        const cleanName = isDisp ? 'Disposizione' : getGridSubjectName(act.matNome, act.matCod);
+        // Non indicare codici materia ma solo nome pulito
+        const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
 
         // Box Lezione
         ctx.fillStyle = bgCard;
@@ -238,12 +243,12 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
         const truncatedName = truncateText(ctx, cleanName, colDayWidth - 24);
         ctx.fillText(truncatedName, cellX + 12, y + 20);
 
-        // Sottotesto (Classe o Docente)
+        // Sottotesto (Classe per docente, Docente per classe)
         let subText = '';
         if (type === 'class') {
           subText = act.docCogn ? `${act.docCogn} ${act.docNome || ''}`.trim() : (act.docente || '');
         } else {
-          subText = act.classeShort || '';
+          subText = act.classeShort ? `Classe ${act.classeShort}` : '';
         }
 
         if (subText && !isDisp) {
@@ -252,12 +257,16 @@ export async function renderScheduleBlob({ title, type, scheduleData, timeSlots,
           ctx.fillText(truncateText(ctx, subText, colDayWidth - 24), cellX + 12, y + 36);
         }
 
-        // Luogo / Aula
-        const loc = act.aula ? `Aula ${act.aula.replace(/[<>]/g, '')}` : (act.sede || '');
-        if (loc && !isDisp) {
+        // Luogo / Aula: sempre incluso per i docenti; per il sabato 5ª ora mostra orario speciale
+        const loc = act.aula ? (act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : `Aula ${act.aula}`) : (act.sede || '');
+        if (loc && !isDisp && type === 'teacher') {
           ctx.fillStyle = textMuted;
           ctx.font = '9px system-ui, -apple-system, sans-serif';
           ctx.fillText(truncateText(ctx, loc, colDayWidth - 24), cellX + 12, y + 52);
+        } else if (day.toLowerCase() === 'sabato' && slot.index === 5) {
+          ctx.fillStyle = accentCol;
+          ctx.font = '9px "Space Mono", monospace, monospace';
+          ctx.fillText('11:50 - 12:45', cellX + 12, y + 52);
         }
       }
     });

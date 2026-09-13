@@ -6,6 +6,8 @@
 
 import { SCHOOL_CALENDAR, getExdateListForIcs } from './calendar.js';
 import { getIcon } from './icons.js';
+import { cleanSubjectName, getClassColorInfo } from './colors.js';
+import { getSlotTimesForDay } from './time.js';
 
 // Mappa giorni italiani in offset da lunedì (0 = lunedì, ..., 5 = sabato)
 const DAY_OFFSETS = {
@@ -18,17 +20,34 @@ const DAY_OFFSETS = {
 };
 
 /**
- * Trova la data del prossimo giorno specificato a partire da oggi (o lunedì della settimana corrente).
+ * Converte una stringa 'YYYY-MM-DD' in un oggetto Date locale (senza offset UTC midnight).
+ */
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  if (dateStr instanceof Date) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 0, 0, 0);
+  }
+  return new Date(dateStr);
+}
+
+/**
+ * Trova la prima data utile per il giorno della settimana a partire da baseDate.
+ * Se il giorno specificato è già trascorso nella settimana di baseDate, restituisce l'occorrenza della settimana successiva.
  */
 function getNextDateForDay(dayName, baseDate = new Date()) {
   const targetOffset = DAY_OFFSETS[dayName.toLowerCase()] ?? 0;
-  const currentDayOfWeek = baseDate.getDay(); // 0 = dom, 1 = lun, ...
-  const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-  const monday = new Date(baseDate);
-  monday.setDate(baseDate.getDate() + distanceToMonday);
+  const currentDayOfWeek = baseDate.getDay(); // 0 = dom, 1 = lun, ..., 6 = sab
+  const currentOffset = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
 
-  const targetDate = new Date(monday);
-  targetDate.setDate(monday.getDate() + targetOffset);
+  let diff = targetOffset - currentOffset;
+  if (diff < 0) {
+    diff += 7;
+  }
+
+  const targetDate = new Date(baseDate);
+  targetDate.setDate(baseDate.getDate() + diff);
   return targetDate;
 }
 
@@ -54,7 +73,7 @@ function formatIcsDateTime(date, minutesFromMidnight) {
  */
 function calculateUntilDate(periodType, baseDate = new Date(), customEndDate = null) {
   if (periodType === 'custom' && customEndDate) {
-    const end = new Date(customEndDate);
+    const end = parseLocalDate(customEndDate);
     const y = end.getFullYear();
     const m = String(end.getMonth() + 1).padStart(2, '0');
     const d = String(end.getDate()).padStart(2, '0');
@@ -100,10 +119,12 @@ export function exportScheduleToIcs({
   // Calcolo data di partenza base
   let startDateBase = now;
   if (options.period === 'full_year') {
-    startDateBase = new Date(SCHOOL_CALENDAR.startDate);
+    startDateBase = parseLocalDate(SCHOOL_CALENDAR.startDate) || now;
   } else if (options.period === 'custom' && options.customStartDate) {
-    startDateBase = new Date(options.customStartDate);
+    startDateBase = parseLocalDate(options.customStartDate) || now;
   }
+
+  const customEndDateObj = options.period === 'custom' && options.customEndDate ? parseLocalDate(options.customEndDate) : null;
 
   const events = [];
 
@@ -112,33 +133,54 @@ export function exportScheduleToIcs({
     const baseDayDate = getNextDateForDay(day, startDateBase);
     const targetDayOffset = DAY_OFFSETS[day.toLowerCase()] ?? 0;
 
-    timeSlots.forEach((slot) => {
+    // Se periodo custom e la prima data cade oltre la data limite di fine, salta
+    if (customEndDateObj && baseDayDate > customEndDateObj) {
+      return;
+    }
+
+    timeSlots.forEach((rawSlot) => {
+      const slot = getSlotTimesForDay(rawSlot, day);
       const acts = daySchedule[slot.index] || [];
       if (acts.length === 0) return;
 
       acts.forEach((act, actIdx) => {
         if (act.isContinuation) return;
 
+        const isSaturdaySlot5 = day.toLowerCase() === 'sabato' && slot.index === 5;
         const durationHours = act.durataHours || 1;
-        const startMins = slot.startMinutes;
-        const endMins = startMins + (durationHours * 55) + (durationHours > 1 ? (durationHours - 1) * 5 : 0);
+        const startMins = isSaturdaySlot5 ? 710 : slot.startMinutes;
+        const endMins = isSaturdaySlot5 ? 765 : (startMins + (durationHours * 55) + (durationHours > 1 ? (durationHours - 1) * 5 : 0));
 
         const dtstart = formatIcsDateTime(baseDayDate, startMins);
         const dtend = formatIcsDateTime(baseDayDate, endMins);
 
         const uid = `orario-${type}-${encodeURIComponent(title)}-${day}-${slot.index}-${actIdx}-${startMins}@orariopellicano`;
-        const summary = act.isDisposizione ? 'Disposizione per Sostituzioni' : (act.matNome || act.matCod);
         
-        let description = '';
-        if (type === 'class') {
-          description = `Docente: ${act.teacherDisplayName || 'N/D'}\\nCodice Materia: ${act.matCod}`;
-          if (act.isCoDocenza) description += '\\n(Co-Docenza)';
-        } else {
-          description = act.classeShort ? `Classe: ${act.classeShort} (${act.classeFull})` : 'Disposizione a scuola';
-          if (act.isCoDocenza) description += '\\n(In Co-Docenza)';
-        }
+        // Nome sintetico evento: es. "3F Matematica" (classe + nome materia pulito)
+        const targetClass = (type === 'class' ? title : act.classeShort) || '';
+        const cleanName = cleanSubjectName(act.matNome || act.matCod);
+        const summary = act.isDisposizione 
+          ? (targetClass ? `${targetClass} Disposizione` : 'Disposizione') 
+          : `${targetClass ? targetClass + ' ' : ''}${cleanName}`.trim();
 
-        const location = [act.aula ? `Aula ${act.aula}` : '', act.sede || 'Sede Centrale'].filter(Boolean).join(', ');
+        // Note: indirizzo della classe (es. "Scienze Applicate") e aula
+        const classInfo = targetClass ? getClassColorInfo(targetClass) : null;
+        const trackName = classInfo ? classInfo.trackName : '';
+        const roomClean = act.aula ? (act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : `Aula ${act.aula}`) : '';
+
+        const descParts = [];
+        if (trackName) descParts.push(`Indirizzo: ${trackName}`);
+        if (roomClean) descParts.push(`Aula: ${roomClean}`);
+        if (type === 'class' && act.teacherDisplayName) {
+          descParts.push(`Docente: ${act.teacherDisplayName}`);
+        } else if (type === 'teacher' && act.classeShort) {
+          descParts.push(`Classe: ${act.classeShort}`);
+        }
+        if (act.isCoDocenza) descParts.push('(Co-Docenza)');
+        descParts.push('Mappe: https://maps.app.goo.gl/rxe6kympikRQpRVE6');
+
+        const description = descParts.join('\\n');
+        const location = 'Liceo Statale Pellico-Peano, Corso Giovanni Giolitti 11, 12100 Cuneo CN';
 
         const eventLines = [
           'BEGIN:VEVENT',
@@ -146,7 +188,8 @@ export function exportScheduleToIcs({
           `DTSTAMP:${dtstamp}`,
           `SUMMARY:${summary.replace(/,/g, '\\,')}`,
           `DESCRIPTION:${description.replace(/,/g, '\\,')}`,
-          location ? `LOCATION:${location.replace(/,/g, '\\,')}` : '',
+          `LOCATION:${location.replace(/,/g, '\\,')}`,
+          'URL:https://maps.app.goo.gl/rxe6kympikRQpRVE6',
           `DTSTART;TZID=Europe/Rome:${dtstart}`,
           `DTEND;TZID=Europe/Rome:${dtend}`,
           `RRULE:FREQ=WEEKLY;UNTIL=${untilDateStr}`

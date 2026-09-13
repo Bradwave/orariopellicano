@@ -8,7 +8,7 @@
  */
 
 import { renderLocationBadge, renderCoDocenzaBadge } from './badges.js';
-import { getCurrentScheduleState, getCurrentDayName, getBreakAfterSlot } from '../time.js';
+import { getCurrentScheduleState, getCurrentDayName, getBreakAfterSlot, getSlotTimesForDay } from '../time.js';
 import { openIcsExportModal } from '../exportIcs.js';
 import { shareSchedule } from '../share.js';
 import { copyScheduleAsText, exportScheduleAsImage, shareScheduleImage } from '../exportManager.js';
@@ -78,7 +78,7 @@ export function renderClassView({
   container.innerHTML = `
     <!-- Intestazione visibile ESCLUSIVAMENTE in fase di STAMPA (@media print) -->
     <div class="print-only-header">
-      <div class="print-school-title">Liceo Statale • Orario delle Lezioni</div>
+      <div class="print-school-title">Liceo Statale Pellico-Peano • Orario delle Lezioni</div>
       <div class="print-meta">
         <span><strong>ORARIO CLASSE: ${classObj.full} (${displayTitle})</strong></span>
         ${classroom ? `<span>Aula: ${classroom.fullText}</span>` : ''}
@@ -294,20 +294,54 @@ export function renderClassView({
           }
         }
 
-        // Inserimento 2° Intervallo (dopo 4ª ora, valido Lunedì–Venerdì; vuoto di Sabato)
+        // Inserimento 2° Intervallo (dopo 4ª ora, valido Lunedì–Venerdì; al Sabato la 5ª ora parte alle 11:50)
         if (slot.index === 4) {
           const hasSaturday = dataset.days.includes('sabato');
           const weekdaysCount = hasSaturday ? dataset.days.length - 1 : dataset.days.length;
+
+          let sat5Html = '';
+          if (hasSaturday) {
+            mergedGridSlots.add('sabato-5');
+            const satActs = (scheduleForClass['sabato'] && scheduleForClass['sabato'][5]) || [];
+            const isSatCurrent = (realCurrentDay === 'sabato' && timeState.currentSlotIndex === 5);
+            if (satActs.length === 0) {
+              sat5Html = `<div class="grid-content-cell empty-cell grid-cell-saturday-slot5" style="grid-column: ${weekdaysCount + 2}; grid-row: span 2;"></div>`;
+            } else {
+              const act = satActs[0];
+              const isDisp = act.isDisposizione;
+              const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
+              const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
+              const gridSubName = isDisp
+                ? (isWeeklyFit ? 'Disp' : 'Disposizione')
+                : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
+              const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
+
+              sat5Html = `
+                <div class="grid-content-cell grid-cell-saturday-slot5 ${isSatCurrent ? 'current-cell' : ''}" 
+                     style="border-left: 3px solid ${colorObj.color}; grid-column: ${weekdaysCount + 2}; grid-row: span 2;"
+                     data-day="sabato" data-slot="5" data-span="1"
+                     title="${cleanName} • 11:50 – 12:45">
+                  <div class="grid-cell-top">
+                    <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
+                      ${gridSubName}
+                    </div>
+                    ${teacherName ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherName}">${teacherName}</div>` : ''}
+                  </div>
+                  <div class="grid-cell-bottom">
+                    ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
+                    ${renderLocationBadge(act.sede, '')}
+                  </div>
+                </div>
+              `;
+            }
+          }
+
           if (isWeeklyFit) {
             rowHtml += `
                 <div class="grid-break-banner-cell is-fit-full" style="grid-column: 1 / span ${weekdaysCount + 1};">
                   ${getIcon('coffee', { size: 14 })} 2° intervallo
                 </div>
-                ${hasSaturday ? `
-                  <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
-                    —
-                  </div>
-                ` : ''}
+                ${sat5Html}
               `;
           } else {
             rowHtml += `
@@ -318,11 +352,7 @@ export function renderClassView({
                 <div class="grid-break-banner-cell" style="grid-column: 2 / span ${weekdaysCount};">
                   ${getIcon('coffee', { size: 14 })} 2° intervallo
                 </div>
-                ${hasSaturday ? `
-                  <div class="grid-break-saturday-empty" style="grid-column: ${weekdaysCount + 2};" title="Nessun intervallo di sabato">
-                    —
-                  </div>
-                ` : ''}
+                ${sat5Html}
               `;
           }
         }
@@ -640,7 +670,11 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
   const skippedSlotIndices = new Set();
 
   for (let i = 0; i < timeSlots.length; i++) {
-    const slot = timeSlots[i];
+    const rawSlot = timeSlots[i];
+    if (currentDay.toLowerCase() === 'sabato' && rawSlot.index > 5) {
+      continue;
+    }
+    const slot = getSlotTimesForDay(rawSlot, currentDay);
     if (skippedSlotIndices.has(slot.index)) {
       continue;
     }
@@ -730,7 +764,8 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
       }
     }
 
-    const endSlot = timeSlots.find(s => s.index === slot.index + span - 1) || slot;
+    const rawEndSlot = timeSlots.find(s => s.index === slot.index + span - 1) || rawSlot;
+    const endSlot = getSlotTimesForDay(rawEndSlot, currentDay);
 
     if (span > 1) {
       for (let s = 1; s < span; s++) {

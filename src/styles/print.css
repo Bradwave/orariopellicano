@@ -191,12 +191,13 @@
     line-height: 1.1 !important;
   }
 
-  /* 9. Badges compatti per la stampa */
-  .badges-group {
+  /* 9. Badges e Luoghi per la stampa */
+  .grid-cell-bottom {
     margin-top: 1px !important;
     gap: 2px !important;
     display: flex !important;
     flex-wrap: wrap !important;
+    align-items: center !important;
   }
 
   .badge {
@@ -208,6 +209,19 @@
     border-radius: 2px !important;
     box-shadow: none !important;
     line-height: 1.1 !important;
+    display: inline-block !important;
+  }
+
+  /* Nella stampa della classe l'aula è già nell'intestazione principale */
+  #classWeeklyGrid .badge-sede {
+    display: none !important;
+  }
+
+  /* Nella stampa del docente l'aula in ogni cella è essenziale */
+  #teacherWeeklyGrid .badge-sede {
+    display: inline-block !important;
+    font-weight: 700 !important;
+    border-color: #000000 !important;
   }
 
   .badge svg,
@@ -218,5 +232,12 @@
   .grid-content-cell.is-disposizione {
     background: #fdfdfd !important;
     border: 1px dashed #000000 !important;
+  }
+
+  /* Cella speciale 5ª ora del Sabato in stampa */
+  .grid-cell-saturday-slot5 {
+    grid-row: span 2 !important;
+    height: calc(100% - 8px) !important;
+    margin-bottom: 8px !important;
   }
 }

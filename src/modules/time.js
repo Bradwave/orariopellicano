@@ -88,6 +88,28 @@ export function getCurrentBreakInfo(now = new Date()) {
 }
 
 /**
+ * Restituisce le informazioni orarie calibrate per un determinato giorno della settimana.
+ * Al sabato la 5ª ora inizia alle 11:50 e termina alle 12:45 (assenza del 2° intervallo).
+ */
+export function getSlotTimesForDay(slot, dayName = '') {
+  if (!slot) return null;
+  const isSaturday = (dayName || '').toLowerCase() === 'sabato';
+
+  if (isSaturday && slot.index === 5) {
+    return {
+      ...slot,
+      startMinutes: 710, // 11:50
+      endMinutes: 765,   // 12:45
+      startTimeFormatted: '11:50',
+      endTimeFormatted: '12:45',
+      timeFormatted: '11:50 - 12:45'
+    };
+  }
+
+  return slot;
+}
+
+/**
  * Valuta lo stato dell'orario scolastico per il giorno e ora correnti.
  * @param {Array} timeSlots - Elenco degli slot estratti dal parser
  * @param {Date} simulatedDate - Data opzionale (utile per test o orario reale)
@@ -97,6 +119,7 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
   const now = simulatedDate || new Date();
   const currentDay = getCurrentDayName(now);
   const currentMinutes = getMinutesFromMidnight(now);
+  const isSaturday = currentDay === 'sabato';
 
   if (!timeSlots || timeSlots.length === 0) {
     return {
@@ -107,8 +130,13 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
     };
   }
 
-  const firstSlot = timeSlots[0];
-  const lastSlot = timeSlots[timeSlots.length - 1];
+  // Costruisci gli slot calibrati per il giorno (es. sabato 5ª ora 11:50-12:45)
+  const effectiveSlots = timeSlots
+    .filter(s => !isSaturday || s.index <= 5)
+    .map(s => getSlotTimesForDay(s, currentDay));
+
+  const firstSlot = effectiveSlots[0];
+  const lastSlot = effectiveSlots[effectiveSlots.length - 1];
 
   // Prima dell'inizio delle lezioni
   if (currentMinutes < firstSlot.startMinutes) {
@@ -121,7 +149,7 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
     };
   }
 
-  // Dopo la fine delle lezioni
+  // Dopo la fine delle lezioni (al sabato ore 12:45)
   if (currentMinutes >= lastSlot.endMinutes) {
     return {
       currentDay,
@@ -132,8 +160,8 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
   }
 
   // Verifica all'interno di uno slot di lezione
-  for (let i = 0; i < timeSlots.length; i++) {
-    const slot = timeSlots[i];
+  for (let i = 0; i < effectiveSlots.length; i++) {
+    const slot = effectiveSlots[i];
     if (currentMinutes >= slot.startMinutes && currentMinutes < slot.endMinutes) {
       const remainingMinutes = slot.endMinutes - currentMinutes;
       return {
@@ -147,8 +175,8 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
     }
 
     // Intervallo tra due lezioni (es. Ricreazione o cambio d'ora)
-    if (i < timeSlots.length - 1) {
-      const nextSlot = timeSlots[i + 1];
+    if (i < effectiveSlots.length - 1) {
+      const nextSlot = effectiveSlots[i + 1];
       if (currentMinutes >= slot.endMinutes && currentMinutes < nextSlot.startMinutes) {
         const breakInfo = getCurrentBreakInfo(now);
         return {
