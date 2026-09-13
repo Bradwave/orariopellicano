@@ -1748,7 +1748,8 @@
 /* ==========================================================================
    Ottimizzazione Orizzontale Flex per Fit to Screen (Landscape & Desktop)
    ========================================================================== */
-@media (orientation: landscape) and (min-width: 560px), (min-width: 820px) {
+@media (orientation: landscape) and (min-width: 560px),
+(min-width: 820px) {
   .weekly-grid.fit-screen .grid-content-cell {
     min-height: 34px !important;
     padding: 2px 4px !important;
@@ -2442,14 +2443,17 @@
     align-items: center;
     padding: 20px;
   }
+
   .bottom-sheet-content {
     border-radius: var(--radius-lg);
     border-bottom: 1px solid var(--border-subtle);
     transform: scale(0.94);
   }
+
   .bottom-sheet-overlay.open .bottom-sheet-content {
     transform: scale(1);
   }
+
   .bottom-sheet-overlay.closing .bottom-sheet-content {
     transform: scale(0.94);
   }
