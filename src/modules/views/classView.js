@@ -204,7 +204,7 @@ export function renderClassView({
 
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''} ${isWeeklyFit ? 'fit-screen' : ''}" id="classWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
-      <div class="weekly-grid ${isWeeklyFit ? 'fit-screen' : ''}">
+      <div class="weekly-grid class-grid ${isWeeklyFit ? 'fit-screen' : ''}">
         <div class="grid-header-cell empty-corner" aria-hidden="true"></div>
         ${dataset.days.map(d => `
           <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${DAY_SHORT_MAP[d.toLowerCase()] || d.substring(0, 3)}</div>
@@ -262,7 +262,7 @@ export function renderClassView({
                       <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                         ${gridSubName}
                       </div>
-                      ${(!isWeeklyFit && teacherName) ? `<div class="grid-subtext" title="${teacherName}">${teacherName}</div>` : ''}
+                      ${teacherName ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherName}">${teacherName}</div>` : ''}
                     </div>
                     <div class="grid-cell-bottom">
                       ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}

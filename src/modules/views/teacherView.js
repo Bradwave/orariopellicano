@@ -194,7 +194,7 @@ export function renderTeacherView({
 
     <!-- 2. Desktop & Full Weekly CSS Grid (Mostrata se viewMode === 'weekly' oppure in stampa) -->
     <div class="weekly-grid-container ${viewMode === 'weekly' ? 'desktop-active' : ''} ${isWeeklyFit ? 'fit-screen' : ''}" id="teacherWeeklyGrid" style="${viewMode === 'weekly' ? 'display: block;' : ''}">
-      <div class="weekly-grid ${isWeeklyFit ? 'fit-screen' : ''}">
+      <div class="weekly-grid teacher-grid ${isWeeklyFit ? 'fit-screen' : ''}">
         <div class="grid-header-cell empty-corner" aria-hidden="true"></div>
         ${dataset.days.map(d => `
           <div class="grid-header-cell ${d === realCurrentDay ? 'is-today' : ''}">${DAY_SHORT_MAP[d.toLowerCase()] || d.substring(0, 3)}</div>

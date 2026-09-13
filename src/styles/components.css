@@ -1710,6 +1710,10 @@
   white-space: nowrap;
 }
 
+.weekly-grid.fit-screen .grid-subtext-fit-class {
+  display: none;
+}
+
 .weekly-grid.fit-screen .grid-cell-bottom {
   min-width: 0 !important;
   gap: 2px;
@@ -1729,6 +1733,206 @@
 
 .weekly-grid.fit-screen .grid-double-badge {
   display: none !important;
+}
+
+/* ==========================================================================
+   Ottimizzazione Orizzontale Flex per Fit to Screen (Landscape & Desktop)
+   ========================================================================== */
+@media (orientation: landscape) and (min-width: 560px), (min-width: 820px) {
+  .weekly-grid.fit-screen .grid-content-cell {
+    min-height: 34px !important;
+    padding: 2px 4px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2px;
+  }
+
+  .weekly-grid.fit-screen .grid-content-cell.span-double-hour {
+    min-height: 72px !important;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .weekly-grid.fit-screen .grid-cell-top {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .weekly-grid.fit-screen .grid-subject {
+    font-size: 0.70rem !important;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .weekly-grid.fit-screen .grid-subtext {
+    font-size: 0.62rem !important;
+    flex: 0 1 auto;
+    max-width: 48%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .weekly-grid.fit-screen .grid-subtext-fit-class {
+    display: block !important;
+  }
+
+  .weekly-grid.fit-screen .grid-cell-bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .weekly-grid.fit-screen .grid-cell-bottom .badge {
+    height: 14px;
+    font-size: 0.56rem;
+    padding: 0 3px;
+    line-height: 14px;
+  }
+
+  /* Layout specifico Vista Docente in Landscape:
+     Materia e Classe direttamente adiacenti a sinistra,
+     Aula allineata a destra (se non ci sta va a capo sulla nuova riga) */
+  .weekly-grid.teacher-grid.fit-screen .grid-content-cell,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-content-cell {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 2px 4px !important;
+    min-height: 34px !important;
+    padding: 2px 4px !important;
+  }
+
+  .weekly-grid.teacher-grid.fit-screen .grid-content-cell.span-double-hour,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-content-cell.span-double-hour {
+    min-height: 72px !important;
+    align-content: flex-start !important;
+  }
+
+  .weekly-grid.teacher-grid.fit-screen .grid-cell-top,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-cell-top {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    flex: 0 1 auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    width: auto !important;
+  }
+
+  .weekly-grid.teacher-grid.fit-screen .grid-subject,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-subject {
+    font-size: 0.70rem !important;
+    flex: 0 1 auto !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  .weekly-grid.teacher-grid.fit-screen .grid-subtext,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-subtext {
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  .weekly-grid.teacher-grid.fit-screen .grid-cell-bottom,
+  #teacherWeeklyGrid .weekly-grid.fit-screen .grid-cell-bottom {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 2px !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+  }
+
+  /* Layout specifico Vista Classe in Landscape:
+     Il docente deve sempre essere su nuova riga sotto la materia */
+  .weekly-grid.class-grid.fit-screen .grid-content-cell,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-content-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 2px !important;
+    min-height: 38px !important;
+    padding: 2px 4px !important;
+  }
+
+  .weekly-grid.class-grid.fit-screen .grid-content-cell.span-double-hour,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-content-cell.span-double-hour {
+    min-height: 76px !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .weekly-grid.class-grid.fit-screen .grid-cell-top,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-cell-top {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 1px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .weekly-grid.class-grid.fit-screen .grid-subject,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-subject {
+    font-size: 0.70rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  .weekly-grid.class-grid.fit-screen .grid-subtext,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-subtext {
+    display: block !important;
+    font-size: 0.60rem !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    margin-top: 1px !important;
+  }
+
+  .weekly-grid.class-grid.fit-screen .grid-cell-bottom,
+  #classWeeklyGrid .weekly-grid.fit-screen .grid-cell-bottom {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 3px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
 }
 
 .grid-header-cell {
