@@ -367,11 +367,11 @@ export function renderClassView({
     <div class="floating-view-toggle">
       <div class="view-mode-selector floating">
         <button class="view-mode-btn ${viewMode === 'list' ? 'active' : ''}" id="modeListBtn" title="Visualizzazione lista per giorno">
-          ${getIcon('calendar_today', { size: 16 })}
+          ${getIcon('view_agenda', { size: 16 })}
           <span class="btn-label">Lista</span>
         </button>
         <button class="view-mode-btn ${viewMode === 'weekly' ? 'active' : ''}" id="modeWeeklyBtn" title="Visualizzazione griglia settimanale">
-          ${getIcon('calendar_month', { size: 16 })}
+          ${getIcon('calendar_view_week', { size: 16 })}
           <span class="btn-label">Settimana</span>
         </button>
         <div class="view-mode-divider"></div>
