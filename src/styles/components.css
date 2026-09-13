@@ -1165,6 +1165,16 @@
   background: var(--badge-disposizione-bg);
 }
 
+.hour-card.timeline-card.is-disposizione {
+  justify-content: center;
+  align-items: stretch;
+}
+
+.hour-card.timeline-card.is-disposizione .timeline-card-top {
+  align-items: center;
+  margin: 0;
+}
+
 /* Dashboard Sostituzioni */
 .subs-dashboard {
   padding: 16px 16px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 24px) 16px;

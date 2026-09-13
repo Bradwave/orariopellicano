@@ -808,12 +808,13 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
              style="border-left: 3px solid ${subjectColor.color}; cursor: pointer;">
           
           <div class="timeline-card-top">
-            <span class="timeline-subject" style="${isDisp ? 'color: var(--badge-disposizione-text); display: flex; align-items: center; gap: 6px;' : ''}">
+            <span class="timeline-subject" style="${isDisp ? 'color: var(--badge-disposizione-text); display: inline-flex; align-items: center; gap: 6px; line-height: 1.2;' : ''}">
               ${isDisp ? getIcon('bolt', { size: 16, style: 'color: var(--badge-disposizione-text, #b58900);' }) : ''}
               ${cleanName}
             </span>
           </div>
 
+          ${(!isDisp && (act.classeShort || classroomBadge || coDocenzaBadges || locationBadges)) ? `
           <div class="timeline-card-bottom">
             ${act.classeShort ? (() => {
               const cInfo = getClassColorInfo(act.classeShort, act.classeFull || '');
@@ -828,6 +829,7 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
             ${coDocenzaBadges}
             ${locationBadges}
           </div>
+          ` : ''}
         </div>
       </div>
     `);
