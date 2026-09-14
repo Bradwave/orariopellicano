@@ -1220,6 +1220,12 @@ body.font-enlarged .timeline-break-body {
 }
 
 .wing-centrale {
+  --wing-color: #facc15;
+  --wing-bg: rgba(250, 204, 21, 0.15);
+  --wing-border: rgba(250, 204, 21, 0.35);
+}
+
+.wing-scient {
   --wing-color: #2dd4bf;
   --wing-bg: rgba(45, 212, 191, 0.14);
   --wing-border: rgba(45, 212, 191, 0.32);
@@ -1250,6 +1256,12 @@ body.font-enlarged .timeline-break-body {
 }
 
 [data-theme="light"] .wing-centrale {
+  --wing-color: #b45309;
+  --wing-bg: rgba(245, 158, 11, 0.12);
+  --wing-border: rgba(245, 158, 11, 0.32);
+}
+
+[data-theme="light"] .wing-scient {
   --wing-color: #0f766e;
   --wing-bg: rgba(15, 118, 110, 0.10);
   --wing-border: rgba(15, 118, 110, 0.28);

@@ -78,7 +78,9 @@ export function openLessonDetailSheet({
   }
 
   const rawWing = (classroom && classroom.ala) || (act.sede && act.sede !== 'DISPOSIZIONE' ? act.sede : '');
-  const cleanWing = rawWing ? rawWing.replace(/^Ala\s+/i, '').trim() : '';
+  const cleanWing = rawWing
+    ? (rawWing.toLowerCase().includes('centrale') ? 'ala centrale' : rawWing.replace(/^Ala\s+/i, '').trim())
+    : '';
   const roomFloor = (classroom && classroom.piano)
     ? (classroom.piano.includes('piano') || classroom.piano.includes('scient') ? classroom.piano : `${classroom.piano} Piano`)
     : '';

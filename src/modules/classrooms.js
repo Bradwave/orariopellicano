@@ -29,7 +29,7 @@ let CLASSROOMS_MAP = {
   "2ALFA": { "aula": "36", "piano": "2º", "ala": "v. M. Zovetto", "display": "2α" },
   "2BETA": { "aula": "35", "piano": "2º", "ala": "v. M. Zovetto", "display": "2β" },
 
-  "3A": { "aula": "53", "piano": "2º", "ala": "centrale" },
+  "3A": { "aula": "53", "piano": "2º", "ala": "ala centrale" },
   "3C": { "aula": "45", "piano": "2º", "ala": "v. Q. Sella" },
   "3E": { "aula": "88", "piano": "3º", "ala": "C.so G. Giolitti" },
   "3F": { "aula": "89", "piano": "3º", "ala": "C.so G. Giolitti" },
@@ -37,16 +37,16 @@ let CLASSROOMS_MAP = {
   "3H": { "aula": "94", "piano": "3º", "ala": "C.so G. Giolitti" },
   "3I": { "aula": "97", "piano": "3º", "ala": "v. XX Settembre" },
   "3R": { "aula": "96", "piano": "1º", "ala": "ammezz. scient." },
-  "3S": { "aula": "54", "piano": "2º", "ala": "centrale" },
+  "3S": { "aula": "54", "piano": "2º", "ala": "ala centrale" },
   "3T": { "aula": "55", "piano": "2º", "ala": "v. M. Zovetto" },
   "3ALFA": { "aula": "64", "piano": "2º", "ala": "C.so G. Giolitti", "display": "3α" },
   "3BETA": { "aula": "68", "piano": "2º", "ala": "v. XX Settembre", "display": "3β" },
   "3GAMMA": { "aula": "69", "piano": "2º", "ala": "v. XX Settembre", "display": "3γ" },
 
-  "4A": { "aula": "56", "piano": "2º", "ala": "centrale" },
-  "4B": { "aula": "57", "piano": "2º", "ala": "centrale" },
-  "4C": { "aula": "58", "piano": "2º", "ala": "centrale" },
-  "4D": { "aula": "59", "piano": "2º", "ala": "centrale" },
+  "4A": { "aula": "56", "piano": "2º", "ala": "ala centrale" },
+  "4B": { "aula": "57", "piano": "2º", "ala": "ala centrale" },
+  "4C": { "aula": "58", "piano": "2º", "ala": "ala centrale" },
+  "4D": { "aula": "59", "piano": "2º", "ala": "ala centrale" },
   "4F": { "aula": "46", "piano": "2º", "ala": "v. Q. Sella" },
   "4G": { "aula": "86", "piano": "3º", "ala": "v. Q. Sella" },
   "4H": { "aula": "95", "piano": "3º", "ala": "C.so G. Giolitti" },
@@ -145,7 +145,7 @@ export function normalizeClassKey(classInput) {
 /**
  * Restituisce la chiave identificativa dell'ala per il color coding.
  * @param {string} ala - Stringa ala
- * @returns {'zovetto'|'xx-settembre'|'giolitti'|'sella'|'centrale'}
+ * @returns {'zovetto'|'xx-settembre'|'giolitti'|'sella'|'scient'|'centrale'}
  */
 export function getWingKey(ala = '') {
   const a = (ala || '').toLowerCase();
@@ -153,6 +153,8 @@ export function getWingKey(ala = '') {
   if (a.includes('xx') || a.includes('settembre')) return 'xx-settembre';
   if (a.includes('giolitti')) return 'giolitti';
   if (a.includes('sella')) return 'sella';
+  if (a.includes('scient') || a.includes('ammezz')) return 'scient';
+  if (a.includes('centrale')) return 'centrale';
   return 'centrale';
 }
 
@@ -184,15 +186,22 @@ export function getClassroomInfo(classInput) {
   const wingKey = getWingKey(item.ala);
   const wingClass = `wing-${wingKey}`;
 
+  // Se l'ala è centrale o contiene già "ala", formatta coerentemente
+  const isAlaCentrale = (item.ala || '').toLowerCase().includes('centrale');
+  const formattedAla = isAlaCentrale ? 'ala centrale' : item.ala;
+  const wingWithPrefix = isAlaCentrale
+    ? 'ala centrale'
+    : (item.ala.toLowerCase().startsWith('ala') ? item.ala : `Ala ${item.ala}`);
+
   return {
     aula: item.aula,
     piano: item.piano,
-    ala: item.ala,
+    ala: formattedAla,
     wingKey,
     wingClass,
     display: item.display || key,
-    fullLocation: `${pianoLabel} • Ala ${item.ala}`,
-    fullText: `Aula ${item.aula} — ${pianoLabel} (${item.ala})`,
+    fullLocation: `${pianoLabel} • ${wingWithPrefix}`,
+    fullText: `Aula ${item.aula} — ${pianoLabel} (${wingWithPrefix})`,
     badgeText: `Aula ${item.aula} • ${item.piano} p.`,
     shortBadge: `Aula ${item.aula}`
   };
