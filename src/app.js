@@ -601,6 +601,13 @@ function renderNextUpCard() {
   const timeState = getCurrentScheduleState(state.dataset.timeSlots, now);
   if (timeState.status === 'after_school' || timeState.status === 'outside') return;
 
+  // Mostra il widget "Prossima lezione" prima delle lezioni solo a partire dalle 07:00 del mattino
+  if (timeState.status === 'before_school') {
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    const thresholdMins = 7 * 60; // 07:00
+    if (currentMins < thresholdMins) return;
+  }
+
   const daySchedule = targetSchedule[realDay] || {};
   let activeAct = null;
   let label = '';
@@ -626,7 +633,8 @@ function renderNextUpCard() {
     if (firstActs.length > 0) {
       activeAct = firstActs[0];
       label = '1ª Ora';
-      countdownText = `tra ${timeState.remainingMinutes} min • ${firstSlot.startTimeFormatted}`;
+      const mins = timeState.remainingMinutes ?? timeState.minutesUntilStart;
+      countdownText = `tra ${mins} min • ${firstSlot.startTimeFormatted}`;
     }
   }
 

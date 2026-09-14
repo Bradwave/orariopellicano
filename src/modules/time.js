@@ -140,12 +140,14 @@ export function getCurrentScheduleState(timeSlots = [], simulatedDate = null) {
 
   // Prima dell'inizio delle lezioni
   if (currentMinutes < firstSlot.startMinutes) {
+    const minutesUntilStart = firstSlot.startMinutes - currentMinutes;
     return {
       currentDay,
       currentSlot: null,
       isSchoolHours: false,
       status: 'before_school',
-      minutesUntilStart: firstSlot.startMinutes - currentMinutes
+      minutesUntilStart,
+      remainingMinutes: minutesUntilStart
     };
   }
 
