@@ -87,7 +87,7 @@ export function normalizeClassName(rawClass) {
   return { full: cleaned, short, displayShort };
 }
 
-// Set per la classificazione rapida dei ruoli accertati
+// Override o whitelist opzionale per ruoli accertati (usato come override o fallback)
 export const SOSTEGNO_TEACHERS = new Set([
   'TINNIRELLO CLAUDIA',
   'TRABUCCO PAOLA',
@@ -99,13 +99,20 @@ export const CONVERSATORE_TEACHERS = new Set([
 ]);
 
 /**
- * Determina il ruolo di un docente: 'sostegno' | 'conversatore' | 'curricolare'.
+ * Restituisce un ruolo esplicito se presente nella whitelist o deducibile dal nome, altrimenti null.
+ */
+export function getExplicitTeacherRole(teacherId = '') {
+  const norm = teacherId.toUpperCase().trim();
+  if (SOSTEGNO_TEACHERS.has(norm) || norm.includes('SOSTEGNO')) return 'sostegno';
+  if (CONVERSATORE_TEACHERS.has(norm) || norm.includes('CONVERSATORE') || norm.includes('LETTORE')) return 'conversatore';
+  return null;
+}
+
+/**
+ * Determina il ruolo di base di un docente prima dell'analisi euristica.
  */
 export function getTeacherRole(teacherId = '') {
-  const norm = teacherId.toUpperCase().trim();
-  if (SOSTEGNO_TEACHERS.has(norm)) return 'sostegno';
-  if (CONVERSATORE_TEACHERS.has(norm)) return 'conversatore';
-  return 'curricolare';
+  return getExplicitTeacherRole(teacherId) || 'curricolare';
 }
 
 /**
@@ -137,6 +144,7 @@ export function parseEDTXml(xmlString) {
   const classesMap = new Map();     // shortName -> { full, short }
   const teachersMap = new Map();    // teacherId -> { id, cognome, nome, displayName }
   const subjectsMap = new Map();    // code -> { code, name }
+  const teacherStatsMap = new Map(); // teacherId -> { teachingHours, coTeachingHours, isEsaBacOrFrench }
 
   for (let i = 0; i < attivitaNodes.length; i++) {
     const node = attivitaNodes[i];
@@ -214,13 +222,32 @@ export function parseEDTXml(xmlString) {
       }
     }
 
-    // Aggiorna metadati classi e materie supportate per ciascun docente
+    // Aggiorna metadati classi e statistiche didattiche per la deduzione automatica del ruolo
     teachers.forEach(t => {
       const tMeta = teachersMap.get(t.id);
       if (tMeta) {
         if (classInfo.short) tMeta.supportedClasses.add(classInfo.short);
         if (matNome && matCod.toUpperCase() !== 'DISPOSIZIONE') {
           tMeta.supportedSubjects.add(matNome);
+        }
+      }
+
+      // Raccogli statistiche per la classificazione euristica
+      let stats = teacherStatsMap.get(t.id);
+      if (!stats) {
+        stats = { teachingHours: 0, coTeachingHours: 0, isEsaBacOrFrench: true };
+        teacherStatsMap.set(t.id, stats);
+      }
+      if (matCod && matCod.toUpperCase() !== 'DISPOSIZIONE') {
+        stats.teachingHours++;
+        if (isCoDocenza) {
+          stats.coTeachingHours++;
+          const isEsa = (classInfo.full + ' ' + classInfo.short).toUpperCase().includes('ESABAC') ||
+                        (matNome + ' ' + matCod).toUpperCase().includes('FRANCESE') ||
+                        (matNome + ' ' + matCod).toUpperCase().includes('I312');
+          if (!isEsa) {
+            stats.isEsaBacOrFrench = false;
+          }
         }
       }
     });
@@ -249,6 +276,41 @@ export function parseEDTXml(xmlString) {
       isDisposizione: matCod.toUpperCase() === 'DISPOSIZIONE'
     });
   }
+
+  // Riconoscimento automatico ed euristico dei ruoli (Sostegno / Conversatore / Curricolare)
+  // Consente al sistema di identificare nuovi docenti di sostegno o lettori madrelingua
+  // anche se non sono presenti nella lista statica SOSTEGNO_TEACHERS o CONVERSATORE_TEACHERS.
+  const detectedRoles = new Map();
+  for (const [id, stats] of teacherStatsMap.entries()) {
+    let role = getExplicitTeacherRole(id);
+    if (!role) {
+      if (stats.teachingHours > 0 && (stats.coTeachingHours / stats.teachingHours) >= 0.70) {
+        if (stats.isEsaBacOrFrench && stats.coTeachingHours > 0) {
+          role = 'conversatore';
+        } else {
+          role = 'sostegno';
+        }
+      } else {
+        role = 'curricolare';
+      }
+    }
+    detectedRoles.set(id, role);
+
+    const tMeta = teachersMap.get(id);
+    if (tMeta) {
+      tMeta.role = role;
+    }
+  }
+
+  // Aggiorna il ruolo negli oggetti docente delle attività raccolte
+  rawActivities.forEach(act => {
+    act.teachers.forEach(t => {
+      t.role = detectedRoles.get(t.id) || t.role || 'curricolare';
+    });
+    if (act.teacherId) {
+      act.teacherRole = detectedRoles.get(act.teacherId) || act.teacherRole || 'curricolare';
+    }
+  });
 
   // Aggiungi materia virtuale per il Sostegno
   if (!subjectsMap.has('SOSTEGNO')) {

@@ -58,17 +58,19 @@ export function renderSubjectView({
     });
   }
 
-  // Se la materia è Francese, collega anche il docente conversatore EsaBac
+  // Se la materia è Francese, collega anche i docenti conversatori (EsaBac)
   if (subjectCode.toUpperCase().includes('I312') || (subject.name && subject.name.toUpperCase().includes('FRANCESE'))) {
-    const berthelot = dataset.teachers.find(t => t.role === 'conversatore');
-    if (berthelot && !teachersSet.has(berthelot.id)) {
-      teachersSet.set(berthelot.id, {
-        id: berthelot.id,
-        displayName: berthelot.displayName,
-        role: berthelot.role,
-        label: `${berthelot.displayName} • conversatore EsaBac`
-      });
-    }
+    const conversatori = dataset.teachers.filter(t => t.role === 'conversatore');
+    conversatori.forEach(conv => {
+      if (!teachersSet.has(conv.id)) {
+        teachersSet.set(conv.id, {
+          id: conv.id,
+          displayName: conv.displayName,
+          role: conv.role,
+          label: `${conv.displayName} • conversatore EsaBac`
+        });
+      }
+    });
   }
 
   const sortedClasses = Array.from(classesSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
