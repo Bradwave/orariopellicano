@@ -36,8 +36,19 @@ export function openLessonDetailSheet({
   const isDisp = Boolean(act.isDisposizione);
   const colorObj = isDisp ? { color: '#fbbf24' } : getSubjectColor(act.matNome, act.matCod);
   const subjectName = isDisp ? 'Disposizione per sostituzioni' : cleanSubjectName(act.matNome || act.matCod || 'Lezione');
-  const teacherName = act.docCogn ? `${act.docCogn}${act.docNome ? ' ' + act.docNome : ''}` : (act.docente || '');
-  const teacherUpper = teacherName ? teacherName.toUpperCase() : '';
+  const teachersList = (act.teachers && act.teachers.length > 0)
+    ? act.teachers
+    : (act.teacherId ? [{ id: act.teacherId, displayName: act.teacherDisplayName || (act.docCogn ? `${act.docCogn}${act.docNome ? ' ' + act.docNome : ''}` : (act.docente || '')), role: act.teacherRole || 'curricolare' }] : []);
+
+  // Ordina docenti: curricolari per primi, poi sostegno/conversatore
+  teachersList.sort((a, b) => {
+    const isCurricolarA = a.role === 'curricolare' ? 0 : 1;
+    const isCurricolarB = b.role === 'curricolare' ? 0 : 1;
+    if (isCurricolarA !== isCurricolarB) return isCurricolarA - isCurricolarB;
+    return a.displayName.localeCompare(b.displayName);
+  });
+
+  const teacherName = teachersList.map(t => t.displayName).join(', ');
   const classLabel = act.classeDisplayShort || formatClassDisplayName(act.classeShort) || act.classeFull || act.classeShort || '';
   const dayCapitalized = day ? day.charAt(0).toUpperCase() + day.slice(1) : '';
   const slotNum = `${slot.index || slot.ora || 1}ª ora`;
@@ -128,24 +139,27 @@ export function openLessonDetailSheet({
           <div class="sheet-divider-rule-6d"></div>
         ` : ''}
 
-        <!-- 3. Docente con icona color-coded e tag cliccabile a lato -->
-        ${teacherName ? `
-          <div class="sheet-aligned-row-6d" style="align-items: center;">
-            <div class="sheet-icon-6d" style="color: var(--accent-primary);">
-              ${getIcon('person', { size: 16 })}
+        <!-- 3. Docente/i con icona color-coded e tag cliccabili a lato -->
+        ${teachersList.length > 0 ? `
+          <div class="sheet-aligned-row-6d" style="align-items: flex-start;">
+            <div class="sheet-icon-6d" style="color: var(--accent-primary); margin-top: 4px;">
+              ${getIcon(teachersList.length > 1 ? 'group' : 'person', { size: 16 })}
             </div>
-            <div class="sheet-info-col-6d">
-              ${(onTeacherClick && (act.teacherId || act.docId)) ? `
-                <button class="sheet-tag-6d" id="sheetNavTeacherBtn" title="Visualizza orario di ${teacherUpper}">
-                  <span>${teacherUpper}</span>
-                  ${act.isCoDocenza ? `<span class="sheet-tag-sub-6d">• co-docenza</span>` : ''}
-                </button>
-              ` : `
-                <div class="sheet-tag-6d">
-                  <span>${teacherUpper}</span>
-                  ${act.isCoDocenza ? `<span class="sheet-tag-sub-6d">• co-docenza</span>` : ''}
-                </div>
-              `}
+            <div class="sheet-info-col-6d" style="display: flex; flex-direction: column; gap: 6px;">
+              ${teachersList.map((t) => {
+                const isSostegno = t.role === 'sostegno';
+                const roleSuffix = isSostegno ? ' • SOSTEGNO' : (t.role === 'conversatore' ? ' • CONVERSATORE' : '');
+                const tUpper = `${t.displayName.toUpperCase()}${roleSuffix}`;
+                return (onTeacherClick && t.id) ? `
+                  <button class="sheet-tag-6d sheet-nav-teacher-btn ${isSostegno ? 'sheet-tag-sostegno' : ''}" data-teacher-id="${t.id}" title="Visualizza orario di ${t.displayName}">
+                    <span>${tUpper}</span>
+                  </button>
+                ` : `
+                  <div class="sheet-tag-6d ${isSostegno ? 'sheet-tag-sostegno' : ''}">
+                    <span>${tUpper}</span>
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         ` : ''}
@@ -239,14 +253,17 @@ export function openLessonDetailSheet({
   };
   document.addEventListener('keydown', handleKeydown);
 
-  // Navigazione docente (sostituisce lo stato dell'overlay con la vista docente)
-  const navTeacherBtn = overlay.querySelector('#sheetNavTeacherBtn');
-  if (navTeacherBtn && onTeacherClick) {
-    navTeacherBtn.addEventListener('click', () => {
+  // Navigazione docenti (sostituisce lo stato dell'overlay con la vista docente)
+  const navTeacherBtns = overlay.querySelectorAll('.sheet-nav-teacher-btn, #sheetNavTeacherBtn');
+  navTeacherBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tId = btn.getAttribute('data-teacher-id') || act.teacherId || act.docId;
       closeSheet(true);
-      onTeacherClick(act.teacherId || act.docId, { replace: true });
+      if (onTeacherClick && tId) {
+        onTeacherClick(tId, { replace: true });
+      }
     });
-  }
+  });
 
   // Navigazione classe (sostituisce lo stato dell'overlay con la vista classe)
   const navClassBtn = overlay.querySelector('#sheetNavClassBtn');

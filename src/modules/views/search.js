@@ -59,32 +59,63 @@ export function setupUnifiedSearch({
 
     // Cerca Docenti
     for (const tch of dataset.teachers) {
-      if (tch.cognome.toLowerCase().includes(q) || tch.displayName.toLowerCase().includes(q)) {
+      const cognLower = (tch.cognome || '').toLowerCase();
+      const dispLower = (tch.displayName || '').toLowerCase();
+      const keywords = tch.searchKeywords || [];
+      const isDirectNameMatch = cognLower.includes(q) || dispLower.includes(q);
+      const isKeywordMatch = keywords.some(k => k.includes(q));
+
+      if (isDirectNameMatch || isKeywordMatch) {
+        let roleBadge = 'Docente';
+        let subtitle = 'Docente';
+        let roleSuffix = '';
+
+        if (tch.role === 'sostegno') {
+          roleBadge = 'Sostegno';
+          roleSuffix = ' • sostegno';
+          const clsStr = (tch.supportedClasses && tch.supportedClasses.length > 0)
+            ? ` • Classi: ${tch.supportedClasses.join(', ')}`
+            : '';
+          const matStr = (tch.supportedSubjects && tch.supportedSubjects.length > 0)
+            ? ` • ${tch.supportedSubjects.slice(0, 2).map(cleanSubjectName).join(', ')}`
+            : '';
+          subtitle = `Docente di sostegno${clsStr}${matStr}`;
+        } else if (tch.role === 'conversatore') {
+          roleBadge = 'Conversatore';
+          roleSuffix = ' • conversatore';
+          subtitle = 'Docente conversatore di lingua francese (EsaBac)';
+        }
+
         matchedTeachers.push({
           type: 'teacher',
           id: tch.id,
-          title: tch.displayName,
-          subtitle: 'Docente',
-          badgeText: 'Docente',
-          badgeClass: 'badge-teacher'
+          title: `${tch.displayName}${roleSuffix}`,
+          subtitle,
+          badgeText: roleBadge,
+          badgeClass: tch.role === 'sostegno' ? 'badge-sostegno' : (tch.role === 'conversatore' ? 'badge-conversatore' : 'badge-teacher')
         });
-        if (matchedTeachers.length >= 6) break;
+        if (matchedTeachers.length >= 8) break;
       }
     }
 
     // Cerca Materie
     for (const sub of dataset.subjects) {
       const cleanName = cleanSubjectName(sub.name || sub.code);
-      if (
-        sub.code.toLowerCase().includes(q) ||
-        (sub.name && sub.name.toLowerCase().includes(q)) ||
-        cleanName.toLowerCase().includes(q)
-      ) {
+      const subCodeLower = sub.code.toLowerCase();
+      const subNameLower = (sub.name || '').toLowerCase();
+      const cleanLower = cleanName.toLowerCase();
+
+      const isMatch = subCodeLower.includes(q) ||
+        subNameLower.includes(q) ||
+        cleanLower.includes(q) ||
+        (sub.code === 'SOSTEGNO' && ('sostegno'.includes(q) || q.includes('sost')));
+
+      if (isMatch) {
         matchedSubjects.push({
           type: 'subject',
           id: sub.code,
           title: cleanName,
-          subtitle: `Cod. ${sub.code}`,
+          subtitle: sub.code === 'SOSTEGNO' ? 'Attività didattica di sostegno' : `Cod. ${sub.code}`,
           badgeText: 'Materia',
           badgeClass: 'badge-subject'
         });

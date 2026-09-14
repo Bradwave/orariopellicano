@@ -1099,6 +1099,101 @@ body.font-enlarged .timeline-break-body {
   border: 1px solid var(--badge-codocenza-border);
 }
 
+.badge-sostegno {
+  background: var(--badge-sostegno-bg);
+  color: var(--badge-sostegno-text);
+  border: 1px solid var(--badge-sostegno-border);
+}
+
+.badge-conversatore {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+
+/* Terza riga compresenza nella scheda ora lista */
+.timeline-card-colleagues {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.colleague-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.colleague-chips-list {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.colleague-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-subtle, rgba(99, 102, 241, 0.1));
+  border: 1px solid var(--border-subtle);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.colleague-chip:hover {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.teacher-chip.teacher-chip-sostegno,
+.colleague-chip.colleague-chip-sostegno {
+  background: var(--badge-sostegno-bg);
+  color: var(--badge-sostegno-text);
+  border: 1px solid var(--badge-sostegno-border);
+}
+
+.teacher-chip.teacher-chip-sostegno:hover,
+.colleague-chip.colleague-chip-sostegno:hover {
+  background: rgba(168, 85, 247, 0.22);
+  color: #f3e8ff;
+}
+
+[data-theme="light"] .teacher-chip.teacher-chip-sostegno:hover,
+[data-theme="light"] .colleague-chip.colleague-chip-sostegno:hover {
+  background: rgba(126, 34, 206, 0.18);
+  color: #581c87;
+}
+
+.sheet-tag-6d.sheet-tag-sostegno {
+  background: var(--badge-sostegno-bg);
+  color: var(--badge-sostegno-text);
+  border: 1px solid var(--badge-sostegno-border);
+}
+
+.sheet-tag-6d.sheet-tag-sostegno:hover {
+  background: rgba(168, 85, 247, 0.22);
+  color: #f3e8ff;
+}
+
+[data-theme="light"] .sheet-tag-6d.sheet-tag-sostegno:hover {
+  background: rgba(126, 34, 206, 0.18);
+  color: #581c87;
+}
+
 /* Color Coding Ali Edificio per Aule */
 .wing-zovetto {
   --wing-color: #38bdf8;

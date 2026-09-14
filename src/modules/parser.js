@@ -87,6 +87,27 @@ export function normalizeClassName(rawClass) {
   return { full: cleaned, short, displayShort };
 }
 
+// Set per la classificazione rapida dei ruoli accertati
+export const SOSTEGNO_TEACHERS = new Set([
+  'TINNIRELLO CLAUDIA',
+  'TRABUCCO PAOLA',
+  'SOMÀ CRISTINA'
+]);
+
+export const CONVERSATORE_TEACHERS = new Set([
+  'BERTHELOT PAUL BRUNO'
+]);
+
+/**
+ * Determina il ruolo di un docente: 'sostegno' | 'conversatore' | 'curricolare'.
+ */
+export function getTeacherRole(teacherId = '') {
+  const norm = teacherId.toUpperCase().trim();
+  if (SOSTEGNO_TEACHERS.has(norm)) return 'sostegno';
+  if (CONVERSATORE_TEACHERS.has(norm)) return 'conversatore';
+  return 'curricolare';
+}
+
 /**
  * Parser principale del documento XML EDT.
  * @param {string} xmlString - Contenuto grezzo del file XML
@@ -145,21 +166,43 @@ export function parseEDTXml(xmlString) {
       }
     }
 
-    // Normalizza docente
-    let teacherId = '';
-    let teacherDisplayName = '';
+    // Normalizza docenti (gestione compresenze con campi separati da virgola)
+    const teachers = [];
     if (docCogn) {
-      teacherId = `${docCogn}${docNome ? ' ' + docNome : ''}`.trim();
-      teacherDisplayName = docNome ? `${docCogn} ${docNome}` : docCogn;
-      if (!teachersMap.has(teacherId)) {
-        teachersMap.set(teacherId, {
-          id: teacherId,
-          cognome: docCogn,
-          nome: docNome,
-          displayName: teacherDisplayName
-        });
+      const cognParts = docCogn.split(',').map(s => s.trim()).filter(Boolean);
+      const nomeParts = docNome ? docNome.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      for (let k = 0; k < cognParts.length; k++) {
+        const c = cognParts[k];
+        const n = nomeParts[k] || '';
+        const id = `${c}${n ? ' ' + n : ''}`.trim();
+        const displayName = n ? `${c} ${n}` : c;
+        const role = getTeacherRole(id);
+
+        const teacherObj = {
+          id,
+          cognome: c,
+          nome: n,
+          displayName,
+          role
+        };
+        teachers.push(teacherObj);
+
+        if (!teachersMap.has(id)) {
+          teachersMap.set(id, {
+            ...teacherObj,
+            searchKeywords: [],
+            supportedClasses: new Set(),
+            supportedSubjects: new Set()
+          });
+        }
       }
     }
+
+    const isCoDocenza = teachers.length > 1 || coDoc.toUpperCase() === 'S';
+    const primaryTeacher = teachers[0] || null;
+    const primaryTeacherId = primaryTeacher ? primaryTeacher.id : '';
+    const primaryTeacherDisplayName = primaryTeacher ? primaryTeacher.displayName : '';
 
     // Normalizza materia
     if (matCod) {
@@ -171,27 +214,47 @@ export function parseEDTXml(xmlString) {
       }
     }
 
+    // Aggiorna metadati classi e materie supportate per ciascun docente
+    teachers.forEach(t => {
+      const tMeta = teachersMap.get(t.id);
+      if (tMeta) {
+        if (classInfo.short) tMeta.supportedClasses.add(classInfo.short);
+        if (matNome && matCod.toUpperCase() !== 'DISPOSIZIONE') {
+          tMeta.supportedSubjects.add(matNome);
+        }
+      }
+    });
+
     rawActivities.push({
       numero,
       durata,
       durataHours: parseDurationHours(durata),
       matCod,
       matNome,
-      docCogn,
-      docNome,
-      teacherId,
-      teacherDisplayName,
+      docCogn: primaryTeacher ? primaryTeacher.cognome : '',
+      docNome: primaryTeacher ? primaryTeacher.nome : '',
+      teacherId: primaryTeacherId,
+      teacherDisplayName: primaryTeacherDisplayName,
+      teachers,
+      isCoDocenza,
       rawClasse,
       classeShort: classInfo.short,
       classeDisplayShort: classInfo.displayShort || classInfo.short,
       classeFull: classInfo.full,
       aula,
-      isCoDocenza: coDoc.toUpperCase() === 'S',
       giorno,
       oInizio,
       startMinutes: timeStringToMinutes(oInizio),
       sede,
       isDisposizione: matCod.toUpperCase() === 'DISPOSIZIONE'
+    });
+  }
+
+  // Aggiungi materia virtuale per il Sostegno
+  if (!subjectsMap.has('SOSTEGNO')) {
+    subjectsMap.set('SOSTEGNO', {
+      code: 'SOSTEGNO',
+      name: 'Sostegno'
     });
   }
 
@@ -203,13 +266,12 @@ export function parseEDTXml(xmlString) {
   // Mappa delle fasce orarie (standard slot)
   const timeSlots = sortedStartTimes.map((oInizio, index) => {
     const startMins = timeStringToMinutes(oInizio);
-    // Supponiamo 55 minuti per slot scolastico tipico EDT se non diversamente specificato
     const endMins = startMins + 55;
     const startTimeFormatted = minutesToTimeString(startMins);
     const endTimeFormatted = minutesToTimeString(endMins);
 
     return {
-      index: index + 1, // 1ª ora, 2ª ora, ecc.
+      index: index + 1,
       oInizio,
       startTimeFormatted,
       endTimeFormatted,
@@ -228,7 +290,7 @@ export function parseEDTXml(xmlString) {
   const byClass = {};
   const byTeacher = {};
   const bySubject = {};
-  const substitutions = {}; // giorno -> slotIndex -> array docenti a disposizione
+  const substitutions = {};
 
   DAYS_ORDER.forEach(day => {
     substitutions[day] = {};
@@ -255,10 +317,17 @@ export function parseEDTXml(xmlString) {
       };
 
       // Indicizzazione Sostituzioni (Disposizione)
-      if (act.isDisposizione && act.teacherId) {
+      if (act.isDisposizione && act.teachers.length > 0) {
         if (!substitutions[act.giorno]) substitutions[act.giorno] = {};
         if (!substitutions[act.giorno][currentSlotIndex]) substitutions[act.giorno][currentSlotIndex] = [];
-        substitutions[act.giorno][currentSlotIndex].push(actInstance);
+        act.teachers.forEach(t => {
+          substitutions[act.giorno][currentSlotIndex].push({
+            ...actInstance,
+            teacherId: t.id,
+            teacherDisplayName: t.displayName,
+            teacherRole: t.role
+          });
+        });
       }
 
       // Indicizzazione per Classe
@@ -271,23 +340,71 @@ export function parseEDTXml(xmlString) {
         byClass[act.classeShort][act.giorno][currentSlotIndex].push(actInstance);
       }
 
-      // Indicizzazione per Docente
-      if (act.teacherId) {
-        if (!byTeacher[act.teacherId]) byTeacher[act.teacherId] = {};
-        if (!byTeacher[act.teacherId][act.giorno]) byTeacher[act.teacherId][act.giorno] = {};
-        if (!byTeacher[act.teacherId][act.giorno][currentSlotIndex]) {
-          byTeacher[act.teacherId][act.giorno][currentSlotIndex] = [];
-        }
-        byTeacher[act.teacherId][act.giorno][currentSlotIndex].push(actInstance);
+      // Indicizzazione per Docente: REGISTRAZIONE NELL'ORARIO DI CIASCUN DOCENTE
+      if (act.teachers.length > 0) {
+        act.teachers.forEach(t => {
+          if (!byTeacher[t.id]) byTeacher[t.id] = {};
+          if (!byTeacher[t.id][act.giorno]) byTeacher[t.id][act.giorno] = {};
+          if (!byTeacher[t.id][act.giorno][currentSlotIndex]) {
+            byTeacher[t.id][act.giorno][currentSlotIndex] = [];
+          }
+
+          const coTeachers = act.teachers.filter(other => other.id !== t.id);
+          byTeacher[t.id][act.giorno][currentSlotIndex].push({
+            ...actInstance,
+            teacherId: t.id,
+            teacherDisplayName: t.displayName,
+            teacherRole: t.role,
+            coTeachers
+          });
+        });
       }
 
       // Indicizzazione per Materia
       if (act.matCod && !act.isDisposizione) {
         if (!bySubject[act.matCod]) bySubject[act.matCod] = [];
         bySubject[act.matCod].push(actInstance);
+
+        // Se è presente un docente di sostegno, registra anche nella materia virtuale SOSTEGNO
+        if (act.teachers.some(t => t.role === 'sostegno')) {
+          if (!bySubject['SOSTEGNO']) bySubject['SOSTEGNO'] = [];
+          bySubject['SOSTEGNO'].push(actInstance);
+        }
       }
     }
   });
+
+  // Genera le parole chiave di ricerca avanzate per ciascun docente
+  for (const t of teachersMap.values()) {
+    const keywords = [t.displayName.toLowerCase(), t.cognome.toLowerCase()];
+    if (t.nome) keywords.push(t.nome.toLowerCase());
+
+    if (t.role === 'sostegno') {
+      keywords.push('sostegno', 'docente di sostegno', 'insegnante di sostegno');
+      t.supportedClasses.forEach(c => keywords.push(c.toLowerCase()));
+      t.supportedSubjects.forEach(s => keywords.push(s.toLowerCase()));
+    } else if (t.role === 'conversatore') {
+      keywords.push(
+        'francese',
+        'conversatore',
+        'conversatore di lingua straniera',
+        'conversatore di francese',
+        'conversatore madrelingua',
+        'docente conversatore',
+        'lettore',
+        'lettore di francese',
+        'lettore madrelingua',
+        'esabac',
+        'dnl',
+        'storia',
+        'filosofia'
+      );
+    }
+
+    t.searchKeywords = Array.from(new Set(keywords));
+    t.supportedClasses = Array.from(t.supportedClasses);
+    t.supportedSubjects = Array.from(t.supportedSubjects);
+  }
 
   // Ordina elenchi per ricerca e visualizzazione
   const sortedClasses = Array.from(classesMap.values()).sort((a, b) => {

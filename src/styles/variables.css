@@ -62,6 +62,10 @@
   --badge-codocenza-text: #c084fc;
   --badge-codocenza-border: rgba(139, 92, 246, 0.25);
 
+  --badge-sostegno-bg: rgba(168, 85, 247, 0.12);
+  --badge-sostegno-text: #c084fc;
+  --badge-sostegno-border: rgba(168, 85, 247, 0.28);
+
   /* Typography Chiara ad Alto Contrasto */
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
@@ -135,6 +139,10 @@
   --badge-codocenza-bg: rgba(108, 113, 196, 0.12);
   --badge-codocenza-text: #5a5fa8;
   --badge-codocenza-border: rgba(108, 113, 196, 0.25);
+
+  --badge-sostegno-bg: rgba(126, 34, 206, 0.10);
+  --badge-sostegno-text: #7e22ce;
+  --badge-sostegno-border: rgba(126, 34, 206, 0.25);
 
   --text-primary: #073642;
   --text-secondary: #586e75;

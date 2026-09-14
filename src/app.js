@@ -495,6 +495,7 @@ function renderCurrentView() {
           renderCurrentView();
         },
         onClassClick: (className, navOpts) => navigateTo('class', className, null, navOpts),
+        onTeacherClick: (teacherId, navOpts) => navigateTo('teacher', teacherId, null, navOpts),
         onRadarClick: (teacherId) => {
           state.radarTeacherId = teacherId;
           navigateTo('radar');

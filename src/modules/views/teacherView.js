@@ -47,6 +47,7 @@ export function renderTeacherView({
   onViewModeChange,
   onWeeklyFitToggle,
   onClassClick,
+  onTeacherClick,
   onRadarClick,
   onToggleFavorite,
   onSetDefault,
@@ -257,7 +258,12 @@ export function renderTeacherView({
                       <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                         ${gridSubName}
                       </div>
-                      ${classLabel ? `<div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600;">${classLabel}</div>` : ''}
+                      ${classLabel ? `
+                        <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 2px;">
+                          <span>${classLabel}</span>
+                          ${act.isCoDocenza ? `<span title="In compresenza con: ${act.coTeachers?.map(c => c.displayName).join(', ') || 'colleghi'}" style="opacity: 0.85; display: inline-flex; align-items: center;">${getIcon('group', { size: 12 })}</span>` : ''}
+                        </div>
+                      ` : ''}
                     </div>
                     <div class="grid-cell-bottom">
                       ${roomDisplay}
@@ -452,7 +458,8 @@ export function renderTeacherView({
           slot: targetSlot,
           day: cellDay,
           totalSpan: cellSpan,
-          onClassClick
+          onClassClick,
+          onTeacherClick
         });
       }
     });
@@ -487,8 +494,8 @@ export function renderTeacherView({
   const listCards = container.querySelectorAll('.schedule-list .hour-card:not(.empty-hour)');
   listCards.forEach(card => {
     const handleCardClick = (e) => {
-      // Se cliccato su chip classe, lascia agire il suo listener
-      if (e.target.closest('.class-chip')) return;
+      // Se cliccato su chip classe o collega, lascia agire il suo listener
+      if (e.target.closest('.class-chip') || e.target.closest('.colleague-chip')) return;
       const cardDay = card.getAttribute('data-day') || currentDay;
       const cardSlotIdx = parseInt(card.getAttribute('data-slot'), 10);
       const cardSpan = parseInt(card.getAttribute('data-span'), 10) || 1;
@@ -501,7 +508,8 @@ export function renderTeacherView({
           slot: targetSlot,
           day: cardDay,
           totalSpan: cardSpan,
-          onClassClick
+          onClassClick,
+          onTeacherClick
         });
       }
     };
@@ -532,6 +540,16 @@ export function renderTeacherView({
       e.stopPropagation();
       const cls = chip.getAttribute('data-class-name');
       if (onClassClick) onClassClick(cls);
+    });
+  });
+
+  // Listener click su chip collega in compresenza
+  const colleagueChips = container.querySelectorAll('.colleague-chip');
+  colleagueChips.forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tId = chip.getAttribute('data-teacher-id');
+      if (onTeacherClick && tId) onTeacherClick(tId);
     });
   });
 
@@ -826,8 +844,24 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
               `;
             })() : ''}
             ${classroomBadge}
-            ${coDocenzaBadges}
             ${locationBadges}
+          </div>
+          ` : ''}
+
+          ${(!isDisp && act.coTeachers && act.coTeachers.length > 0) ? `
+          <div class="timeline-card-colleagues">
+            <span class="colleague-label">${getIcon('group', { size: 14 })} ${act.teacherRole === 'sostegno' ? 'In classe con:' : 'Compresenza:'}</span>
+            <div class="colleague-chips-list">
+              ${act.coTeachers.map(cot => {
+                const isSostegno = cot.role === 'sostegno';
+                const roleSuffix = isSostegno ? ' • sostegno' : (cot.role === 'conversatore' ? ' • conversatore' : '');
+                return `
+                  <span class="colleague-chip ${isSostegno ? 'colleague-chip-sostegno' : ''}" data-teacher-id="${cot.id}" title="Visualizza orario di ${cot.displayName}">
+                    ${cot.displayName}${roleSuffix}
+                  </span>
+                `;
+              }).join('')}
+            </div>
           </div>
           ` : ''}
         </div>

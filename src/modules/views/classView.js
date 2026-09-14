@@ -237,18 +237,27 @@ export function renderClassView({
             const gridSubName = isDisp
               ? (isWeeklyFit ? 'Disp' : 'Disposizione')
               : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
-            const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
+            const teacherDisplay = (act.teachers && act.teachers.length > 0)
+              ? act.teachers.map(t => t.cognome).join(', ')
+              : (act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || ''));
+            const teacherFullName = (act.teachers && act.teachers.length > 0)
+              ? act.teachers.map(t => {
+                  const roleSuffix = t.role === 'sostegno' ? ' (sostegno)' : (t.role === 'conversatore' ? ' (conversatore)' : '');
+                  return `${t.displayName}${roleSuffix}`;
+                }).join(', ')
+              : teacherDisplay;
 
             // Controlla fusione con ora successiva se NON c'è intervallo intermedio
             let canMergeWithNext = false;
             if (!getBreakAfterSlot(d, slot.index)) {
               const nextSlotActs = (scheduleForClass[d] && scheduleForClass[d][slot.index + 1]) || [];
               const nextAct = nextSlotActs[0];
-              if (nextAct &&
+              const actsMatch = nextAct &&
                 !isDisp && !nextAct.isDisposizione &&
                 nextAct.matCod === act.matCod &&
-                nextAct.teacherId === act.teacherId &&
-                nextAct.aula === act.aula) {
+                (nextAct.teacherId === act.teacherId || JSON.stringify(nextAct.teachers?.map(t => t.id)) === JSON.stringify(act.teachers?.map(t => t.id))) &&
+                nextAct.aula === act.aula;
+              if (actsMatch) {
                 canMergeWithNext = true;
                 mergedGridSlots.add(`${d}-${slot.index + 1}`);
               }
@@ -262,7 +271,7 @@ export function renderClassView({
                       <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                         ${gridSubName}
                       </div>
-                      ${teacherName ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherName}">${teacherName}</div>` : ''}
+                      ${teacherDisplay ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherFullName}">${teacherDisplay}</div>` : ''}
                     </div>
                     <div class="grid-cell-bottom">
                       ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
@@ -812,13 +821,42 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
           </div>
 
           <div class="timeline-card-bottom">
-            ${acts.map(a => a.teacherId ? `
-              <span class="teacher-chip" data-teacher-id="${a.teacherId}" title="Apri orario docente">
-                ${getIcon('person', { size: 13 })}
-                ${a.teacherDisplayName}
-              </span>
-            ` : '').join('')}
-            ${coDocenzaBadges}
+            ${(() => {
+              const allTeachers = [];
+              const seen = new Set();
+              acts.forEach(a => {
+                const tList = (a.teachers && a.teachers.length > 0)
+                  ? a.teachers
+                  : (a.teacherId ? [{ id: a.teacherId, displayName: a.teacherDisplayName, role: a.teacherRole || 'curricolare' }] : []);
+
+                tList.forEach(t => {
+                  if (!seen.has(t.id)) {
+                    seen.add(t.id);
+                    allTeachers.push(t);
+                  }
+                });
+              });
+
+              // Ordina: curricolari per primi, poi sostegno e conversatore
+              allTeachers.sort((a, b) => {
+                const isCurricolarA = a.role === 'curricolare' ? 0 : 1;
+                const isCurricolarB = b.role === 'curricolare' ? 0 : 1;
+                if (isCurricolarA !== isCurricolarB) return isCurricolarA - isCurricolarB;
+                return a.displayName.localeCompare(b.displayName);
+              });
+
+              const chips = allTeachers.map(t => {
+                const isSostegno = t.role === 'sostegno';
+                const roleSuffix = isSostegno ? ' • sostegno' : (t.role === 'conversatore' ? ' • conversatore' : '');
+                return `
+                  <span class="teacher-chip ${isSostegno ? 'teacher-chip-sostegno' : ''}" data-teacher-id="${t.id}" title="Apri orario di ${t.displayName}">
+                    ${getIcon('person', { size: 13 })}
+                    ${t.displayName}${roleSuffix}
+                  </span>
+                `;
+              });
+              return chips.join('');
+            })()}
             ${locationBadges}
           </div>
         </div>
