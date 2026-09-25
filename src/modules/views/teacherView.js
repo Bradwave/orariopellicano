@@ -760,16 +760,18 @@ function renderTeacherDayCards({ currentDay, timeSlots, daySchedule, isTodayActi
     const hasBreakAfterCurrent = Boolean(getBreakAfterSlot(currentDay, slot.index));
 
     if (!hasBreakAfterCurrent) {
-      const rawSpan = Math.max(1, act.durataHours || 1);
-      if (rawSpan > 1) {
-        let canSpan = true;
-        for (let offset = 0; offset < rawSpan - 1; offset++) {
-          if (getBreakAfterSlot(currentDay, slot.index + offset)) {
-            canSpan = false;
-            break;
+      if (!act.isContinuation) {
+        const rawSpan = Math.max(1, act.durataHours || 1);
+        if (rawSpan > 1) {
+          let canSpan = true;
+          for (let offset = 0; offset < rawSpan - 1; offset++) {
+            if (getBreakAfterSlot(currentDay, slot.index + offset)) {
+              canSpan = false;
+              break;
+            }
           }
+          if (canSpan) span = rawSpan;
         }
-        if (canSpan) span = rawSpan;
       }
 
       if (span === 1 && !isDisp) {

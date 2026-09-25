@@ -40,10 +40,14 @@ export async function copyScheduleAsText({ title, type, scheduleData, timeSlots,
       const act = nonContinuation[0] || acts[0];
       if (!act) return;
 
-      const span = Math.max(1, act.durataHours || 1);
-      if (span > 1) {
-        for (let s = 1; s < span; s++) {
-          skippedSlots.add(slot.index + s);
+      let span = 1;
+      if (!act.isContinuation) {
+        const rawSpan = Math.max(1, act.durataHours || 1);
+        if (rawSpan > 1) {
+          span = rawSpan;
+          for (let s = 1; s < span; s++) {
+            skippedSlots.add(slot.index + s);
+          }
         }
       }
 

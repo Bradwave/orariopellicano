@@ -746,17 +746,19 @@ function renderDayCards({ currentDay, timeSlots, daySchedule, isTodayActive, cur
     const hasBreakAfterCurrent = Boolean(getBreakAfterSlot(currentDay, slot.index));
 
     if (!hasBreakAfterCurrent) {
-      // 1. Se l'attività ha durata nominale > 1
-      const rawSpan = Math.max(1, mainAct.durataHours || 1);
-      if (rawSpan > 1) {
-        let canSpan = true;
-        for (let offset = 0; offset < rawSpan - 1; offset++) {
-          if (getBreakAfterSlot(currentDay, slot.index + offset)) {
-            canSpan = false;
-            break;
+      // 1. Se l'attività ha durata nominale > 1 (e non è una continuazione di un'ora precedente)
+      if (!mainAct.isContinuation) {
+        const rawSpan = Math.max(1, mainAct.durataHours || 1);
+        if (rawSpan > 1) {
+          let canSpan = true;
+          for (let offset = 0; offset < rawSpan - 1; offset++) {
+            if (getBreakAfterSlot(currentDay, slot.index + offset)) {
+              canSpan = false;
+              break;
+            }
           }
+          if (canSpan) span = rawSpan;
         }
-        if (canSpan) span = rawSpan;
       }
 
       // 2. Se due lezioni consecutive della stessa materia sono consecutive senza intervallo
