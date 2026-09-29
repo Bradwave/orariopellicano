@@ -29,7 +29,7 @@
   "3G": { "aula": "47", "piano": "2º", "ala": "v. Q. Sella" },
   "3H": { "aula": "94", "piano": "3º", "ala": "C.so G. Giolitti" },
   "3I": { "aula": "97", "piano": "3º", "ala": "v. XX Settembre" },
-  "3R": { "aula": "14", "piano": "1º", "ala": "ammezz. scient." },
+  "3R": { "aula": "75", "piano": "2º", "ala": "v. M. Zovetto" },
   "3S": { "aula": "54", "piano": "2º", "ala": "ala centrale" },
   "3T": { "aula": "55", "piano": "2º", "ala": "ala centrale" },
   "3ALFA": { "aula": "64", "piano": "2º", "ala": "C.so G. Giolitti", "display": "3α" },
@@ -51,7 +51,7 @@
 
   "5A": { "aula": "99", "piano": "3º", "ala": "v. XX Settembre" },
   "5B": { "aula": "73", "piano": "3º", "ala": "v. M. Zovetto" },
-  "5C": { "aula": "75", "piano": "3º", "ala": "v. M. Zovetto" },
+  "5C": { "aula": "14", "piano": "1º", "ala": "ammezz. scient." },
   "5D": { "aula": "74", "piano": "3º", "ala": "v. M. Zovetto" },
   "5E": { "aula": "90", "piano": "3º", "ala": "C.so G. Giolitti" },
   "5F": { "aula": "76", "piano": "3º", "ala": "v. M. Zovetto" },
