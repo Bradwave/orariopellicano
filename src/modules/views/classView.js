@@ -323,7 +323,15 @@ export function renderClassView({
               const gridSubName = isDisp
                 ? (isWeeklyFit ? 'Disp' : 'Disposizione')
                 : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
-              const teacherName = act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || '');
+              const teacherDisplay = (act.teachers && act.teachers.length > 0)
+                ? act.teachers.map(t => t.cognome).join(', ')
+                : (act.docCogn ? act.docCogn + (act.docNome ? ' ' + act.docNome : '') : (act.docente || ''));
+              const teacherFullName = (act.teachers && act.teachers.length > 0)
+                ? act.teachers.map(t => {
+                    const roleSuffix = t.role === 'sostegno' ? ' (sostegno)' : (t.role === 'conversatore' ? ' (conversatore)' : '');
+                    return `${t.displayName}${roleSuffix}`;
+                  }).join(', ')
+                : teacherDisplay;
 
               sat5Html = `
                 <div class="grid-content-cell grid-cell-saturday-slot5 ${isSatCurrent ? 'current-cell' : ''}" 
@@ -334,7 +342,7 @@ export function renderClassView({
                     <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                       ${gridSubName}
                     </div>
-                    ${teacherName ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherName}">${teacherName}</div>` : ''}
+                    ${teacherDisplay ? `<div class="grid-subtext ${isWeeklyFit ? 'grid-subtext-fit-class' : ''}" title="${teacherFullName}">${teacherDisplay}</div>` : ''}
                   </div>
                   <div class="grid-cell-bottom">
                     ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}

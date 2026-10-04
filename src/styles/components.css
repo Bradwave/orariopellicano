@@ -1773,9 +1773,11 @@ body.font-enlarged .timeline-break-body {
 }
 
 .weekly-grid {
+  --grid-gap: 8px;
+  --grid-break-height: 28px;
   display: grid;
   grid-template-columns: 88px repeat(6, 1fr);
-  gap: 8px;
+  gap: var(--grid-gap);
   min-width: 850px;
   margin-bottom: 32px;
 }
@@ -1793,11 +1795,13 @@ body.font-enlarged .timeline-break-body {
 }
 
 .weekly-grid.fit-screen {
+  --grid-gap: 4px;
+  --grid-break-height: 22px;
   min-width: 0 !important;
   width: 100% !important;
   max-width: 100% !important;
   grid-template-columns: 24px repeat(6, minmax(0, 1fr)) !important;
-  gap: 4px !important;
+  gap: var(--grid-gap) !important;
   margin-bottom: 24px;
 }
 
@@ -1830,6 +1834,8 @@ body.font-enlarged .timeline-break-body {
 .weekly-grid.fit-screen .grid-break-time-cell {
   min-width: 0 !important;
   padding: 2px 1px;
+  height: var(--grid-break-height, 22px);
+  box-sizing: border-box;
   font-size: 0.58rem;
 }
 
@@ -1845,6 +1851,8 @@ body.font-enlarged .timeline-break-body {
   min-width: 0 !important;
   font-size: 0.62rem;
   padding: 2px 4px;
+  height: var(--grid-break-height, 22px);
+  box-sizing: border-box;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -2981,6 +2989,8 @@ body.font-enlarged .timeline-break-body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 2px 1px;
+  height: var(--grid-break-height, 28px);
+  box-sizing: border-box;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -3000,6 +3010,8 @@ body.font-enlarged .timeline-break-body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 2px 8px;
+  height: var(--grid-break-height, 28px);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3029,18 +3041,17 @@ body.font-enlarged .timeline-break-body {
 }
 
 /* Cella speciale 5ª ora del Sabato:
-   Inizia sulla riga del 2° intervallo (11:50) e copre la 5ª ora terminando prima (12:45) */
+   Inizia sulla riga del 2° intervallo (11:50) e copre l'ora con fine anticipata (12:45)
+   mantenendo un'altezza proporzionata e visivamente piena */
 .grid-cell-saturday-slot5 {
   align-self: flex-start !important;
-  height: calc(100% - 10px) !important;
-  margin-bottom: 10px !important;
+  height: calc(100% - 8px) !important;
   position: relative !important;
 }
 
 .weekly-grid.fit-screen .grid-cell-saturday-slot5 {
   align-self: flex-start !important;
-  height: calc(100% - 6px) !important;
-  margin-bottom: 6px !important;
+  height: calc(100% - 4px) !important;
 }
 
 /* Input date nel modal di esportazione ICS (chiaro e scuro visibili al 100%) */

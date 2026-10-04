@@ -4,7 +4,7 @@
  * Adozione di Stale-While-Revalidate per auto-aggiornamento silenzioso delle risorse.
  */
 
-const CACHE_NAME = 'orario-pellicano-v2.1';
+const CACHE_NAME = 'orario-pellicano-v2.3';
 const STATIC_ASSETS = [
   './',
   './index.html',

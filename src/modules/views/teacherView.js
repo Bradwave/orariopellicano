@@ -311,12 +311,16 @@ export function renderTeacherView({
                 } else {
                   const act = satActs[0];
                   const isDisp = act.isDisposizione;
-                  const colorObj = isDisp ? { color: '#f59e0b' } : (act.classeShort ? getClassColorInfo(act.classeShort) : getSubjectColor(act.matNome, act.matCod));
+                  const colorObj = isDisp ? { color: '#b58900' } : getSubjectColor(act.matNome, act.matCod);
                   const cleanName = isDisp ? 'Disposizione' : cleanSubjectName(act.matNome || act.matCod);
                   const gridSubName = isDisp
                     ? (isWeeklyFit ? 'Disp' : 'Disposizione')
                     : (isWeeklyFit ? getUltraCompactSubjectName(act.matNome, act.matCod) : getGridSubjectName(act.matNome, act.matCod));
-                  const classLabel = isDisp ? '' : formatClassDisplayName(act.classeShort);
+                  const classInfo = (!isDisp && act.classeShort) ? getClassColorInfo(act.classeShort, act.classeFull || '') : null;
+                  const classLabel = isDisp ? '' : (act.classeDisplayShort || formatClassDisplayName(act.classeShort) || act.classeShort || '');
+                  const classColor = classInfo ? classInfo.color : 'var(--text-muted)';
+                  const roomInfo = !isDisp ? getClassroomInfo(act.classeShort) : null;
+                  const roomDisplay = roomInfo ? `<span class="badge badge-classroom-grid ${roomInfo.wingClass}" title="${roomInfo.fullText}">A.${roomInfo.aula}</span>` : '';
 
                   sat5Html = `
                     <div class="grid-content-cell grid-cell-saturday-slot5 ${isSatCurrent ? 'current-cell' : ''}" 
@@ -327,11 +331,17 @@ export function renderTeacherView({
                         <div class="grid-subject" title="${cleanName}" style="${isDisp ? 'color: var(--badge-disposizione-text); font-weight: 700;' : ''}">
                           ${gridSubName}
                         </div>
-                        ${classLabel ? `<div class="grid-subtext" title="Classe ${classLabel}">${classLabel}</div>` : ''}
+                        ${classLabel ? `
+                          <div class="grid-subtext" title="${classLabel}" style="color: ${classColor}; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 2px;">
+                            <span>${classLabel}</span>
+                            ${act.isCoDocenza ? `<span title="In compresenza con: ${act.coTeachers?.map(c => c.displayName).join(', ') || 'colleghi'}" style="opacity: 0.85; display: inline-flex; align-items: center;">${getIcon('group', { size: 12 })}</span>` : ''}
+                          </div>
+                        ` : ''}
                       </div>
                       <div class="grid-cell-bottom">
-                        ${act.aula ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
-                        ${renderLocationBadge(act.sede, '')}
+                        ${roomDisplay}
+                        ${(!isDisp && act.aula && (!roomInfo || act.aula !== roomInfo.aula)) ? `<span class="badge badge-sede">${act.aula.includes('<') ? act.aula.replace(/[<>]/g, '') : 'Aula ' + act.aula}</span>` : ''}
+                        ${(!isDisp && act.sede && act.sede !== 'DISPOSIZIONE') ? renderLocationBadge(act.sede, '') : ''}
                       </div>
                     </div>
                   `;

@@ -237,7 +237,7 @@
   /* Cella speciale 5ª ora del Sabato in stampa */
   .grid-cell-saturday-slot5 {
     grid-row: span 2 !important;
-    height: calc(100% - 8px) !important;
-    margin-bottom: 8px !important;
+    align-self: flex-start !important;
+    height: calc(100% - var(--grid-break-height, 28px) - var(--grid-gap, 0px)) !important;
   }
 }
