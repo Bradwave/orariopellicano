@@ -26,8 +26,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
   <!-- Styles: Main & Print -->
-  <link rel="stylesheet" href="./src/styles/main.css?v=2.3">
-  <link rel="stylesheet" href="./src/styles/print.css?v=2.3">
+  <link rel="stylesheet" href="./src/styles/main.css">
+  <link rel="stylesheet" href="./src/styles/print.css">
 </head>
 
 <body>
@@ -51,7 +51,8 @@
         </div>
 
         <!-- Dropdown Preferiti Toggle (Chevron essenziale senza bordi a destra) -->
-        <button class="favs-dropdown-toggle-btn" id="favsDropdownToggleBtn" title="Mostra/nascondi preferiti" aria-label="Mostra/nascondi preferiti" aria-expanded="false">
+        <button class="favs-dropdown-toggle-btn" id="favsDropdownToggleBtn" title="Mostra/nascondi preferiti"
+          aria-label="Mostra/nascondi preferiti" aria-expanded="false">
           <span class="material-symbols-outlined favs-chevron" id="favsChevron">expand_more</span>
         </button>
       </div>
@@ -111,17 +112,22 @@
         </div>
 
         <!-- Sincronizzazione compatta con Sync Badge + Descrittore + Svuota Cache -->
-        <div class="settings-sync-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <div class="settings-sync-row"
+          style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="sync-status-badge online" id="modalSyncBadgeBtn" title="Tocca per forzare la sincronizzazione" style="background: var(--bg-input);">
+            <button class="sync-status-badge online" id="modalSyncBadgeBtn"
+              title="Tocca per forzare la sincronizzazione" style="background: var(--bg-input);">
               <span class="material-symbols-outlined sync-icon online" id="modalSyncIcon">cloud_done</span>
             </button>
             <div>
-              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);" id="modalSyncStatusTitle">Sincronizzato</div>
-              <div style="font-size: 0.72rem; color: var(--text-muted);" id="modalSyncStatusSub">Tocca per verificare</div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);" id="modalSyncStatusTitle">
+                Sincronizzato</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);" id="modalSyncStatusSub">Tocca per verificare
+              </div>
             </div>
           </div>
-          <button class="btn-secondary" id="modalClearCacheBtn" title="Svuota cache locale" style="padding: 6px 10px; font-size: 0.76rem; color: #f87171; display: inline-flex; align-items: center; gap: 4px;">
+          <button class="btn-secondary" id="modalClearCacheBtn" title="Svuota cache locale"
+            style="padding: 6px 10px; font-size: 0.76rem; color: #f87171; display: inline-flex; align-items: center; gap: 4px;">
             <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
             Svuota cache
           </button>
@@ -129,29 +135,36 @@
 
         <!-- Toggle Tema Diretto -->
         <div style="margin-bottom: 14px;">
-          <button class="btn-secondary" id="modalThemeToggleBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px;">
+          <button class="btn-secondary" id="modalThemeToggleBtn"
+            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px;">
             <span class="material-symbols-outlined" style="font-size: 18px;">light_mode</span>
             Attiva tema chiaro
           </button>
         </div>
 
         <!-- 1. Toggle Dimensione Testo Vista Elenco -->
-        <div style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div
+          style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">format_size</span>
+            <span class="material-symbols-outlined"
+              style="font-size: 20px; color: var(--accent-primary);">format_size</span>
             <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Testo elenco ingrandito</div>
           </div>
-          <label class="custom-toggle-switch" for="modalFontSizeToggle" aria-label="Attiva testo ingrandito nella vista elenco">
+          <label class="custom-toggle-switch" for="modalFontSizeToggle"
+            aria-label="Attiva testo ingrandito nella vista elenco">
             <input type="checkbox" id="modalFontSizeToggle">
             <span class="toggle-slider"></span>
           </label>
         </div>
 
         <!-- 2. Widget Next-Up Toggle -->
-        <div style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div
+          style="margin-bottom: 12px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">schedule</span>
-            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Widget "Prossima Lezione"</div>
+            <span class="material-symbols-outlined"
+              style="font-size: 20px; color: var(--accent-primary);">schedule</span>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Widget "Prossima Lezione"
+            </div>
           </div>
           <label class="custom-toggle-switch" for="modalNextUpToggle" aria-label="Attiva widget Prossima Lezione">
             <input type="checkbox" id="modalNextUpToggle">
@@ -160,10 +173,13 @@
         </div>
 
         <!-- 3. Toggle Aula Lista Docenti -->
-        <div style="margin-bottom: 16px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div
+          style="margin-bottom: 16px; background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--accent-primary);">meeting_room</span>
-            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Mostra aula nella lista docenti</div>
+            <span class="material-symbols-outlined"
+              style="font-size: 20px; color: var(--accent-primary);">meeting_room</span>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Mostra aula nella lista
+              docenti</div>
           </div>
           <label class="custom-toggle-switch" for="modalTeacherRoomToggle" aria-label="Mostra aula nella lista docenti">
             <input type="checkbox" id="modalTeacherRoomToggle">

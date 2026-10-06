@@ -58,11 +58,11 @@ let CLASSROOMS_MAP = {
 
   "5A": { "aula": "99", "piano": "3º", "ala": "v. XX Settembre" },
   "5B": { "aula": "73", "piano": "3º", "ala": "v. M. Zovetto" },
-  "5C": { "aula": "14", "piano": "1º", "ala": "ammezz. scient." },
+  "5C": { "aula": "77", "piano": "3º", "ala": "v. M. Zovetto" },
   "5D": { "aula": "74", "piano": "3º", "ala": "v. M. Zovetto" },
   "5E": { "aula": "90", "piano": "3º", "ala": "C.so G. Giolitti" },
   "5F": { "aula": "76", "piano": "3º", "ala": "v. M. Zovetto" },
-  "5G": { "aula": "77", "piano": "3º", "ala": "v. M. Zovetto" },
+  "5G": { "aula": "14", "piano": "1º", "ala": "ammezz. scient." },
   "5S": { "aula": "42", "piano": "2º", "ala": "v. M. Zovetto" },
   "5ALFA": { "aula": "51", "piano": "2º", "ala": "C.so G. Giolitti", "display": "5α" },
   "5BETA": { "aula": "50", "piano": "2º", "ala": "C.so G. Giolitti", "display": "5β" },
@@ -100,7 +100,7 @@ initClassroomsConfig();
  */
 export function normalizeClassKey(classInput) {
   if (!classInput || typeof classInput !== 'string') return '';
-  
+
   let cleaned = classInput
     .replace(/^[.\s]+/, '')
     .trim()
@@ -215,7 +215,7 @@ export function getClassroomInfo(classInput) {
 export function findClassByRoom(aulaNum) {
   if (!aulaNum) return [];
   const query = String(aulaNum).trim().toLowerCase();
-  
+
   const results = [];
   for (const [classKey, data] of Object.entries(CLASSROOMS_MAP)) {
     if (String(data.aula).trim().toLowerCase() === query) {
